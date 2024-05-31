@@ -811,9 +811,9 @@ namespace Motto_Vehicle_DataFeed
         #endregion
 
         #region GetTransportStatusForDetaildb
-        public StatusDetailJson GetTransportStatusForDetaildb(DataTable dtData)
+        public DataTable GetTransportStatusForDetaildb(DataTable dtData)
         {
-            StatusDetailJson result = new StatusDetailJson();
+            DataTable result = new DataTable();
             double dFromDate = Convert.ToDouble(dtData.Rows[0]["fromDate"] == null ? 0 : dtData.Rows[0]["fromDate"]);
             string strFromDate = (dFromDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dFromDate)).ToString("yyyy-MM-dd");
             double dToDate = Convert.ToDouble(dtData.Rows[0]["toDate"] == null ? 0 : dtData.Rows[0]["toDate"]);
@@ -840,12 +840,12 @@ namespace Motto_Vehicle_DataFeed
 
                         using (var reader = command.ExecuteReader())
                         {
-                            DataTable tempResult = new DataTable();
-                            tempResult.Load(reader);
+                            result.Load(reader);
 
-                            result.Pending = GetResultDetailByStatus(tempResult, "Pending");
-                            result.Checkout = GetResultDetailByStatus(tempResult, "Check Out");
-                            result.Checkin = GetResultDetailByStatus(tempResult, "Check In");
+                            //result.Overall = GetResultDetailOverall(tempResult);
+                            //result.PendingPickup = GetResultDetailByStatus(tempResult, 1);
+                            //result.Transporting = GetResultDetailByStatus(tempResult, 2);
+                            //result.Arrived = GetResultDetailByStatus(tempResult, 3);
                         }
                     }
                 }
@@ -858,52 +858,60 @@ namespace Motto_Vehicle_DataFeed
             return result;
         }
 
-        private List<StatusDetailEntry> GetResultDetailByStatus(DataTable dt, string status)
-        {
-            var filteredRows = dt.AsEnumerable()
-                                  .Where(row => row.Field<string>("TransportStatus") == status);
+        //private List<StatusDetailEntry> GetResultDetailOverall(DataTable dt)
+        //{
+        //    string[] selectedColumns = { "Status", "IMAPNumber", "Registration", "SellerName", "VendorName", "StorageLocation", "Destination" };
 
-            DataTable filteredDataTable;
-            if (filteredRows.Any())
-            {
-                filteredDataTable = filteredRows.CopyToDataTable();
-            }
-            else
-            {
-                filteredDataTable = dt.Clone(); // Create an empty table with the same schema
-            }
+        //    var result = GetSelectedColumns(dt, selectedColumns);
+        //    return result;
+        //}
 
-            string[] selectedColumns = { "TransportStatus", "IMAPNumber", "Registration", "SellerName", "VendorName", "StorageLocation", "Destination" };
+        //private List<StatusDetailEntry> GetResultDetailByStatus(DataTable dt, int status)
+        //{
+        //    var filteredRows = dt.AsEnumerable()
+        //                          .Where(row => row.Field<int>("Status") == status);
 
-            var result = GetSelectedColumns(filteredDataTable, selectedColumns);
-            return result;
-        }
+        //    DataTable filteredDataTable;
+        //    if (filteredRows.Any())
+        //    {
+        //        filteredDataTable = filteredRows.CopyToDataTable();
+        //    }
+        //    else
+        //    {
+        //        filteredDataTable = dt.Clone(); // Create an empty table with the same schema
+        //    }
 
-        public List<StatusDetailEntry> GetSelectedColumns(DataTable sourceTable, string[] columnNames)
-        {
-            var result = new List<StatusDetailEntry>();
+        //   string[] selectedColumns = { "Status", "IMAPNumber", "Registration", "SellerName", "VendorName", "StorageLocation", "Destination" };
 
-            // Iterate through each row in the source DataTable
-            foreach (DataRow row in sourceTable.Rows)
-            {
-                var entry = new StatusDetailEntry();
-                foreach (string columnName in columnNames)
-                {
-                    if (sourceTable.Columns.Contains(columnName))
-                    {
-                        // Use reflection to set the properties of StatusDetailEntry
-                        var property = typeof(StatusDetailEntry).GetProperty(columnName);
-                        if (property != null && row[columnName] != DBNull.Value)
-                        {
-                            property.SetValue(entry, row[columnName]);
-                        }
-                    }
-                }
-                result.Add(entry);
-            }
+        //    var result = GetSelectedColumns(filteredDataTable, selectedColumns);
+        //    return result; 
+        //}
 
-            return result;
-        }
+        //public DataTable GetSelectedColumns(DataTable sourceTable, string[] columnNames)
+        //{
+        //    var result = new DataTable();
+
+        //    // Iterate through each row in the source DataTable
+        //    foreach (DataRow row in sourceTable.Rows)
+        //    {
+        //        var entry = new StatusDetailEntry();
+        //        foreach (string columnName in columnNames)
+        //        {
+        //            if (sourceTable.Columns.Contains(columnName))
+        //            {
+        //                // Use reflection to set the properties of StatusDetailEntry
+        //                var property = typeof(StatusDetailEntry).GetProperty(columnName);
+        //                if (property != null && row[columnName] != DBNull.Value)
+        //                {
+        //                    property.SetValue(entry, row[columnName]);
+        //                }
+        //            }
+        //        }
+        //        result.Add(entry);
+        //    }
+
+        //    return result;
+        //}
         #endregion
 
         #region GetTransportLocation
@@ -2631,9 +2639,13 @@ namespace Motto_Vehicle_DataFeed
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
-        public static string get_TransportStatusfordb = "SELECT * FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate)";
+        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,1 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) Where TransportStatus = 'Pending'
+                                                            UNION ALL
+                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,2 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check Out'
+                                                            UNION ALL
+                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,3 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check In'";
 
-        public static string get_TransportLocfordb = "SELECT * FROM fn_Transport_Location(@VendorID, @FromDate, @ToDate)";
+        public static string get_TransportLocfordb = "SELECT * FROM fn_Transport_Location(@VendorID, @FromDate, @ToDate) ORDER BY TotalPending DESC,TotalCheckOut DESC,TotalCheckIn DESC";
 
         public static string get_TransportStatusCategory = @"SELECT sc.CategoryTypeName, sc.CategoryTypeOrder,
                                                             ISNULL(COUNT(StatusData.IMAPNumber),0) TotalVehicle,

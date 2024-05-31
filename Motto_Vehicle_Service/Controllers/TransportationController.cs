@@ -11,6 +11,7 @@ using System.Data.SqlClient;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Web;
 using System.Web.DynamicData;
@@ -880,10 +881,18 @@ namespace Motto_Vehicle_Service.Controllers
             DataTable dt = JsonToDt(formData);
 
             Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
-            StatusDetailJson result = objDataFeed.GetTransportStatusForDetaildb(dt);
+            DataTable dtresult = objDataFeed.GetTransportStatusForDetaildb(dt);
 
-            string jsonString = JsonConvert.SerializeObject(result, Formatting.Indented);
-            return Content(jsonString, "application/json");
+            dtresult.Columns["IMAPNumber"].ColumnName = "iMAPNumber";
+            dtresult.Columns["Registration"].ColumnName = "registration";
+            dtresult.Columns["SellerName"].ColumnName = "sellerName";
+            dtresult.Columns["VendorName"].ColumnName = "vendorName";
+            dtresult.Columns["StorageLocation"].ColumnName = "storageLocation";
+            dtresult.Columns["Destination"].ColumnName = "destination";
+            dtresult.Columns["Status"].ColumnName = "status";
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
         }
         #endregion
 

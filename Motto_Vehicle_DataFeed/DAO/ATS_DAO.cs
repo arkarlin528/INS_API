@@ -208,7 +208,7 @@ namespace MOTTO_DATAFEED.DAO
 
     public class StatusDetailEntry
     {
-        public string TransportStatus { get; set; }
+        public int Status { get; set; }
         public string IMAPNumber { get; set; }
         public string Registration { get; set; }
         public string SellerName { get; set; }
@@ -219,9 +219,10 @@ namespace MOTTO_DATAFEED.DAO
 
     public class StatusDetailJson
     {
-        public List<StatusDetailEntry> Pending { get; set; }
-        public List<StatusDetailEntry> Checkout { get; set; }
-        public List<StatusDetailEntry> Checkin { get; set; }
+        public List<StatusDetailEntry> Overall { get; set; }
+        public List<StatusDetailEntry> PendingPickup { get; set; }
+        public List<StatusDetailEntry> Transporting { get; set; }
+        public List<StatusDetailEntry> Arrived { get; set; }
     }
 
     //public class StatusEntry
