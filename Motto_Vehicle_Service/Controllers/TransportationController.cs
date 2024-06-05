@@ -943,20 +943,10 @@ namespace Motto_Vehicle_Service.Controllers
 
         #region GetLocationByIMAPnumber
         [HttpPost]
-        public ActionResult GetLocationByIMAPnumber()
+        public ActionResult GetLocationByIMAPnumber(string vehicleNo)
         {
-            // Read the form data from the request
-            string formData;
-            using (var reader = new StreamReader(Request.InputStream))
-            {
-                formData = reader.ReadToEnd();
-            }
-
-            // Convert JSON string to DataTable
-            DataTable dt = JsonToDt(formData);
-
             Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
-            DataTable dtresult = objDataFeed.GetLocationByIMAPnumber(dt);
+            DataTable dtresult = objDataFeed.GetLocationByIMAPnumber(vehicleNo);
 
             string jsString = DtToJSon(dtresult, "data");
             return Content(jsString, "application/json");

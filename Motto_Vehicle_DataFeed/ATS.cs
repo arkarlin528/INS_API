@@ -959,10 +959,9 @@ namespace Motto_Vehicle_DataFeed
         #endregion
 
         #region GetLocationByIMAPnumber
-        public DataTable GetLocationByIMAPnumber(DataTable dtData)
+        public DataTable GetLocationByIMAPnumber(string strvehicleNo)
         {
             DataTable result = new DataTable();
-            string imapNo = dtData.Rows[0]["IMAPnumber"] == null ? "" : dtData.Rows[0]["IMAPnumber"].ToString();
             try
             {
                 using (var context = new dataFeedContext())
@@ -977,7 +976,7 @@ namespace Motto_Vehicle_DataFeed
                     {
                         command.CommandText = Transport_Query.get_TransportLocByImapNo;
 
-                        command.Parameters.Add(new SqlParameter("@IMAPNumber", imapNo));
+                        command.Parameters.Add(new SqlParameter("@IMAPNumber", strvehicleNo));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -2635,7 +2634,7 @@ namespace Motto_Vehicle_DataFeed
         public static string Get_Location_List = $@"Select * from Transport_Location";
         #endregion
         
-        public static string get_TransportLocByImapNo = @"SELECT TOP 1 IMAPNumber,VendorName,[StorageLocation],Destination FROM fn_getTransportStatus('',GETDATE(),GETDATE()) 
+        public static string get_TransportLocByImapNo = @"SELECT TOP 1 IMAPNumber,VendorName,[StorageLocation],Destination FROM fn_getTransportStatus('',GETDATE()-30,GETDATE()) 
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
