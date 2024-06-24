@@ -999,10 +999,11 @@ namespace Motto_Vehicle_DataFeed
         public void UploadTransportOrder(DataTable dtData)
         {
             Transport_Order oOrder = new Transport_Order();
-            oOrder.OrderCode = getOrderCode();
+            oOrder.CreatedBy = dtData.Rows[0]["actionBy"] == null ? "" : dtData.Rows[0]["actionBy"].ToString();
+            string userRole = getUserRole(oOrder.CreatedBy);
+            oOrder.OrderCode = getOrderCode(userRole);
             oOrder.UploadDate = DateTime.Now;
             oOrder.CreateDate = DateTime.Now;
-            oOrder.CreatedBy = dtData.Rows[0]["actionBy"] == null ? "" : dtData.Rows[0]["actionBy"].ToString();
 
             using (var context = new dataFeedContext())
             {
@@ -1061,14 +1062,48 @@ namespace Motto_Vehicle_DataFeed
             }
         }
 
-        protected string getOrderCode()
+        protected string getUserRole(string createduser)
         {
             DataTable result = new DataTable();
-            string sign = "ORD";
-            string orderNo = "0001";
+            using (var context = new dataFeedContext())
+            {
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                using (var command = context.Database.Connection.CreateCommand())
+                {
+                    command.CommandText = Transport_Query.Get_UserByUserID
+                         .Replace("@UserID", createduser);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        result.Load(reader);
+                    }
+                }
+            }
+            string userRole = result.Rows[0]["DepartmentID"] == null ? "0" : result.Rows[0]["DepartmentID"].ToString();
+            return userRole;
+        }
+
+        protected string getOrderCode(string createduserRole)
+        {
+            DataTable result = new DataTable();
+            string sign = "";
+            if (createduserRole == "1")//Transport Department
+            {
+                sign = "TS";
+            }
+            else if (createduserRole == "2")//Operation
+            {
+                sign = "OP";
+            }
+            string orderNo = "00001";
             string orderDate = "";
             string OrderCode = "";
-            string systemDate = DateTime.Now.ToString("yyyyMMdd");
+            string systemDate = DateTime.Now.ToString("yyyyMM");
             using (var context = new dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
@@ -1111,7 +1146,7 @@ namespace Motto_Vehicle_DataFeed
                         orderNo = dtorder.Rows[0]["OrderCode"].ToString();
 
                         int aa = int.Parse(orderNo) + 1;
-                        OrderCode = sign + '-' + orderDate + '-' + aa.ToString("D4");
+                        OrderCode = sign + '-' + orderDate + '-' + aa.ToString("D5");
                     }
                     else
                     {
@@ -1122,7 +1157,7 @@ namespace Motto_Vehicle_DataFeed
                 else
                 {
                     int dd = int.Parse(systemDate);
-                    OrderCode = sign + '-' + dd.ToString("D4") + '-' + orderNo;
+                    OrderCode = sign + '-' + dd.ToString("D6") + '-' + orderNo;
                 }
             }
             return OrderCode;
@@ -2491,15 +2526,17 @@ namespace Motto_Vehicle_DataFeed
         public static string Check_Duplicate_User = $@"Select * from Transport_User where LoginName=@LoginName and UserEmail=@UserEmail and UserID<>@UserID";
 
         public static string Get_User_List = $@"Select * from Transport_User";
+
+        public static string Get_UserByUserID = $@"Select * from Transport_User where UserID=@UserID";
         #endregion
 
         #region Transport Order & Detail
-        public static string Get_LastestOrderID = $@"select Top(1) substring(OrderCode,14,15)OrderCode from Transport_OrderDoc 
-                                   where CONVERT(varchar(10),CreateDate,112)=CONVERT(varchar(10),@CreateDate,112)
+        public static string Get_LastestOrderID = $@"select Top(1) substring(OrderCode,12,5)OrderCode from Transport_OrderDoc 
+                                   where LEFT(CONVERT(varchar(10),CreateDate,112), 6)=LEFT(CONVERT(varchar(10),@CreateDate,112), 6)
                                    order by OrderCode desc";
 
-        public static string Get_LastestCreateOrderDate = $@"select Top(1) CONVERT(varchar(10),CreateDate,112) CreateDate from Transport_OrderDoc 
-                                       where CONVERT(varchar(10),CreateDate,112)=CONVERT(varchar(10),@CreateDate,112) order by CreateDate desc";
+        public static string Get_LastestCreateOrderDate = $@"select Top(1) LEFT(CONVERT(varchar(10),CreateDate,112), 6) CreateDate from Transport_OrderDoc 
+                                       where LEFT(CONVERT(varchar(10),CreateDate,112), 6)=LEFT(CONVERT(varchar(10),@CreateDate,112), 6) order by CreateDate desc";
 
         public static string Save_Transport_Order = $@"INSERT INTO Transport_OrderDoc (OrderCode,UploadDate,CreateDate,CreatedBy)
                         VALUES(@OrderCode,@UploadDate,@CreateDate,@CreatedBy);SELECT CAST(SCOPE_IDENTITY() AS INT);";
@@ -2634,7 +2671,7 @@ namespace Motto_Vehicle_DataFeed
         public static string Get_Location_List = $@"Select * from Transport_Location";
         #endregion
         
-        public static string get_TransportLocByImapNo = @"SELECT TOP 1 IMAPNumber,VendorName,[StorageLocation],Destination FROM fn_getTransportStatus('',GETDATE()-30,GETDATE()) 
+        public static string get_TransportLocByImapNo = @"SELECT TOP 1 IMAPNumber,VendorName,[StorageLocation],Destination,COALESCE(NULLIF(PickupRoofType, ''), '-') AS RoofType FROM fn_getTransportStatus('',GETDATE()-30,GETDATE()) 
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
