@@ -2265,6 +2265,8 @@ namespace Motto_Vehicle_DataFeed
         #endregion
         #endregion
 
+
+        #region GetVehicleInformation
         #region GetVehicleListByRegistration
         public DataTable GetVehicleListByRegistration(DataTable dtData)
         {
@@ -2311,6 +2313,91 @@ namespace Motto_Vehicle_DataFeed
             }
             return result;
         }
+        #endregion
+
+        #region GetVehicleInfoByFromLocation
+        public DataTable GetVehicleInfoByFromLocation(string location)
+        {
+            DataTable result = new DataTable();
+            int LocationID = int.Parse(location == null ? "0" : location);
+            DateTime ToDate = DateTime.Now;
+            DateTime FromDate = ToDate.AddMonths(-1);
+
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Transport_Query.Get_VehicleInfo_ByFromLocation;
+
+                        command.Parameters.Add(new SqlParameter("@FromDate", FromDate));
+                        command.Parameters.Add(new SqlParameter("@ToDate", ToDate));
+                        command.Parameters.Add(new SqlParameter("@LocationID", LocationID));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetVehicleInfoByToLocation
+        public DataTable GetVehicleInfoByToLocation(string location)
+        {
+            DataTable result = new DataTable();
+            int LocationID = int.Parse(location == null ? "0" : location);
+            DateTime ToDate = DateTime.Now;
+            DateTime FromDate = ToDate.AddMonths(-1);
+
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Transport_Query.Get_VehicleInfo_ByToLocation;
+
+                        command.Parameters.Add(new SqlParameter("@FromDate", FromDate));
+                        command.Parameters.Add(new SqlParameter("@ToDate", ToDate));
+                        command.Parameters.Add(new SqlParameter("@LocationID", LocationID));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
         #endregion
 
         #region CheckOutVehicles
@@ -2485,6 +2572,379 @@ namespace Motto_Vehicle_DataFeed
             dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
             return dateTime;
         }
+    }
+    #endregion
+
+    #region Raka
+    public class Raka_DATAFEED
+    {
+        public Raka_DATAFEED() { }
+
+        #region SearchMagicWords
+        public DataTable SearchMagicWords(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            string strSearchText = (dtData.Rows[0]["searchText"] == null ? "" : dtData.Rows[0]["searchText"].ToString());
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Search_MagicWords
+                            .Replace("@search", strSearchText);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region AdvanceSearch
+        public DataTable AdvanceSearch(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            string Make = (dtData.Rows[0]["make"] == null ? "" : dtData.Rows[0]["make"].ToString());
+            string Model = (dtData.Rows[0]["model"] == null ? "" : dtData.Rows[0]["model"].ToString());
+            string SubModel = (dtData.Rows[0]["subModel"] == null ? "" : dtData.Rows[0]["subModel"].ToString());
+            string BuildYear = (dtData.Rows[0]["buildYear"] == null ? "" : dtData.Rows[0]["buildYear"].ToString());
+            string EngineType = (dtData.Rows[0]["engineType"] == null ? "" : dtData.Rows[0]["engineType"].ToString());
+            string Seats = (dtData.Rows[0]["seats"] == null ? "" : dtData.Rows[0]["seats"].ToString());
+            string BodyType = (dtData.Rows[0]["bodyType"] == null ? "" : dtData.Rows[0]["bodyType"].ToString());
+            string VINNumber = (dtData.Rows[0]["vinNumber"] == null ? "" : dtData.Rows[0]["vinNumber"].ToString());
+
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Advance_Search
+                            .Replace("@Make", Make)
+                            .Replace("@Model", Model)
+                            .Replace("@SubModel", SubModel)
+                            .Replace("@BuildYear", BuildYear)
+                            .Replace("@EngineType", EngineType)
+                            .Replace("@Seats", Seats)
+                            .Replace("@BodyType", BodyType)
+                            .Replace("@VINNumber", VINNumber);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetMakeForCombo
+        public DataTable GetMakeForCombo()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_Make_ForCombo;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetModelForCombo
+        public DataTable GetModelForCombo(string make)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_Model_ForCombo;
+
+                        command.Parameters.Add(new SqlParameter("@Make", make));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetYearForCombo
+        public DataTable GetYearForCombo()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_Year_ForCombo;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetEngineTypeForCombo
+        public DataTable GetEngineTypeForCombo()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_EngineType_ForCombo;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetSeatingCapacityForCombo
+        public DataTable GetSeatingCapacityForCombo()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_SeatingCapacity_ForCombo;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+
+        #region GetBodyStyleForCombo
+        public DataTable GetBodyStyleForCombo()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_BodyStyle_ForCombo;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetSubModelForCombo
+        public DataTable GetSubModelForCombo(string make)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_SubModel_ForCombo;
+
+                        command.Parameters.Add(new SqlParameter("@Make", make));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetViewDetail
+        public DataTable GetViewDetail(string id)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_viewdetail;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
     }
     #endregion
 
@@ -2694,7 +3154,57 @@ namespace Motto_Vehicle_DataFeed
                                                             ON StatusData.CategoryTypeName = sc.CategoryTypeName
                                                             GROUP BY sc.CategoryTypeName,sc.CategoryTypeOrder
                                                             ORDER BY sc.CategoryTypeOrder";
+
+        public static string Get_VehicleInfo_ByToLocation = @"SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
+                                                                    (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
+                                                                    WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
+                                                                    WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'To' TransportDirection
+                                                                    FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23))
+                                                                    WHERE ToID = @LocationID";
+
+        public static string Get_VehicleInfo_ByFromLocation = @"SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
+                                                                            (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
+                                                                            WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
+                                                                            WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection
+                                                                            FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23))
+                                                                            WHERE FromID = @LocationID";
         #endregion
+    }
+    #endregion
+
+    #region Raka_Query
+    public class Raka_Query
+    {
+        public static string Search_MagicWords = $@"EXEC [RAKA_SearchMagicWords] @search";
+
+        public static string Get_viewdetail = $@"SELECT * FROM RAKA_VehicleDetailFlatData WHERE ID = @id";
+
+        public static string Advance_Search = $@"SELECT *
+                                                    FROM RAKA_VehicleDetailFlatData
+                                                    WHERE ISNULL(Make,'') = (CASE WHEN ISNULL(@Make,'') = '' THEN Make ELSE @Make END)
+                                                    AND ISNULL(Family,'') =(CASE WHEN ISNULL(@Model,'') = '' THEN Family ELSE @Model END)
+                                                    AND ISNULL([Identification_Badge],'') =(CASE WHEN ISNULL(@SubModel,'') = '' THEN [Identification_Badge] ELSE @SubModel END)
+                                                    AND ISNULL([Year],'') =(CASE WHEN ISNULL(@BuildYear,'') = '' THEN [Year] ELSE @BuildYear END)
+                                                    AND ISNULL([Engine_EngineType],'') =(CASE WHEN ISNULL(@EngineType,'') = '' THEN [Engine_EngineType] ELSE @EngineType END)
+                                                    AND ISNULL([Identification_SeatingCapacity],'') =(CASE WHEN ISNULL(@Seats,'') = '' THEN [Identification_SeatingCapacity] ELSE @Seats END)
+                                                    AND ISNULL([Identification_BodyStyle],'') =(CASE WHEN ISNULL(@BodyType,'') = '' THEN [Identification_BodyStyle] ELSE @BodyType END)
+                                                    AND ISNULL([Identification_VIN],'') LIKE (CASE WHEN ISNULL(@VINNumber,'') = '' THEN [Identification_VIN] ELSE @VINNumber + '%' END)";
+
+        public static string Get_Make_ForCombo = $@"SELECT DISTINCT Make FROM RAKA_VehicleDetailFlatData ORDER BY Make";
+
+        public static string Get_Model_ForCombo = $@"SELECT DISTINCT Family FROM RAKA_VehicleDetailFlatData WHERE Make = @Make ORDER BY Family";
+
+        public static string Get_Year_ForCombo = $@"SELECT DISTINCT [Year] FROM RAKA_VehicleDetailFlatData ORDER BY [Year] DESC";
+
+        public static string Get_EngineType_ForCombo = $@"SELECT DISTINCT (CASE WHEN [Engine_EngineType] = '' THEN 'N/A' ELSE [Engine_EngineType] END) [Engine_EngineType] FROM RAKA_VehicleDetailFlatData ORDER BY [Engine_EngineType]";
+
+        public static string Get_SeatingCapacity_ForCombo = $@"SELECT DISTINCT CONVERT(INT,[Identification_SeatingCapacity]) [Identification_SeatingCapacity] 
+                                                            FROM RAKA_VehicleDetailFlatData WHERE [Identification_SeatingCapacity] <> ''  ORDER BY CONVERT(INT,[Identification_SeatingCapacity])";
+
+        public static string Get_BodyStyle_ForCombo = $@"SELECT DISTINCT [Identification_BodyStyle] [Identification_BodyStyle] 
+                                                            FROM RAKA_VehicleDetailFlatData ORDER BY [Identification_BodyStyle]";
+
+        public static string Get_SubModel_ForCombo = $@"SELECT DISTINCT [Identification_Badge] FROM RAKA_VehicleDetailFlatData WHERE Make = @Make AND [Identification_Badge] <> '' ORDER BY [Identification_Badge]";
     }
     #endregion
 

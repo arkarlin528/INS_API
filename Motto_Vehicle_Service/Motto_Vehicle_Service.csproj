@@ -164,6 +164,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ATSController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\RakaController.cs" />
     <Compile Include="Controllers\TransportationController.cs" />
     <Compile Include="Email\Email.cs" />
     <Compile Include="Email\Helper.cs" />
@@ -228,6 +229,7 @@
     <Folder Include="App_Data\" />
     <Folder Include="Models\" />
     <Folder Include="Views\ATS\" />
+    <Folder Include="Views\Raka\" />
     <Folder Include="Views\Transportation\" />
     <Folder Include="Views\Vehicle\" />
   </ItemGroup>

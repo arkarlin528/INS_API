@@ -830,6 +830,8 @@ namespace Motto_Vehicle_Service.Controllers
         }
         #endregion
 
+        
+
         #endregion
 
         #region GetVehicleInformation
@@ -859,6 +861,50 @@ namespace Motto_Vehicle_Service.Controllers
             dtresult.Columns["Variants"].ColumnName = "variants";
             dtresult.Columns["AuctionCode"].ColumnName = "auctionCode";
             dtresult.Columns["Registration"].ColumnName = "registration";
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+
+        [HttpPost]
+        public ActionResult GetVehicleInfoByFromLocation(string location)
+        {
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            DataTable dtresult = objDataFeed.GetVehicleInfoByFromLocation(location);
+
+            dtresult.Columns["IMAPNumber"].ColumnName = "iMAPNumber";
+            dtresult.Columns["Registration"].ColumnName = "registration";
+            dtresult.Columns["VendorName"].ColumnName = "vendorName";
+            dtresult.Columns["StorageLocation"].ColumnName = "storagelocation";
+            dtresult.Columns["Destination"].ColumnName = "destinationlocation";
+            dtresult.Columns["MakeDesc"].ColumnName = "makedesc";
+            dtresult.Columns["Variants"].ColumnName = "variants";
+            dtresult.Columns["ChassisNo"].ColumnName = "chassisNo";
+            dtresult.Columns["PickupRoofType"].ColumnName = "pickupRoofType";
+            dtresult.Columns["TransportStatus"].ColumnName = "transportStatus";
+            dtresult.Columns["TransportDirection"].ColumnName = "transportDirection";
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+
+        [HttpPost]
+        public ActionResult GetVehicleInfoByToLocation(string location)
+        {
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            DataTable dtresult = objDataFeed.GetVehicleInfoByToLocation(location);
+
+            dtresult.Columns["IMAPNumber"].ColumnName = "iMAPNumber";
+            dtresult.Columns["Registration"].ColumnName = "registration";
+            dtresult.Columns["VendorName"].ColumnName = "vendorName";
+            dtresult.Columns["StorageLocation"].ColumnName = "storagelocation";
+            dtresult.Columns["Destination"].ColumnName = "destinationlocation";
+            dtresult.Columns["MakeDesc"].ColumnName = "makedesc";
+            dtresult.Columns["Variants"].ColumnName = "variants";
+            dtresult.Columns["ChassisNo"].ColumnName = "chassisNo";
+            dtresult.Columns["PickupRoofType"].ColumnName = "pickupRoofType";
+            dtresult.Columns["TransportStatus"].ColumnName = "transportStatus";
+            dtresult.Columns["TransportDirection"].ColumnName = "transportDirection";
 
             string jsString = DtToJSon(dtresult, "data");
             return Content(jsString, "application/json");

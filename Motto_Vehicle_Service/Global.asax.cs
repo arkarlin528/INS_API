@@ -19,6 +19,19 @@ namespace Motto_Vehicle_Service
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             GlobalConfiguration.Configure(WebApiConfig.Register);
 
+           
+        }
+        protected void Application_BeginRequest()
+        {
+            HttpContext.Current.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type");
+
+            // Handle preflight requests
+            if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
+            {
+                HttpContext.Current.Response.StatusCode = 204;
+                HttpContext.Current.Response.End();
+            }
         }
     }
 }
