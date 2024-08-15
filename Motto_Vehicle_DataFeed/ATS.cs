@@ -21,6 +21,7 @@ using System.Reflection.Emit;
 using System.Globalization;
 using System.Web.Http.Results;
 using static Motto_Vehicle_DataFeed.Transport_DATAFEED;
+using System.Text.RegularExpressions;
 
 namespace Motto_Vehicle_DataFeed
 {
@@ -142,6 +143,53 @@ namespace Motto_Vehicle_DataFeed
                 }
                 List<ATS_MOTTO_Location> locationList = ATS_Utility.convertToLocationList(dtLocatiopnResult);
                 return locationList;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return null;
+        }
+        #endregion
+
+        #region getVehicleDetails
+        public List<ATS_MOTTO_SearchVehicle_Detail> getVehicleDetails(string search)
+        {
+
+            try
+            {
+                var context = new dataFeedContext();
+                context.Database.CommandTimeout = 300000;
+
+                var conn = context.Database.Connection;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                DataTable dtvehicleDetails = new DataTable();
+                using (var command = context.Database.Connection.CreateCommand())
+                {
+                    command.CommandText = ATS_Query.get_vehicle_details;
+
+                    if (int.TryParse(search, out int id))
+                    {
+                        command.Parameters.Add(new SqlParameter("@id", id));
+                        command.Parameters.Add(new SqlParameter("@RegNo", "Invalid"));
+                    }
+                    else
+                    {
+                        command.Parameters.Add(new SqlParameter("@id", DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@RegNo", search));
+                    }
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        dtvehicleDetails.Load(reader);
+                    }
+                }
+                List<ATS_MOTTO_SearchVehicle_Detail> vehicleDetailList = ATS_Utility.convertToVehicleDetailList(dtvehicleDetails);
+                return vehicleDetailList;
             }
             catch (Exception ex)
             {
@@ -2597,8 +2645,9 @@ namespace Motto_Vehicle_DataFeed
 
                     using (var command = context.Database.Connection.CreateCommand())
                     {
-                        command.CommandText = Raka_Query.Search_MagicWords
-                            .Replace("@search", strSearchText);
+                        command.CommandText = Raka_Query.Search_MagicWords;
+
+                        command.Parameters.Add(new SqlParameter("@search", strSearchText));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -2641,15 +2690,16 @@ namespace Motto_Vehicle_DataFeed
 
                     using (var command = context.Database.Connection.CreateCommand())
                     {
-                        command.CommandText = Raka_Query.Advance_Search
-                            .Replace("@Make", Make)
-                            .Replace("@Model", Model)
-                            .Replace("@SubModel", SubModel)
-                            .Replace("@BuildYear", BuildYear)
-                            .Replace("@EngineType", EngineType)
-                            .Replace("@Seats", Seats)
-                            .Replace("@BodyType", BodyType)
-                            .Replace("@VINNumber", VINNumber);
+                        command.CommandText = Raka_Query.Advance_Search;
+
+                        command.Parameters.Add(new SqlParameter("@Make", Make));
+                        command.Parameters.Add(new SqlParameter("@Model", Model));
+                        command.Parameters.Add(new SqlParameter("@SubModel", SubModel));
+                        command.Parameters.Add(new SqlParameter("@BuildYear", BuildYear));
+                        command.Parameters.Add(new SqlParameter("@EngineType", EngineType));
+                        command.Parameters.Add(new SqlParameter("@Seats", Seats));
+                        command.Parameters.Add(new SqlParameter("@BodyType", BodyType));
+                        command.Parameters.Add(new SqlParameter("@VINNumber", VINNumber));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -2954,6 +3004,16 @@ namespace Motto_Vehicle_DataFeed
         public static string Location_Load_Data = @"EXEC ATS_Location_Migrate";
         public static string Location_Get = "SELECT * FROM ATS_Locations_ToTransfer ORDER BY id";
 
+        public static string get_vehicle_details = @"SELECT id,business_type,current_location_id, country_id,VehicleNumber qr_code,Inv_id,
+                                                    make, model, submodel, licence_plate_number, engine_number, 
+                                                    chassis_number, engine_capacity, 3 AS inv_country_id,manufacture_year,stockinhand,sc.Desc_BU body,v.Km mileage,v.Colour_BU colour
+                                                    FROM [fn_getVehicleWithStatus](GETDATE()) SIH
+                                                    LEFT JOIN IMAP.dbo.Vehicles v
+                                                    ON CONVERT(int,v.Vehicle) = SIH.id
+                                                    LEFT JOIN IMAP.dbo.SellingCategories SC
+                                                    ON v.SellingCategory = sc.SellingCategory
+                                                    WHERE id = @id or licence_plate_number=@RegNo";
+
         public static string Clear_Vehicle_Snapshot = @"TRUNCATE TABLE [dbo].[ATS_Vehicles_Prev];";
         public static string Vehicle_Load_Data = @"EXEC ATS_Vehicle_Migrate";
         public static string Vehicle_Get = "SELECT * FROM ATS_Vehicles_ToTransfer ORDER BY id";
@@ -3131,7 +3191,8 @@ namespace Motto_Vehicle_DataFeed
         public static string Get_Location_List = $@"Select * from Transport_Location";
         #endregion
         
-        public static string get_TransportLocByImapNo = @"SELECT TOP 1 IMAPNumber,VendorName,[StorageLocation],Destination,COALESCE(NULLIF(PickupRoofType, ''), '-') AS RoofType FROM fn_getTransportStatus('',GETDATE()-30,GETDATE()) 
+        public static string get_TransportLocByImapNo = @"SELECT TOP 1 IMAPNumber,VendorName,[StorageLocation],Destination,COALESCE(NULLIF(PickupRoofType, ''), '-') AS RoofType,OrderCode FROM fn_getTransportStatus('',GETDATE()-30,GETDATE()) as result
+											                left join Transport_OrderDoc as tsOrder on tsOrder.OrderID=result.OrderID
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
@@ -3155,19 +3216,35 @@ namespace Motto_Vehicle_DataFeed
                                                             GROUP BY sc.CategoryTypeName,sc.CategoryTypeOrder
                                                             ORDER BY sc.CategoryTypeOrder";
 
-        public static string Get_VehicleInfo_ByToLocation = @"SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
-                                                                    (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
-                                                                    WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
-                                                                    WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'To' TransportDirection
-                                                                    FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23))
-                                                                    WHERE ToID = @LocationID";
+        public static string Get_VehicleInfo_ByToLocation = @"SELECT TSP.*,v.Colour_BU Colour,v.BuildYear,v.EngineNumber,sc.Desc_BU Body
+                                                                FROM
+                                                                (SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
+                                                                (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
+                                                                WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
+                                                                WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection,tsp.OrderID,OrderCode,
+                                                               convert(varchar, tsp.DepartureDate, 105)DepartureDate,convert(varchar, tsp.ArrivalDate, 105)ArrivalDate,CheckOutTime,CheckInTime
+                                                                FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23)) tsp
+                                                                LEFT JOIN Transport_OrderDoc doc ON doc.OrderID = tsp.OrderID
+                                                                WHERE ToID = @LocationID) TSP
+                                                                LEFT JOIN IMAP.dbo.Vehicles v
+                                                                ON CONVERT(int,v.Vehicle) = TSP.IMAPNumber
+                                                                LEFT JOIN IMAP.dbo.SellingCategories SC
+                                                                ON v.SellingCategory = sc.SellingCategory";
 
-        public static string Get_VehicleInfo_ByFromLocation = @"SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
-                                                                            (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
-                                                                            WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
-                                                                            WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection
-                                                                            FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23))
-                                                                            WHERE FromID = @LocationID";
+        public static string Get_VehicleInfo_ByFromLocation = @"SELECT TSP.*,v.Colour_BU Colour,v.BuildYear,v.EngineNumber,sc.Desc_BU Body
+                                                                FROM
+                                                                (SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
+                                                                (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
+                                                                WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
+                                                                WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection,tsp.OrderID,OrderCode,
+                                                                convert(varchar, tsp.DepartureDate, 105)DepartureDate,convert(varchar, tsp.ArrivalDate, 105)ArrivalDate,CheckOutTime,CheckInTime
+                                                                FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23)) tsp
+                                                                LEFT JOIN Transport_OrderDoc doc ON doc.OrderID = tsp.OrderID 
+                                                                WHERE FromID = @LocationID) TSP
+                                                                LEFT JOIN IMAP.dbo.Vehicles v
+                                                                ON CONVERT(int,v.Vehicle) = TSP.IMAPNumber
+                                                                LEFT JOIN IMAP.dbo.SellingCategories SC
+                                                                ON v.SellingCategory = sc.SellingCategory";
         #endregion
     }
     #endregion
@@ -3223,6 +3300,39 @@ namespace Motto_Vehicle_DataFeed
                     address = (dtData.Rows[i]["address"] == null ? "" : dtData.Rows[i]["address"].ToString()), 
                     latitude = (dtData.Rows[i]["latitude"] == null ? "" : dtData.Rows[i]["latitude"].ToString()), 
                     longitude = (dtData.Rows[i]["longitude"] == null ? "" : dtData.Rows[i]["longitude"].ToString())
+                });
+            }
+            return lstRtn;
+        }
+        #endregion
+
+        #region convertToVehicleDetailList
+        public static List<ATS_MOTTO_SearchVehicle_Detail> convertToVehicleDetailList(DataTable dtData)
+        {
+            List<ATS_MOTTO_SearchVehicle_Detail> lstRtn = new List<ATS_MOTTO_SearchVehicle_Detail>();
+            for (int i = 0; i < dtData.Rows.Count; i++)
+            {
+                lstRtn.Add(new ATS_MOTTO_SearchVehicle_Detail
+                {
+                    id = int.Parse(dtData.Rows[i]["id"] == null ? "0" : dtData.Rows[i]["id"].ToString()),
+                    business_type = (dtData.Rows[i]["business_type"] == null ? "" : dtData.Rows[i]["business_type"].ToString()),
+                    current_location_id = int.Parse(dtData.Rows[i]["current_location_id"] == null ? "0" : dtData.Rows[i]["current_location_id"].ToString()),
+                    country_id = int.Parse(dtData.Rows[i]["country_id"] == null ? "0" : dtData.Rows[i]["country_id"].ToString()),
+                    qr_code = (dtData.Rows[i]["qr_code"] == null ? "" : dtData.Rows[i]["qr_code"].ToString()),
+                    inv_id = int.Parse(dtData.Rows[i]["Inv_id"] == null ? "0" : dtData.Rows[i]["Inv_id"].ToString()),
+                    make = (dtData.Rows[i]["make"] == null ? "" : dtData.Rows[i]["make"].ToString()),
+                    model = (dtData.Rows[i]["model"] == null ? "" : dtData.Rows[i]["model"].ToString()),
+                    submodel = (dtData.Rows[i]["submodel"] == null ? "" : dtData.Rows[i]["submodel"].ToString()),
+                    licence_plate_number = (dtData.Rows[i]["licence_plate_number"] == null ? "" : dtData.Rows[i]["licence_plate_number"].ToString()),
+                    engine_number = (dtData.Rows[i]["engine_number"] == null ? "" : dtData.Rows[i]["engine_number"].ToString()),
+                    chassis_number = (dtData.Rows[i]["chassis_number"] == null ? "" : dtData.Rows[i]["chassis_number"].ToString()),
+                    engine_capacity = (dtData.Rows[i]["engine_capacity"] == null ? "" : dtData.Rows[i]["engine_capacity"].ToString()),
+                    inv_country_id = int.Parse(dtData.Rows[i]["inv_country_id"] == null ? "0" : dtData.Rows[i]["inv_country_id"].ToString()),
+                    manufacture_year = int.Parse(dtData.Rows[i]["manufacture_year"] == null ? "0" : dtData.Rows[i]["manufacture_year"].ToString()),
+                    stockinhand = int.Parse(dtData.Rows[i]["stockinhand"] == null ? "0" : dtData.Rows[i]["stockinhand"].ToString()),
+                    body = (dtData.Rows[i]["body"] == null ? "" : dtData.Rows[i]["body"].ToString()),
+                    mileage = (dtData.Rows[i]["mileage"] == null ? "" : dtData.Rows[i]["mileage"].ToString()),
+                    colour = (dtData.Rows[i]["colour"] == null ? "" : dtData.Rows[i]["colour"].ToString()),
                 });
             }
             return lstRtn;

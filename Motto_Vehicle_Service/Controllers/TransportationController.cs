@@ -866,7 +866,7 @@ namespace Motto_Vehicle_Service.Controllers
             return Content(jsString, "application/json");
         }
 
-        [HttpPost]
+        [HttpGet]
         public ActionResult GetVehicleInfoByFromLocation(string location)
         {
             Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
@@ -883,12 +883,16 @@ namespace Motto_Vehicle_Service.Controllers
             dtresult.Columns["PickupRoofType"].ColumnName = "pickupRoofType";
             dtresult.Columns["TransportStatus"].ColumnName = "transportStatus";
             dtresult.Columns["TransportDirection"].ColumnName = "transportDirection";
+            dtresult.Columns["Colour"].ColumnName = "colour";
+            dtresult.Columns["BuildYear"].ColumnName = "buildYear";
+            dtresult.Columns["EngineNumber"].ColumnName = "engineNumber";
+            dtresult.Columns["Body"].ColumnName = "body";
 
             string jsString = DtToJSon(dtresult, "data");
             return Content(jsString, "application/json");
         }
 
-        [HttpPost]
+        [HttpGet]
         public ActionResult GetVehicleInfoByToLocation(string location)
         {
             Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
@@ -905,6 +909,10 @@ namespace Motto_Vehicle_Service.Controllers
             dtresult.Columns["PickupRoofType"].ColumnName = "pickupRoofType";
             dtresult.Columns["TransportStatus"].ColumnName = "transportStatus";
             dtresult.Columns["TransportDirection"].ColumnName = "transportDirection";
+            dtresult.Columns["Colour"].ColumnName = "colour";
+            dtresult.Columns["BuildYear"].ColumnName = "buildYear";
+            dtresult.Columns["EngineNumber"].ColumnName = "engineNumber";
+            dtresult.Columns["Body"].ColumnName = "body";
 
             string jsString = DtToJSon(dtresult, "data");
             return Content(jsString, "application/json");

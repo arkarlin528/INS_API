@@ -85,6 +85,23 @@ namespace Motto_Vehicle_Service.Controllers
         }
 
         [HttpGet]
+        [Route("mottovehicledetails")]
+        public ActionResult MottoVehicleDetails()
+        {
+            string id = Request.QueryString["id"];
+            ATS_DATAFEED objDataFeed = new ATS_DATAFEED();
+            List<ATS_MOTTO_SearchVehicle_Detail> lstData = objDataFeed.getVehicleDetails(id);
+            var jsonDictionary = new Dictionary<string, List<ATS_MOTTO_SearchVehicle_Detail>>
+            {
+                {
+                    "data", (lstData.Any() ? lstData.ToList() :lstData)
+                }
+            };
+            objDataFeed.Logger(JsonConvert.SerializeObject(jsonDictionary), "vehicledetails", lstData.Count);
+            return Json(jsonDictionary, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         [Route("clearcache")]
         public ActionResult ClearCache()
         {

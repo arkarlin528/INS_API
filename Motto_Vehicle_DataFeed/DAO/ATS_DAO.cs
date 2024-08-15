@@ -72,6 +72,70 @@ namespace MOTTO_DATAFEED.DAO
     }
     #endregion
 
+    #region ATS_MOTTO_SearchVehicle_Detail
+    public class ATS_MOTTO_SearchVehicle_Detail
+    {
+        [JsonProperty("id")]
+        public int id { get; set; }
+
+        [JsonProperty("business_type")]
+        public string business_type { get; set; }
+
+        [JsonProperty("current_location_id")]
+        public int current_location_id { get; set; }
+
+        [JsonProperty("country_id")]
+        public int country_id { get; set; }
+
+        [JsonProperty("qr_code")]
+        public string qr_code { get; set; }
+
+        [JsonProperty("inv_id")]
+        public int inv_id { get; set; }
+
+        [JsonProperty("make")]
+        public string make { get; set; }
+
+        [JsonProperty("model")]
+        public string model { get; set; }
+
+        [JsonProperty("submodel")]
+        public string submodel { get; set; }
+
+        [JsonProperty("licence_plate_number")]
+        public string licence_plate_number { get; set; }
+
+        [JsonProperty("engine_number")]
+        public string engine_number { get; set; }
+
+        [JsonProperty("chassis_number")]
+        public string chassis_number { get; set; }
+
+        [JsonProperty("engine_capacity")]
+        public string engine_capacity { get; set; }
+
+        [JsonProperty("inv_country_id")]
+        public int inv_country_id { get; set; }
+
+        [JsonProperty("manufacture_year")]
+        public int manufacture_year { get; set; }
+
+        [JsonProperty("stockinhand")]
+        public int stockinhand { get; set; }
+
+        [JsonProperty("body")]
+        public string body { get; set; }
+
+        [JsonProperty("mileage")]
+        public string mileage { get; set; }
+
+        [JsonProperty("colour")]
+        public string colour { get; set; }
+
+        public ATS_MOTTO_SearchVehicle_Detail() { }
+    }
+    #endregion
+
     #region ATS_MOTTO_Location
     public class ATS_MOTTO_Location
     {
