@@ -24,6 +24,7 @@ namespace Motto_Vehicle_Service.Controllers
         {
             ATS_DATAFEED objDataFeed = new ATS_DATAFEED();
             List<ATS_MOTTO_Vehicle> lstData = objDataFeed.LoadVehicleData(LoadType);
+            
             var jsonDictionary = new Dictionary<string, int>
             {
                 { "recordCount", (lstData.Any() ? lstData.Count : 0)}
