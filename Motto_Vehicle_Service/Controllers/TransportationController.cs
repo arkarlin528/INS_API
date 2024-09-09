@@ -206,6 +206,35 @@ namespace Motto_Vehicle_Service.Controllers
         }
         #endregion
 
+        //#region LoginUser
+        //[HttpPost]
+        //public ActionResult LoginUser()
+        //{
+        //    // Read the form data from the request
+        //    string formData;
+        //    using (var reader = new StreamReader(Request.InputStream))
+        //    {
+        //        formData = reader.ReadToEnd();
+        //    }
+
+        //    // Convert JSON string to DataTable
+        //    DataTable dt = JsonToDt(formData);
+        //    Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+        //    LoginIMAPDto dtinfo = objDataFeed.LoginTransportUser(dt);
+        //    if (dtinfo.guid != null)
+        //    {
+        //        string successMessage = "Login successful.";
+        //        string jsonData = JsonConvert.SerializeObject(dtinfo);
+        //        return Content(jsonData, "application/json");
+        //    }
+        //    else
+        //    {
+        //        Response.StatusCode = 409;
+        //        return Json(new { success = false, message = "Login failed." });
+        //    }
+        //}
+        //#endregion
+
         #region UserList
         [HttpGet]
         public ActionResult UserList()

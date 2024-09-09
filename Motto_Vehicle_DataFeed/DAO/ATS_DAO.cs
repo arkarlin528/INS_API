@@ -182,6 +182,18 @@ namespace MOTTO_DATAFEED.DAO
         public int UserType { get; set; }
     }
 
+    public class LoginIMAPDto
+    {
+        public string id { get; set; }
+        public string isUser { get; set; }
+        public string userName { get; set; }
+        public string password { get; set; }
+        public string mail { get; set; }
+        public string firstName { get; set; }
+        public string lastName { get; set; }
+        public string guid { get; set; }
+    }
+
     public class Transport_Request
     {
         public int RequestID { get; set; }

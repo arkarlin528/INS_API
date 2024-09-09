@@ -1,10 +1,13 @@
-﻿using Motto_Vehicle_DataFeed;
+﻿using MOTTO_DATAFEED.DAO;
+using Motto_Vehicle_DataFeed;
+using Motto_Vehicle_DataFeed.DAO;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
@@ -114,7 +117,7 @@ namespace Motto_Vehicle_Service.Controllers
 
         #region CreateTransportATSLog
         [HttpPost]
-        public ActionResult CreateTransportATSLog()
+        public async Task<ActionResult> CreateTransportATSLog()
         {
             // Read the form data from the request
             string formData;
@@ -126,7 +129,7 @@ namespace Motto_Vehicle_Service.Controllers
             // Convert JSON string to DataTable
             DataTable dt = JsonToDt(formData);
             Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
-            int id = objDataFeed.Create_Transport_ATS_Log(dt);
+            int id = await objDataFeed.Create_Transport_ATS_Log(dt);
             if (id == 0)
             {
                 Response.StatusCode = 409;
@@ -248,20 +251,12 @@ namespace Motto_Vehicle_Service.Controllers
             // Convert JSON string to DataTable
             DataTable dt = JsonToDt(formData);
             Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
-            DataTable dtinfo = objDataFeed.LoginTransportUser(dt);
-            if (dtinfo.Rows.Count > 0)
+            LoginIMAPDto dtinfo = objDataFeed.LoginTransportUser(dt);
+            if (dtinfo.guid != null)
             {
-                dtinfo.Columns["UserID"].ColumnName = "userid";
-                dtinfo.Columns["UserName"].ColumnName = "userName";
-                dtinfo.Columns["UserEmail"].ColumnName = "userEmail";
-                dtinfo.Columns["LoginName"].ColumnName = "login";
-                dtinfo.Columns.Remove("Password");
-                dtinfo.Columns["DepartmentID"].ColumnName = "department";
-                dtinfo.Columns["UserType"].ColumnName = "userType";
-
-                string jsString = DtToJSonForUserInfo(dtinfo);
                 string successMessage = "Login successful.";
-                return Content($"{{\"success\": true, \"message\": \"{successMessage}\", \"data\": {jsString}}}", "application/json");
+                string jsonData = JsonConvert.SerializeObject(dtinfo);
+                return Content(jsonData, "application/json");
             }
             else
             {
@@ -293,6 +288,262 @@ namespace Motto_Vehicle_Service.Controllers
         {
             Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
             DataTable dt = objDataFeed.GetLocationsByUser(userid);
+
+            string jsString = DtToJSon(dt, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region SearchOperationDashboard
+        [HttpPost]
+        public ActionResult SearchOperationDashboard()
+        {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<BindOprDashboardData> dashboardData = objDataFeed.SearchOprDashboard(dt);
+            string jsonResult = JsonConvert.SerializeObject(dashboardData);
+
+            return Content(jsonResult, "application/json");
+        }
+        #endregion
+
+        #region OverallLocationDashboard
+        [HttpPost]
+        public ActionResult OverallLocationDashboard()
+        {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<OverallLocationPerformance> dashboardData = objDataFeed.OverallLocationDashboard(dt);
+            string jsonResult = JsonConvert.SerializeObject(dashboardData);
+
+            return Content(jsonResult, "application/json");
+        }
+        #endregion
+
+        #region InspectorPerformanceDashboard
+        [HttpPost]
+        public ActionResult InspectorPerformanceDashboard()
+        {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<InspectorPerformance> dashboardData = objDataFeed.InspectorPerformanceDashboard(dt);
+            string jsonResult = JsonConvert.SerializeObject(dashboardData);
+
+            return Content(jsonResult, "application/json");
+        }
+        #endregion
+
+        #region LocationPerformanceDashboard
+        [HttpPost]
+        public ActionResult LocationPerformanceDashboard()
+        {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<InspectorPerformance> dashboardData = objDataFeed.LocationDashboard(dt);
+            string jsonResult = JsonConvert.SerializeObject(dashboardData);
+
+            return Content(jsonResult, "application/json");
+        }
+        #endregion
+
+        #region GetFilterStorageLocation
+        [HttpGet]
+        public ActionResult GetFilterStorageLocation()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<Inspection_StorageLocation> dt = objDataFeed.Inspection_Filter_StorageLocation();
+
+            string jsString = JsonConvert.SerializeObject(dt);
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetFilterInspector
+        [HttpGet]
+        public ActionResult GetFilterInspector()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<Inspector> dt = objDataFeed.Inspection_Filter_Inspector();
+
+            string jsString = JsonConvert.SerializeObject(dt);
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetFilterMonthData
+        [HttpGet]
+        public ActionResult GetFilterMonthData()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<Inspection_Month> dt = objDataFeed.Inspection_Filter_MonthData();
+
+            string jsString = JsonConvert.SerializeObject(dt);
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetOPdbFilterSellingCategory
+        [HttpGet]
+        public ActionResult GetOPdbFilterSellingCategory()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<FilterSellingCategory> dt = objDataFeed.GetFilterSellingCategory();
+
+            string jsString = JsonConvert.SerializeObject(dt);
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetOPdbFilterUpcomingAuction
+        [HttpGet]
+        public ActionResult GetOPdbFilterUpcomingAuction()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<AuctionDate_Combo> dt = objDataFeed.GetFilterUpcomingAuction();
+
+            string jsString = JsonConvert.SerializeObject(dt);
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetOPdbFilterSeller
+        [HttpGet]
+        public ActionResult GetOPdbFilterSeller()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            List<FilterSeller> dt = objDataFeed.GetFilterSeller();
+
+            string jsString = JsonConvert.SerializeObject(dt);
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region QuickCheckInVehicles
+        [HttpPost]
+        public ActionResult QuickCheckInVehicles()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            int isFound = objDataFeed.QuickCheckInVehicles(dt);
+            if(isFound == 1)
+            {
+                return Json(new { success = true, message = "Vehicles Check in successfully." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Vehicle not found for check-in to the Location!" });
+            }
+        }
+        #endregion
+
+        #region QuickCheckOutVehicles
+        [HttpPost]
+        public ActionResult QuickCheckOutVehicles()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            int isFound = objDataFeed.QuickCheckOutVehicles(dt);
+            if (isFound == 1)
+            {
+                return Json(new { success = true, message = "Vehicles Check out successfully." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "Previous Quick CheckOut process is not CheckIn yet!" });
+            }
+        }
+        #endregion
+
+        #region GetKanbanAllStatus
+        [HttpPost]
+        public ActionResult GetKanbanAllStatus()
+        {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            DataTable Data = objDataFeed.GetKanbanAllStatus(dt);
+
+            string jsString = DtToJSon(Data, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetStockAging
+        [HttpPost]
+        public ActionResult GetStockAging()
+        {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            DataTable Data = objDataFeed.GetStockAging(dt);
+
+            string jsString = DtToJSon(Data, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetSellers
+        [HttpGet]
+        public ActionResult GetSellers()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            DataTable dt = objDataFeed.GetSellers();
 
             string jsString = DtToJSon(dt, "data");
             return Content(jsString, "application/json");

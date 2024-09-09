@@ -22,6 +22,7 @@ using System.Globalization;
 using System.Web.Http.Results;
 using static Motto_Vehicle_DataFeed.Transport_DATAFEED;
 using System.Text.RegularExpressions;
+using System.Net.Http;
 
 namespace Motto_Vehicle_DataFeed
 {
@@ -591,6 +592,33 @@ namespace Motto_Vehicle_DataFeed
             return resultTable;
         }
         #endregion
+
+        //#region LoginTransportUser
+        //public LoginIMAPDto LoginTransportUser(DataTable dtData)
+        //{
+        //    System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(768 | 3072);
+        //    var url = "https://mapapi-uat.mottoauction.com/inspection/api/userlogin/value";
+        //    var requestBody = new
+        //    {
+        //        Username = dtData.Rows[0]["Username"]?.ToString(),
+        //        Password = dtData.Rows[0]["Password"]?.ToString()
+        //    };
+        //    var json = JsonConvert.SerializeObject(requestBody);
+        //    var data = new StringContent(json, Encoding.UTF8, "application/json");
+        //    using (var client = new HttpClient())
+        //    {
+        //        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+        //        request.Headers.TryAddWithoutValidation("x-api-key", "e9ab5c97-019e-4a83-ad6f-b1d571b24d5d");
+        //        request.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+        //        request.Content = data;
+        //        var apiResponse = client.SendAsync(request).Result;
+
+        //        string responseContent = apiResponse.Content.ReadAsStringAsync().Result;
+        //        LoginIMAPDto responseData = JsonConvert.DeserializeObject<LoginIMAPDto>(responseContent);
+        //        return responseData;
+        //    }
+        //}
+        //#endregion
 
         #region GetUserList
         public DataTable GetUserList()
