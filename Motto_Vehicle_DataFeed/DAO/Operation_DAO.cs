@@ -28,6 +28,19 @@ namespace Motto_Vehicle_DataFeed.DAO
         public string OtherResponses { get; set; }
     }
 
+    public class Check_Stock
+    {
+        public int ID { get; set; }
+        public DateTime TxnDate { get; set; }
+        public string TxnTime { get; set; }
+        public string VehicleNumber { get; set; }
+        public string CurrentLocation { get; set; }
+        public string ActualLocation { get; set; }
+        public string Lattitude { get; set; }
+        public string Longitude { get; set; }
+        public string CheckBy { get; set; }
+    }
+
     #region OperationDashboard
     public class BindOprDashboardData
     {

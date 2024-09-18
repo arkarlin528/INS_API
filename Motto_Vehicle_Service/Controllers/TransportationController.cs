@@ -973,6 +973,8 @@ namespace Motto_Vehicle_Service.Controllers
             dtresult.Columns["StorageLocation"].ColumnName = "storageLocation";
             dtresult.Columns["Destination"].ColumnName = "destination";
             dtresult.Columns["Status"].ColumnName = "status";
+            dtresult.Columns["OrderCode"].ColumnName = "orderCode";
+            dtresult.Columns["Vin"].ColumnName = "vin";
 
             string jsString = DtToJSon(dtresult, "data");
             return Content(jsString, "application/json");

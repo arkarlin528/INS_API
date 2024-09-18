@@ -16,6 +16,7 @@ using System.Xml.Linq;
 using System.Globalization;
 using static Motto_Vehicle_DataFeed.Operation_DATAFEED;
 using System.Web.Http;
+using System.Drawing.Drawing2D;
 
 namespace Motto_Vehicle_DataFeed
 {
@@ -37,7 +38,7 @@ namespace Motto_Vehicle_DataFeed
                     oStatusType.StatusName_TH = (dtData.Rows[i]["statusName_TH"] == null ? "" : dtData.Rows[i]["statusName_TH"].ToString());
                     oStatusType.StatusType = (dtData.Rows[i]["statusType"] == null ? "" : dtData.Rows[i]["statusType"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -80,7 +81,7 @@ namespace Motto_Vehicle_DataFeed
                     oStatusType.StatusType = (dtData.Rows[i]["statusType"] == null ? "" : dtData.Rows[i]["statusType"].ToString());
                     oStatusType.StatusTypeID = int.Parse(dtData.Rows[i]["statusTypeID"] == null ? "0" : dtData.Rows[i]["statusTypeID"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -121,7 +122,7 @@ namespace Motto_Vehicle_DataFeed
                     Status_Type oStatusType = new Status_Type();
                     oStatusType.StatusTypeID = int.Parse(dtData.Rows[i]["statusTypeID"] == null ? "0" : dtData.Rows[i]["statusTypeID"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -155,7 +156,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -240,7 +241,7 @@ namespace Motto_Vehicle_DataFeed
                     }
                    
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -329,7 +330,7 @@ namespace Motto_Vehicle_DataFeed
         private async Task<string> SetExitedImagesToJsonString(string idphoto, string vehiclephoto, string docphoto)
         {
             DataTable result = new DataTable();
-            using (var context = new dataFeedContext())
+            using (var context = new MAMS_dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
                 if (context.Database.Connection.State == ConnectionState.Closed)
@@ -443,7 +444,7 @@ namespace Motto_Vehicle_DataFeed
                     User.UserType = int.Parse(dtData.Rows[i]["userType"] == null ? "0" : dtData.Rows[i]["userType"].ToString());
                     string Locationid = (dtData.Rows[i]["locationID"] == null ? "0" : dtData.Rows[i]["locationID"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -523,7 +524,7 @@ namespace Motto_Vehicle_DataFeed
                     User.UserType = int.Parse(dtData.Rows[i]["userType"] == null ? "0" : dtData.Rows[i]["userType"].ToString());
                     string Locationid = (dtData.Rows[i]["locationID"] == null ? "0" : dtData.Rows[i]["locationID"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -605,7 +606,7 @@ namespace Motto_Vehicle_DataFeed
                     Transport_User User = new Transport_User();
                     User.UserID = int.Parse(dtData.Rows[i]["userid"] == null ? "0" : dtData.Rows[i]["userid"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -641,7 +642,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -704,7 +705,7 @@ namespace Motto_Vehicle_DataFeed
             //    User.LoginName = (dtData.Rows[0]["login"] == null ? "" : dtData.Rows[0]["login"].ToString());
             //    User.Password = (dtData.Rows[0]["password"] == null ? "" : dtData.Rows[0]["password"].ToString());
 
-            //    using (var context = new dataFeedContext())
+            //    using (var context = new MAMS_dataFeedContext())
             //    {
             //        context.Database.CommandTimeout = 300000;
             //        if (context.Database.Connection.State == ConnectionState.Closed)
@@ -742,6 +743,56 @@ namespace Motto_Vehicle_DataFeed
 
         #endregion
 
+
+        #region CheckStock
+        public void CheckStock(DataTable dtData)
+        {
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Check_Stock objchkStock = new Check_Stock();
+                    double dDate = Convert.ToDouble(dtData.Rows[0]["txnDate"] == null ? 0 : dtData.Rows[0]["txnDate"]);
+                    objchkStock.TxnDate = (dDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dDate));
+                    objchkStock.TxnTime = (dtData.Rows[i]["txnTime"] == null ? "" : dtData.Rows[i]["txnTime"].ToString());
+                    objchkStock.VehicleNumber = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
+                    objchkStock.CurrentLocation = dtData.Rows[i]["currentLocationId"] == null ? "" : dtData.Rows[i]["currentLocationId"].ToString();
+                    objchkStock.ActualLocation = dtData.Rows[i]["actualLocationId"] == null ? "" : dtData.Rows[i]["actualLocationId"].ToString();
+                    objchkStock.Lattitude = dtData.Rows[i]["lattitude"] == null ? "" : dtData.Rows[i]["lattitude"].ToString();
+                    objchkStock.Longitude = dtData.Rows[i]["longitude"] == null ? "" : dtData.Rows[i]["longitude"].ToString();
+                    objchkStock.CheckBy = (dtData.Rows[i]["checkBy"] == null ? "" : dtData.Rows[i]["checkBy"].ToString());
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+                    #region Parameter
+
+                    var Param = new List<SqlParameter> {
+                        new SqlParameter("@TxnDate",objchkStock.TxnDate),
+                        new SqlParameter("@TxnTime",objchkStock.TxnTime),
+                        new SqlParameter("@VehicleNumber",objchkStock.VehicleNumber),
+                        new SqlParameter("@CurrentLocation",objchkStock.CurrentLocation),
+                        new SqlParameter("@ActualLocation",objchkStock.ActualLocation),
+                        new SqlParameter("@Lattitude",objchkStock.Lattitude),
+                        new SqlParameter("@Longitude",objchkStock.Longitude),
+                        new SqlParameter("@CheckBy",objchkStock.CheckBy),
+                        };
+                    #endregion Parameter
+
+                    context.Database.ExecuteSqlCommand(Operation_Query.Save_Check_Stock, Param.ToArray());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
         #region QuickCheckOutVehicles
         public int QuickCheckOutVehicles(DataTable dtData)
         {
@@ -760,7 +811,7 @@ namespace Motto_Vehicle_DataFeed
                     string updateduser = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
                     int txnType = 1;//CheckOut
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -838,7 +889,7 @@ namespace Motto_Vehicle_DataFeed
                     int txnType = 2;//CheckIn
                     string updateduser = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -902,13 +953,98 @@ namespace Motto_Vehicle_DataFeed
         }
         #endregion
 
+        #region GetQuickCheckOutList
+        public DataTable GetQuickCheckOutList()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_QuickCheckOut_List;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetLastQuickTransport
+        public int GetLastQuickTransport(DataTable dtData)
+        {
+            int isFound = 0;
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Transport_ScheduleDetail odetail = new Transport_ScheduleDetail();
+                    odetail.Vehicle = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
+                    odetail.CheckInLocation = dtData.Rows[i]["txnLocationId"] == null ? "" : dtData.Rows[i]["txnLocationId"].ToString();
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+
+
+                    DataTable lastQuickTransport = new DataTable();
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_Last_QuickTransport;
+
+                        #region Parameters
+                        command.Parameters.Add(new SqlParameter("@Vehicle", odetail.Vehicle));
+                        command.Parameters.Add(new SqlParameter("@CheckInLocation", odetail.CheckInLocation));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            lastQuickTransport.Load(reader);
+                        }
+                    }
+                    if (lastQuickTransport.Rows.Count > 0)
+                    {
+                        isFound = 1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return isFound;
+        }
+        #endregion
+
         #region GetLocations
         public DataTable GetLocations()
         {
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -943,7 +1079,7 @@ namespace Motto_Vehicle_DataFeed
 
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -972,6 +1108,7 @@ namespace Motto_Vehicle_DataFeed
             return result;
         }
         #endregion
+
         #region SearchOprDashboard
         public List<BindOprDashboardData> SearchOprDashboard(DataTable dtData)
         {
@@ -1632,6 +1769,13 @@ namespace Motto_Vehicle_DataFeed
                         }
                     }
                 }
+                resultTable.Columns.Add("Icon", typeof(string));
+
+                foreach (DataRow row in resultTable.Rows)
+                {
+                    string sellingCategory = row["SellingCategory"]?.ToString();
+                    row["Icon"] = GetIcon(sellingCategory);
+                }
             }
             catch (Exception ex)
             {
@@ -1661,7 +1805,7 @@ namespace Motto_Vehicle_DataFeed
 
                     using (var command = context.Database.Connection.CreateCommand())
                     {
-                        command.CommandText = Operation_Query.Get_Kanban_AllStatus;
+                        command.CommandText = Operation_Query.Get_StockAging;
 
                         #region Parameters
 
@@ -1676,6 +1820,13 @@ namespace Motto_Vehicle_DataFeed
                             resultTable.Load(reader);
                         }
                     }
+                }
+                resultTable.Columns.Add("Icon", typeof(string));
+
+                foreach (DataRow row in resultTable.Rows)
+                {
+                    string sellingCategoryCode = row["SellingCategoryCode"]?.ToString();
+                    row["Icon"] = GetIcon(sellingCategoryCode);
                 }
             }
             catch (Exception ex)
@@ -1789,15 +1940,23 @@ namespace Motto_Vehicle_DataFeed
         public static string Save_Transport_ATS_Log = $@"INSERT INTO Transport_ATS_Log (TxnType,TxnDate,TxnTime,VehicleNumber,TxnLocation,StatusUpdateBy)
                                                          VALUES(@TxnType,@TxnDate,@TxnTime,@VehicleNumber,@TxnLocation,@StatusUpdateBy)";
 
+        public static string Save_Check_Stock = $@"INSERT INTO CheckStock (TxnDate,TxnTime,VehicleNumber,CurrentLocation,ActualLocation,Lattitude,Longitude,CheckBy)
+                                                         VALUES(@TxnDate,@TxnTime,@VehicleNumber,@CurrentLocation,@ActualLocation,@Lattitude,@Longitude,@CheckBy)";
+
         public static string QuickCheckOut_Vehicles = $@"INSERT INTO Quick_Transport(CheckOutDate,CheckOutTime,IMAPNumber,CheckOutLocation,CheckInLocation)
                                                           VALUES(@CheckOutDate,@CheckOutTime,@Vehicle,@CheckOutLocation,@CheckInLocation)";
 
-        public static string Get_Last_QuickTransport = $@"select * from Quick_Transport where IMAPNumber=@Vehicle and CheckInLocation=@CheckInLocation order by id desc";
+        public static string Get_Last_QuickTransport = $@"select * from Quick_Transport where IMAPNumber=@Vehicle and CheckInLocation=@CheckInLocation and CheckInDate is null order by id desc";
 
         public static string Get_NotComplete_QuickTransport = $@"select * from Quick_Transport where IMAPNumber=@Vehicle and CheckInDate is null";
 
         public static string QuickCheckIn_Vehicles = $@"Update Quick_Transport set CheckInDate=@CheckInDate,CheckInTime=@CheckInTime
 										                    where id=@id and IMAPNumber=@Vehicle and CheckInLocation=@CheckInLocation";
+
+        public static string Get_QuickCheckOut_List = $@"select qt.id,IMAPNumber,CheckOutLocation,from_loc.display_name fromLocation,CheckInLocation,to_loc.display_name toLocation,  DATEDIFF(SECOND, '1970-01-01 00:00:00', DATEADD(HOUR, -7, CheckOutDate)) AS checkOutDate,CheckOutTime from Quick_Transport qt
+                                                                left join (select * from fn_GetATSLocation())from_loc on from_loc.id=CheckOutLocation
+                                                                left join (select * from fn_GetATSLocation())to_loc on to_loc.id=CheckInLocation
+                                                                where CheckInDate is null ";
 
         public static string Save_OperationUserLocation = $@"INSERT INTO OperationUserLocation(UserID,LocationID) VALUES(@UserID,@LocationID)";
 

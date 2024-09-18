@@ -345,7 +345,7 @@ namespace Motto_Vehicle_DataFeed
                     User.DepartmentID = int.Parse(dtData.Rows[i]["department"] == null ? "0" : dtData.Rows[i]["department"].ToString());
                     User.UserType = int.Parse(dtData.Rows[i]["userType"] == null ? "0" : dtData.Rows[i]["userType"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -415,7 +415,7 @@ namespace Motto_Vehicle_DataFeed
                     User.DepartmentID = int.Parse(dtData.Rows[i]["department"] == null ? "0" : dtData.Rows[i]["department"].ToString());
                     User.UserType = int.Parse(dtData.Rows[i]["userType"] == null ? "0" : dtData.Rows[i]["userType"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -481,7 +481,7 @@ namespace Motto_Vehicle_DataFeed
                     User.UserID = int.Parse(dtData.Rows[i]["userid"] == null ? "0" : dtData.Rows[i]["userid"].ToString());
                     User.Password = (dtData.Rows[i]["password"] == null ? "" : dtData.Rows[i]["password"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -520,7 +520,7 @@ namespace Motto_Vehicle_DataFeed
                     Transport_User User = new Transport_User();
                     User.UserID = int.Parse(dtData.Rows[i]["userid"] == null ? "0" : dtData.Rows[i]["userid"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -558,7 +558,7 @@ namespace Motto_Vehicle_DataFeed
                 User.LoginName = (dtData.Rows[0]["login"] == null ? "" : dtData.Rows[0]["login"].ToString());
                 User.Password = (dtData.Rows[0]["password"] == null ? "" : dtData.Rows[0]["password"].ToString());
 
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -626,7 +626,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -668,7 +668,7 @@ namespace Motto_Vehicle_DataFeed
 
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -766,7 +766,7 @@ namespace Motto_Vehicle_DataFeed
 
         //    try
         //    {
-        //        using (var context = new dataFeedContext())
+        //        using (var context = new MAMS_dataFeedContext())
         //        {
         //            context.Database.CommandTimeout = 300000;
         //            if (context.Database.Connection.State == ConnectionState.Closed)
@@ -898,7 +898,7 @@ namespace Motto_Vehicle_DataFeed
             //string strStatus = dtData.Rows[0]["status"] == null ? "" : dtData.Rows[0]["status"].ToString();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1001,7 +1001,7 @@ namespace Motto_Vehicle_DataFeed
             int vendorId = int.Parse(dtData.Rows[0]["vendorId"] == null ? "0" : dtData.Rows[0]["vendorId"].ToString());
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1040,7 +1040,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1081,7 +1081,7 @@ namespace Motto_Vehicle_DataFeed
             oOrder.UploadDate = DateTime.Now;
             oOrder.CreateDate = DateTime.Now;
 
-            using (var context = new dataFeedContext())
+            using (var context = new MAMS_dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
                 if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1141,7 +1141,7 @@ namespace Motto_Vehicle_DataFeed
         protected string getUserRole(string createduser)
         {
             DataTable result = new DataTable();
-            using (var context = new dataFeedContext())
+            using (var context = new MAMS_dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
                 if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1180,7 +1180,7 @@ namespace Motto_Vehicle_DataFeed
             string orderDate = "";
             string OrderCode = "";
             string systemDate = DateTime.Now.ToString("yyyyMM");
-            using (var context = new dataFeedContext())
+            using (var context = new MAMS_dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
                 if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1248,7 +1248,7 @@ namespace Motto_Vehicle_DataFeed
             oOrder.UpdateDate = DateTime.Now;
             oOrder.UpdatedBy = dtData.Rows[0]["actionBy"] == null ? "" : dtData.Rows[0]["actionBy"].ToString();
 
-            using (var context = new dataFeedContext())
+            using (var context = new MAMS_dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
                 if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1287,7 +1287,7 @@ namespace Motto_Vehicle_DataFeed
                     Transport_Order oOrder = new Transport_Order();
                     oOrder.OrderID = int.Parse(dtData.Rows[i]["orderID"] == null ? "0" : dtData.Rows[i]["orderID"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -1342,7 +1342,7 @@ namespace Motto_Vehicle_DataFeed
                     orderDetail.Cost = Convert.ToDecimal(dtData.Rows[i]["cost"] == null ? "0" : dtData.Rows[i]["cost"]);
                     orderDetail.FeeCharged = Convert.ToDecimal(dtData.Rows[i]["feeCharged"] == null ? "0" : dtData.Rows[i]["feeCharged"]);
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -1388,7 +1388,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1424,7 +1424,7 @@ namespace Motto_Vehicle_DataFeed
             orderDetail.OrderID = int.Parse(dtData.Rows[0]["orderID"] == null ? "0" : dtData.Rows[0]["orderID"].ToString());
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1464,7 +1464,7 @@ namespace Motto_Vehicle_DataFeed
             oRequest.UploadDate = DateTime.Now;
             oRequest.UploadBy = "";
 
-            using (var context = new dataFeedContext())
+            using (var context = new MAMS_dataFeedContext())
             {
                 context.Database.CommandTimeout = 300000;
                 if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1544,7 +1544,7 @@ namespace Motto_Vehicle_DataFeed
                 oSchedule.ToYard = Convert.ToInt32(item["toYard"].ToString());
                 oSchedule.VendorId = Convert.ToInt32(item["vendorId"].ToString());
 
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1606,7 +1606,7 @@ namespace Motto_Vehicle_DataFeed
                     //odetail.CheckInDate = DateTime.Parse("1900-01-01");
                     //odetail.CheckInTime = "";
 
-                    using (var context = new dataFeedContext())
+                    using (var context = new MAMS_dataFeedContext())
                     {
                         context.Database.CommandTimeout = 300000;
                         if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1644,7 +1644,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1682,7 +1682,7 @@ namespace Motto_Vehicle_DataFeed
                     Transport_Schedule schedule = new Transport_Schedule();
                     schedule.ScheduleID = int.Parse(dtData.Rows[i]["scheduleID"] == null ? "0" : dtData.Rows[i]["scheduleID"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -1738,7 +1738,7 @@ namespace Motto_Vehicle_DataFeed
                     oSchedule.ToYard = Convert.ToInt32(item["toYard"].ToString());
                     oSchedule.VendorId = Convert.ToInt32(item["vendorId"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -1790,7 +1790,7 @@ namespace Motto_Vehicle_DataFeed
             oschedule.ScheduleID = int.Parse(dtData.Rows[0]["scheduleID"] == null ? "0" : dtData.Rows[0]["scheduleID"].ToString());
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1828,7 +1828,7 @@ namespace Motto_Vehicle_DataFeed
             oschedule.ScheduleID = int.Parse(dtData.Rows[0]["scheduleID"] == null ? "0" : dtData.Rows[0]["scheduleID"].ToString());
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -1876,7 +1876,7 @@ namespace Motto_Vehicle_DataFeed
                     oVendor.SecondaryEmails = (dtData.Rows[i]["secondaryEmails"] == null ? "" : dtData.Rows[i]["secondaryEmails"].ToString());
                     oVendor.Remark = (dtData.Rows[i]["remark"] == null ? "" : dtData.Rows[i]["remark"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -1946,7 +1946,7 @@ namespace Motto_Vehicle_DataFeed
                     oVendor.Remark = (dtData.Rows[i]["remark"] == null ? "" : dtData.Rows[i]["remark"].ToString());
                     oVendor.VendorID = int.Parse(dtData.Rows[i]["vendorId"] == null ? "0" : dtData.Rows[i]["vendorId"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2011,7 +2011,7 @@ namespace Motto_Vehicle_DataFeed
                     Vendor oVendor = new Vendor();
                     oVendor.VendorID = int.Parse(dtData.Rows[i]["vendorId"] == null ? "0" : dtData.Rows[i]["vendorId"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2045,7 +2045,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2079,7 +2079,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2113,7 +2113,7 @@ namespace Motto_Vehicle_DataFeed
             Vendor result = new Vendor();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2152,7 +2152,7 @@ namespace Motto_Vehicle_DataFeed
                     oLocation.LocationCode = (dtData.Rows[i]["locationCode"] == null ? "" : dtData.Rows[i]["locationCode"].ToString());
                     oLocation.Email = (dtData.Rows[i]["email"] == null ? "" : dtData.Rows[i]["email"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2216,7 +2216,7 @@ namespace Motto_Vehicle_DataFeed
                     oLocation.Email = (dtData.Rows[i]["email"] == null ? "" : dtData.Rows[i]["email"].ToString());
                     oLocation.LocationID = int.Parse(dtData.Rows[i]["locationId"] == null ? "0" : dtData.Rows[i]["locationId"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2278,7 +2278,7 @@ namespace Motto_Vehicle_DataFeed
                     Location oLocation = new Location();
                     oLocation.LocationID = int.Parse(dtData.Rows[i]["locationId"] == null ? "0" : dtData.Rows[i]["locationId"].ToString());
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2312,7 +2312,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2341,7 +2341,6 @@ namespace Motto_Vehicle_DataFeed
         #endregion
         #endregion
 
-
         #region GetVehicleInformation
         #region GetVehicleListByRegistration
         public DataTable GetVehicleListByRegistration(DataTable dtData)
@@ -2358,7 +2357,7 @@ namespace Motto_Vehicle_DataFeed
             }
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2401,7 +2400,7 @@ namespace Motto_Vehicle_DataFeed
 
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2443,7 +2442,7 @@ namespace Motto_Vehicle_DataFeed
 
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new MAMS_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -2492,7 +2491,7 @@ namespace Motto_Vehicle_DataFeed
 
                     int txnType = 1;//CheckOut
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2547,7 +2546,7 @@ namespace Motto_Vehicle_DataFeed
                     odetail.CheckInTime =  dtData.Rows[i]["checkInTime"] == null ? "" : utcTimetoThaiTime(dtData.Rows[i]["checkInTime"].ToString());
                     int txnType = 2;//CheckIn
 
-                    var context = new dataFeedContext();
+                    var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
@@ -2614,7 +2613,7 @@ namespace Motto_Vehicle_DataFeed
         //    DataTable result = new DataTable();
         //    try
         //    {
-        //        using (var context = new dataFeedContext())
+        //        using (var context = new MAMS_dataFeedContext())
         //        {
         //            context.Database.CommandTimeout = 300000;
         //            if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3224,11 +3223,11 @@ namespace Motto_Vehicle_DataFeed
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
-        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,1 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) Where TransportStatus = 'Pending'
+        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,1 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) Where TransportStatus = 'Pending'
                                                             UNION ALL
-                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,2 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check Out'
+                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,2 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check Out'
                                                             UNION ALL
-                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,3 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check In'";
+                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,3 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check In'";
 
         public static string get_TransportLocfordb = "SELECT * FROM fn_Transport_Location(@VendorID, @FromDate, @ToDate) ORDER BY TotalPending DESC,TotalCheckOut DESC,TotalCheckIn DESC";
 
@@ -3249,7 +3248,7 @@ namespace Motto_Vehicle_DataFeed
                                                                 (SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
                                                                 (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
                                                                 WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
-                                                                WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection,tsp.OrderID,OrderCode,
+                                                                WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection,tsp.OrderID,tsp.OrderCode,
                                                                convert(varchar, tsp.DepartureDate, 105)DepartureDate,convert(varchar, tsp.ArrivalDate, 105)ArrivalDate,CheckOutTime,CheckInTime
                                                                 FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23)) tsp
                                                                 LEFT JOIN Transport_OrderDoc doc ON doc.OrderID = tsp.OrderID
@@ -3264,7 +3263,7 @@ namespace Motto_Vehicle_DataFeed
                                                                 (SELECT IMAPNumber,Registration,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,
                                                                 (CASE WHEN ISNULL(TransportStatus,'') = 'Pending' THEN 'Pending Pick Up'
                                                                 WHEN ISNULL(TransportStatus,'') = 'Check Out' THEN 'Transporting'
-                                                                WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection,tsp.OrderID,OrderCode,
+                                                                WHEN ISNULL(TransportStatus,'') = 'Check In' THEN 'Arrived' END) TransportStatus,'From' TransportDirection,tsp.OrderID,tsp.OrderCode,
                                                                 convert(varchar, tsp.DepartureDate, 105)DepartureDate,convert(varchar, tsp.ArrivalDate, 105)ArrivalDate,CheckOutTime,CheckInTime
                                                                 FROM [fn_getTransportStatus]('',CONVERT(varchar, @FromDate, 23),CONVERT(varchar, @ToDate, 23)) tsp
                                                                 LEFT JOIN Transport_OrderDoc doc ON doc.OrderID = tsp.OrderID 

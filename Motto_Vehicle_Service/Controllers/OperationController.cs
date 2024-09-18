@@ -463,7 +463,7 @@ namespace Motto_Vehicle_Service.Controllers
             int isFound = objDataFeed.QuickCheckInVehicles(dt);
             if(isFound == 1)
             {
-                return Json(new { success = true, message = "Vehicles Check in successfully." });
+                return Json(new { success = true, message = "Vehicle Check in successfully." });
             }
             else
             {
@@ -489,11 +489,71 @@ namespace Motto_Vehicle_Service.Controllers
             int isFound = objDataFeed.QuickCheckOutVehicles(dt);
             if (isFound == 1)
             {
-                return Json(new { success = true, message = "Vehicles Check out successfully." });
+                return Json(new { success = true, message = "Vehicle Check out successfully." });
             }
             else
             {
                 return Json(new { success = false, message = "Previous Quick CheckOut process is not CheckIn yet!" });
+            }
+        }
+        #endregion
+
+        #region CheckStock
+        [HttpPost]
+        public ActionResult CheckStock()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            objDataFeed.CheckStock(dt);
+            return Json(new { success = true, message = $"Checked Stock of Vehicle Successfully." });
+        }
+        #endregion
+
+        #region QuickCheckOutList
+        [HttpGet]
+        public ActionResult QuickCheckOutList()
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            DataTable dt = objDataFeed.GetQuickCheckOutList();
+
+            dt.Columns["IMAPNumber"].ColumnName = "imapNumber";
+            dt.Columns["CheckOutLocation"].ColumnName = "fromLocationId";
+            dt.Columns["CheckInLocation"].ColumnName = "toLocationId";
+            dt.Columns["CheckOutTime"].ColumnName = "checkOutTime";
+
+            string jsString = DtToJSon(dt, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetLastQuickTransport
+        [HttpPost]
+        public ActionResult GetLastQuickTransport()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+            DataTable dt = JsonToDt(formData);
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            int isFound = objDataFeed.GetLastQuickTransport(dt);
+            if (isFound == 1)
+            {
+                return Json(new { success = true, message = "CheckIn" });
+            }
+            else
+            {
+                return Json(new { success = true, message = "CheckOut" });
             }
         }
         #endregion
