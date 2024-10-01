@@ -294,6 +294,18 @@ namespace Motto_Vehicle_Service.Controllers
         }
         #endregion
 
+        #region GetCheckStockDashboard
+        [HttpGet]
+        public ActionResult GetCheckStockDashboard(string storageLocation)
+        {
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            DataTable dt = objDataFeed.GetCheckStockDashboard(storageLocation);
+
+            string jsString = DtToJSon(dt, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
         #region SearchOperationDashboard
         [HttpPost]
         public ActionResult SearchOperationDashboard()
@@ -374,6 +386,8 @@ namespace Motto_Vehicle_Service.Controllers
         }
         #endregion
 
+
+
         #region GetFilterStorageLocation
         [HttpGet]
         public ActionResult GetFilterStorageLocation()
@@ -448,7 +462,7 @@ namespace Motto_Vehicle_Service.Controllers
 
         #region QuickCheckInVehicles
         [HttpPost]
-        public ActionResult QuickCheckInVehicles()
+        public async Task<ActionResult> QuickCheckInVehicles()
         {
             // Read the form data from the request
             string formData;
@@ -460,7 +474,7 @@ namespace Motto_Vehicle_Service.Controllers
             // Convert JSON string to DataTable
             DataTable dt = JsonToDt(formData);
             Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
-            int isFound = objDataFeed.QuickCheckInVehicles(dt);
+            int isFound = await objDataFeed.QuickCheckInVehiclesAsync(dt);
             if(isFound == 1)
             {
                 return Json(new { success = true, message = "Vehicle Check in successfully." });
@@ -512,8 +526,15 @@ namespace Motto_Vehicle_Service.Controllers
             // Convert JSON string to DataTable
             DataTable dt = JsonToDt(formData);
             Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
-            objDataFeed.CheckStock(dt);
-            return Json(new { success = true, message = $"Checked Stock of Vehicle Successfully." });
+            int isFound = objDataFeed.CheckStock(dt);
+            if (isFound == 1)
+            {
+                return Json(new { success = true, message = $"Checked Stock of Vehicle Successfully." });
+            }
+            else
+            {
+                return Json(new { success = false, message = "CheckStock for this vehicle is already done!" });
+            }
         }
         #endregion
 
@@ -549,11 +570,11 @@ namespace Motto_Vehicle_Service.Controllers
             int isFound = objDataFeed.GetLastQuickTransport(dt);
             if (isFound == 1)
             {
-                return Json(new { success = true, message = "CheckIn" });
+                return Json(new { success = true, message = "MoveIn" });
             }
             else
             {
-                return Json(new { success = true, message = "CheckOut" });
+                return Json(new { success = true, message = "MoveOut" });
             }
         }
         #endregion

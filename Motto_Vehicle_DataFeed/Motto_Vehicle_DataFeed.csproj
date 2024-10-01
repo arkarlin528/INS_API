@@ -114,10 +114,12 @@
     <Compile Include="ConfigureDataContext.cs" />
     <Compile Include="DAO\ATS_DAO.cs" />
     <Compile Include="DAO\Operation_DAO.cs" />
+    <Compile Include="DAO\Team_DAO.cs" />
     <Compile Include="DataRetrival.cs" />
     <Compile Include="Operation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Simulcast.cs" />
+    <Compile Include="Team.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

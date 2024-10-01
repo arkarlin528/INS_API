@@ -1341,6 +1341,7 @@ namespace Motto_Vehicle_DataFeed
                     orderDetail.PickupRoofType = dtData.Rows[i]["pickupRoofType"] == null ? "" : dtData.Rows[i]["pickupRoofType"].ToString();
                     orderDetail.Cost = Convert.ToDecimal(dtData.Rows[i]["cost"] == null ? "0" : dtData.Rows[i]["cost"]);
                     orderDetail.FeeCharged = Convert.ToDecimal(dtData.Rows[i]["feeCharged"] == null ? "0" : dtData.Rows[i]["feeCharged"]);
+                    orderDetail.TypeOfTransport = dtData.Rows[i]["typeOfTransport"] == null ? "" : dtData.Rows[i]["typeOfTransport"].ToString();
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
@@ -1367,7 +1368,8 @@ namespace Motto_Vehicle_DataFeed
                             new SqlParameter("@ChassisNo", orderDetail.ChassisNo),
                             new SqlParameter("@PickupRoofType", orderDetail.PickupRoofType),
                             new SqlParameter("@Cost", orderDetail.Cost),
-                            new SqlParameter("@FeeCharged", orderDetail.FeeCharged)
+                            new SqlParameter("@FeeCharged", orderDetail.FeeCharged),
+                            new SqlParameter("@TypeOfTransport", orderDetail.TypeOfTransport),
                         };
 
                     #endregion Parameter
@@ -1435,6 +1437,330 @@ namespace Motto_Vehicle_DataFeed
                     using (var command = context.Database.Connection.CreateCommand())
                     {
                         command.CommandText = Transport_Query.Get_OrderDetail_ByOrderId;
+
+                        command.Parameters.Add(new SqlParameter("@OrderID", orderDetail.OrderID));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+        #endregion
+
+        #region Transport Offsite Order & Detail
+        #region UploadTransportOffsiteOrder
+        public void UploadTransportOffsiteOrder(DataTable dtData)
+        {
+            Transport_OffsiteOrder oOrder = new Transport_OffsiteOrder();
+            oOrder.CreatedBy = dtData.Rows[0]["actionBy"] == null ? "" : dtData.Rows[0]["actionBy"].ToString();
+            string userRole = getUserRole(oOrder.CreatedBy);
+            oOrder.OrderCode = getOffsiteOrderCode(userRole);
+            oOrder.UploadDate = DateTime.Now;
+            oOrder.CreateDate = DateTime.Now;
+
+            using (var context = new MAMS_dataFeedContext())
+            {
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                #region Parameter
+                var orderParam = new List<SqlParameter> {
+                    new SqlParameter("@OrderCode",oOrder.OrderCode),
+                    new SqlParameter("@UploadDate",oOrder.UploadDate),
+                    new SqlParameter("@CreateDate",oOrder.CreateDate),
+                    new SqlParameter("@CreatedBy",oOrder.CreatedBy)
+                    };
+                #endregion Parameter
+                int Id = context.Database.SqlQuery<int>(Transport_Query.Save_Transport_OffsiteOrder, orderParam.ToArray()).SingleOrDefault();
+
+                SaveTransportOffsiteOrderDetail(dtData, Id);
+            }
+        }
+
+        protected string getOffsiteOrderCode(string createduserRole)
+        {
+            DataTable result = new DataTable();
+            string sign = "";
+            if (createduserRole == "1")//Transport Department
+            {
+                sign = "TS";
+            }
+            else if (createduserRole == "2")//Operation
+            {
+                sign = "OP";
+            }
+            string orderNo = "00001";
+            string orderDate = "";
+            string OrderCode = "";
+            string systemDate = DateTime.Now.ToString("yyyyMM");
+            using (var context = new MAMS_dataFeedContext())
+            {
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                using (var command = context.Database.Connection.CreateCommand())
+                {
+                    command.CommandText = Transport_Query.Get_LastestCreateOffsiteOrderDate
+                        .Replace("@CreateDate", systemDate);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        result.Load(reader);
+                    }
+                }
+                if (result.Rows.Count > 0)
+                {
+                    orderDate = result.Rows[0]["CreateDate"].ToString();
+                }
+                if ((systemDate.Trim()) == (orderDate.Trim()))
+                {
+                    DataTable dtorder = new DataTable();
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Transport_Query.Get_LastestOffsiteOrderID
+                             .Replace("@CreateDate", systemDate);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            dtorder.Load(reader);
+                        }
+                    }
+
+                    if (dtorder.Rows.Count > 0)
+                    {
+                        orderNo = dtorder.Rows[0]["OrderCode"].ToString();
+
+                        int aa = int.Parse(orderNo) + 1;
+                        OrderCode = sign + '-' + orderDate + '-' + aa.ToString("D5");
+                    }
+                    else
+                    {
+                        string dd = systemDate;
+                        OrderCode = sign + '-' + dd + '-' + orderNo;
+                    }
+                }
+                else
+                {
+                    int dd = int.Parse(systemDate);
+                    OrderCode = sign + '-' + dd.ToString("D6") + '-' + orderNo;
+                }
+            }
+            return OrderCode;
+        }
+        #endregion
+
+        #region UpdateTransportOffsiteOrder
+        public void UpdateTransportOffsiteOrder(DataTable dtData)
+        {
+            Transport_OffsiteOrder oOrder = new Transport_OffsiteOrder();
+            oOrder.OrderID = int.Parse(dtData.Rows[0]["orderID"] == null ? "0" : dtData.Rows[0]["orderID"].ToString());
+            oOrder.UpdateDate = DateTime.Now;
+            oOrder.UpdatedBy = dtData.Rows[0]["actionBy"] == null ? "" : dtData.Rows[0]["actionBy"].ToString();
+
+            using (var context = new MAMS_dataFeedContext())
+            {
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                #region Parameter
+                var orderParam = new List<SqlParameter> {
+                    new SqlParameter("@OrderID",oOrder.OrderID),
+                    new SqlParameter("@UpdateDate",oOrder.UpdateDate),
+                    new SqlParameter("@UpdatedBy",oOrder.UpdatedBy)
+                };
+
+                var deleteOrderParam = new List<SqlParameter> {
+                    new SqlParameter("@OrderID",oOrder.OrderID)
+                    };
+                #endregion Parameter
+                context.Database.ExecuteSqlCommand(Transport_Query.Update_Transport_OffsiteOrder, orderParam.ToArray());
+
+                context.Database.ExecuteSqlCommand(Transport_Query.Delete_Transport_OffsiteOrderDetail, deleteOrderParam.ToArray());
+
+                int Id = oOrder.OrderID;
+                SaveTransportOffsiteOrderDetail(dtData, Id);
+            }
+        }
+        #endregion
+
+        #region DeleteTransportOffsiteOrder
+        public void DeleteTransportOffsiteOrder(DataTable dtData)
+        {
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Transport_OffsiteOrder oOrder = new Transport_OffsiteOrder();
+                    oOrder.OrderID = int.Parse(dtData.Rows[i]["orderID"] == null ? "0" : dtData.Rows[i]["orderID"].ToString());
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+                    var orderParam = new List<SqlParameter> {
+                    new SqlParameter("@OrderID",oOrder.OrderID)
+                    };
+
+                    #endregion Parameter
+
+                    context.Database.ExecuteSqlCommand(Transport_Query.Delete_Transport_OffsiteOrder, orderParam.ToArray());
+
+                    context.Database.ExecuteSqlCommand(Transport_Query.Delete_Transport_OffsiteOrderDetail, orderParam.ToArray());
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+        #region SaveTransportOffsiteOrderDetail
+        public void SaveTransportOffsiteOrderDetail(DataTable dtData, int orderId)
+        {
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Transport_OffsiteOrderDetail orderDetail = new Transport_OffsiteOrderDetail();
+                    orderDetail.OrderID = orderId;
+                    double dDepartureDate = Convert.ToDouble(dtData.Rows[i]["departureDate"] == null ? 0 : dtData.Rows[i]["departureDate"]);
+                    orderDetail.DepartureDate = dDepartureDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dDepartureDate);
+                    double dArrivalDate = Convert.ToDouble(dtData.Rows[i]["arrivalDate"] == null ? 0 : dtData.Rows[i]["arrivalDate"]);
+                    orderDetail.ArrivalDate = dArrivalDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dArrivalDate);
+                    orderDetail.IMAPNumber = dtData.Rows[i]["iMAPnumber"] == null ? "" : dtData.Rows[i]["iMAPnumber"].ToString();
+                    orderDetail.Registration = dtData.Rows[i]["registration"] == null ? "" : dtData.Rows[i]["registration"].ToString();
+                    orderDetail.SellerName = dtData.Rows[i]["sellerName"] == null ? "" : dtData.Rows[i]["sellerName"].ToString();
+                    orderDetail.OffsiteName = dtData.Rows[i]["offsiteName"] == null ? "" : dtData.Rows[i]["offsiteName"].ToString();
+                    orderDetail.StorageLocation = dtData.Rows[i]["storageLocation"] == null ? "" : dtData.Rows[i]["storageLocation"].ToString();
+                    orderDetail.MakeDesc = dtData.Rows[i]["makeDesc"] == null ? "" : dtData.Rows[i]["makeDesc"].ToString();
+                    orderDetail.ModelDesc = dtData.Rows[i]["modelDesc"] == null ? "" : dtData.Rows[i]["modelDesc"].ToString();
+                    orderDetail.Variants = dtData.Rows[i]["variants"] == null ? "" : dtData.Rows[i]["variants"].ToString();
+                    orderDetail.ChassisNo = dtData.Rows[i]["chassisNo"] == null ? "" : dtData.Rows[i]["chassisNo"].ToString();
+                    orderDetail.PickupRoofType = dtData.Rows[i]["pickupRoofType"] == null ? "" : dtData.Rows[i]["pickupRoofType"].ToString();
+                    orderDetail.Cost = Convert.ToDecimal(dtData.Rows[i]["cost"] == null ? "0" : dtData.Rows[i]["cost"]);
+                    orderDetail.FeeCharged = Convert.ToDecimal(dtData.Rows[i]["feeCharged"] == null ? "0" : dtData.Rows[i]["feeCharged"]);
+                    orderDetail.TypeOfTransport = dtData.Rows[i]["typeOfTransport"] == null ? "" : dtData.Rows[i]["typeOfTransport"].ToString();
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var detailParam = new List<SqlParameter> {
+                            new SqlParameter("@OrderID", orderDetail.OrderID),
+                            new SqlParameter("@DepartureDate", orderDetail.DepartureDate),
+                            new SqlParameter("@ArrivalDate", orderDetail.ArrivalDate),
+                            new SqlParameter("@IMAPNumber", orderDetail.IMAPNumber),
+                            new SqlParameter("@Registration", orderDetail.Registration),
+                            new SqlParameter("@SellerName", orderDetail.SellerName),
+                            new SqlParameter("@OffsiteName", orderDetail.OffsiteName),
+                            new SqlParameter("@StorageLocation", orderDetail.StorageLocation),
+                            new SqlParameter("@MakeDesc", orderDetail.MakeDesc),
+                            new SqlParameter("@ModelDesc", orderDetail.ModelDesc),
+                            new SqlParameter("@Variants", orderDetail.Variants),
+                            new SqlParameter("@ChassisNo", orderDetail.ChassisNo),
+                            new SqlParameter("@PickupRoofType", orderDetail.PickupRoofType),
+                            new SqlParameter("@Cost", orderDetail.Cost),
+                            new SqlParameter("@FeeCharged", orderDetail.FeeCharged),
+                            new SqlParameter("@TypeOfTransport", orderDetail.TypeOfTransport),
+                        };
+
+                    #endregion Parameter
+                    context.Database.SqlQuery<int>(Transport_Query.Save_Transport_OffsiteOrderDetail, detailParam.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+        #region GetTransportOffsiteOrderList
+        public DataTable GetTransportOffsiteOrderList()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Transport_Query.Get_TransportOffsiteOrder_List;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetTransportOffsiteOrderDetailByOrderId
+        public DataTable GetTransportOffsiteOrderDetailByOrderId(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            Transport_OrderDetail orderDetail = new Transport_OrderDetail();
+            orderDetail.OrderID = int.Parse(dtData.Rows[0]["orderID"] == null ? "0" : dtData.Rows[0]["orderID"].ToString());
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Transport_Query.Get_OffsiteOrderDetail_ByOrderId;
 
                         command.Parameters.Add(new SqlParameter("@OrderID", orderDetail.OrderID));
 
@@ -2126,6 +2452,208 @@ namespace Motto_Vehicle_DataFeed
                     };
 
                     result = context.Database.SqlQuery<Vendor>(Transport_Query.Get_VendorEmails_ByName, Param.ToArray()).FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+        #endregion
+
+        #region Offsite
+        #region SaveOffsite
+        public int SaveOffsite(DataTable dtData)
+        {
+            int Id = 0;
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Offsite oOffsite = new Offsite();
+                    oOffsite.OffsiteName = (dtData.Rows[i]["offsiteName"] == null ? "" : dtData.Rows[i]["offsiteName"].ToString());
+                    oOffsite.OffsiteLatitude = (dtData.Rows[i]["offsiteLatitude"] == null ? "" : dtData.Rows[i]["offsiteLatitude"].ToString());
+                    oOffsite.OffsiteLongitude = (dtData.Rows[i]["offsiteLongitude"] == null ? "" : dtData.Rows[i]["offsiteLongitude"].ToString());
+                  
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var OffsiteParam = new List<SqlParameter> {
+                    new SqlParameter("@OffsiteName",oOffsite.OffsiteName),
+                    new SqlParameter("@OffsiteLatitude",oOffsite.OffsiteLatitude),
+                    new SqlParameter("@OffsiteLongitude",oOffsite.OffsiteLongitude)
+                    };
+
+                    #endregion Parameter
+
+                    //DataTable chkDuplicate = new DataTable();
+                    //using (var command = context.Database.Connection.CreateCommand())
+                    //{
+                    //    command.CommandText = Transport_Query.Check_Duplicate_Vendor;
+
+                    //    #region Parameters
+
+                    //    command.Parameters.Add(new SqlParameter("@ContactPhoneNumber", oVendor.ContactPhoneNumber));
+                    //    command.Parameters.Add(new SqlParameter("@Email", oVendor.Email));
+                    //    command.Parameters.Add(new SqlParameter("@VendorID", Id));
+
+                    //    #endregion Parameters
+
+                    //    using (var reader = command.ExecuteReader())
+                    //    {
+                    //        chkDuplicate.Load(reader);
+                    //    }
+                    //}
+                    //if (chkDuplicate.Rows.Count == 0)
+                    //{}
+                    Id = context.Database.SqlQuery<int>(Transport_Query.Save_Offsite, OffsiteParam.ToArray()).SingleOrDefault();
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return Id;
+        }
+        #endregion
+
+        #region UpdateOffsite
+        public int UpdateOffsite(DataTable dtData)
+        {
+            int Id = 0;
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Offsite oOffsite = new Offsite();
+                    oOffsite.OffsiteName = (dtData.Rows[i]["offsiteName"] == null ? "" : dtData.Rows[i]["offsiteName"].ToString());
+                    oOffsite.OffsiteLatitude = (dtData.Rows[i]["offsiteLatitude"] == null ? "" : dtData.Rows[i]["offsiteLatitude"].ToString());
+                    oOffsite.OffsiteLongitude = (dtData.Rows[i]["offsiteLongitude"] == null ? "" : dtData.Rows[i]["offsiteLongitude"].ToString());
+                    oOffsite.OffsiteID = int.Parse(dtData.Rows[i]["offsiteId"] == null ? "0" : dtData.Rows[i]["offsiteId"].ToString());
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var OffsiteParam = new List<SqlParameter> {
+                    new SqlParameter("@OffsiteName",oOffsite.OffsiteName),
+                    new SqlParameter("@OffsiteLatitude",oOffsite.OffsiteLatitude),
+                    new SqlParameter("@OffsiteLongitude",oOffsite.OffsiteLongitude),
+                    new SqlParameter("@OffsiteID",oOffsite.OffsiteID)
+                    };
+
+                    #endregion Parameter
+
+                    //DataTable chkDuplicate = new DataTable();
+                    //using (var command = context.Database.Connection.CreateCommand())
+                    //{
+                    //    command.CommandText = Transport_Query.Check_Duplicate_Vendor;
+
+                    //    #region Parameters
+
+                    //    command.Parameters.Add(new SqlParameter("@ContactPhoneNumber", oVendor.ContactPhoneNumber));
+                    //    command.Parameters.Add(new SqlParameter("@Email", oVendor.Email));
+                    //    command.Parameters.Add(new SqlParameter("@VendorID", oVendor.VendorID));
+                    //    #endregion Parameters
+
+                    //    using (var reader = command.ExecuteReader())
+                    //    {
+                    //        chkDuplicate.Load(reader);
+                    //    }
+                    //}
+                    //if (chkDuplicate.Rows.Count == 0)
+                    //{ }
+                    context.Database.ExecuteSqlCommand(Transport_Query.Update_Offsite, OffsiteParam.ToArray());
+                    Id++;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return Id;
+        }
+        #endregion
+
+        #region DeleteOffsite
+        public void DeleteOffsite(DataTable dtData)
+        {
+
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Offsite oOffsite = new Offsite();
+                    oOffsite.OffsiteID = int.Parse(dtData.Rows[i]["offsiteId"] == null ? "0" : dtData.Rows[i]["offsiteId"].ToString());
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var OffsiteParam = new List<SqlParameter> {
+                    new SqlParameter("@OffsiteID",oOffsite.OffsiteID)
+                    };
+
+                    #endregion Parameter
+
+                    context.Database.ExecuteSqlCommand(Transport_Query.Delete_Offsite, OffsiteParam.ToArray());
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+        #region GetOffsiteList
+        public DataTable GetOffsiteList()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Transport_Query.Get_Offsite_List;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -2916,7 +3444,6 @@ namespace Motto_Vehicle_DataFeed
         }
         #endregion
 
-
         #region GetBodyStyleForCombo
         public DataTable GetBodyStyleForCombo()
         {
@@ -3022,6 +3549,245 @@ namespace Motto_Vehicle_DataFeed
             return result;
         }
         #endregion
+
+        #region GetMarketShareByBrandPerMonth
+        public DataTable GetMarketShareByBrandPerMonth(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            int Month = int.Parse(dtData.Rows[0]["month"] == null ? "" : dtData.Rows[0]["month"].ToString());
+            int Year = int.Parse(dtData.Rows[0]["year"] == null ? "" : dtData.Rows[0]["year"].ToString());
+
+            try
+            {
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.GetMarketShare_ByBrand_PerMonth;
+
+                        command.Parameters.Add(new SqlParameter("@Month", Month));
+                        command.Parameters.Add(new SqlParameter("@Year", Year));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetMarketShareBySegmentPerMonth
+        public DataTable GetMarketShareBySegmentPerMonth(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            int Month = int.Parse(dtData.Rows[0]["month"] == null ? "" : dtData.Rows[0]["month"].ToString());
+            int Year = int.Parse(dtData.Rows[0]["year"] == null ? "" : dtData.Rows[0]["year"].ToString());
+
+            try
+            {
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.GetMarketShare_BySegment_PerMonth;
+
+                        command.Parameters.Add(new SqlParameter("@Month", Month));
+                        command.Parameters.Add(new SqlParameter("@Year", Year));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetSegmentSaleChart
+        public DataTable GetSegmentSaleChart(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            int Month = int.Parse(dtData.Rows[0]["month"] == null ? "" : dtData.Rows[0]["month"].ToString());
+            int Year = int.Parse(dtData.Rows[0]["year"] == null ? "" : dtData.Rows[0]["year"].ToString());
+
+            try
+            {
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_Segment_SaleChart;
+
+                        command.Parameters.Add(new SqlParameter("@Month", Month));
+                        command.Parameters.Add(new SqlParameter("@Year", Year));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetBrandSaleChart
+        public DataTable GetBrandSaleChart(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            int Month = int.Parse(dtData.Rows[0]["month"] == null ? "" : dtData.Rows[0]["month"].ToString());
+            int Year = int.Parse(dtData.Rows[0]["year"] == null ? "" : dtData.Rows[0]["year"].ToString());
+
+            try
+            {
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_Brand_SaleChart;
+
+                        command.Parameters.Add(new SqlParameter("@Month", Month));
+                        command.Parameters.Add(new SqlParameter("@Year", Year));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetTopTwentySaleByMonth
+        public DataTable GetTopTwentySaleByMonth(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            int Month = int.Parse(dtData.Rows[0]["month"] == null ? "" : dtData.Rows[0]["month"].ToString());
+            int Year = int.Parse(dtData.Rows[0]["year"] == null ? "" : dtData.Rows[0]["year"].ToString());
+
+            try
+            {
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_TopTwentySale_ByMonth;
+
+                        command.Parameters.Add(new SqlParameter("@Month", Month));
+                        command.Parameters.Add(new SqlParameter("@Year", Year));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetVehicleMasterData
+        public DataTable GetVehicleMasterData(string make, string family)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_VehicleMasterData;
+
+                        command.Parameters.Add(new SqlParameter("@Make", make));
+                        command.Parameters.Add(new SqlParameter("@Family", family));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
     }
     #endregion
 
@@ -3090,10 +3856,10 @@ namespace Motto_Vehicle_DataFeed
 
         public static string Save_Transport_OrderDetail = $@"INSERT INTO Transport_OrderDocDetail (OrderID, DepartureDate, ArrivalDate, IMAPNumber, Registration, SellerName, 
                                        VendorName, StorageLocation, Destination, MakeDesc, ModelDesc, Variants, 
-                                       ChassisNo, PickupRoofType, Cost, FeeCharged)
+                                       ChassisNo, PickupRoofType, Cost, FeeCharged,TypeOfTransport)
                                         VALUES (@OrderID, @DepartureDate, @ArrivalDate, @IMAPNumber, @Registration, @SellerName, @VendorName, 
                                                 @StorageLocation, @Destination, @MakeDesc, @ModelDesc, @Variants, @ChassisNo, @PickupRoofType, 
-                                                @Cost, @FeeCharged);
+                                                @Cost, @FeeCharged,@TypeOfTransport);
                                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
         public static string Update_Transport_Order = $@"UPDATE Transport_OrderDoc set 
@@ -3114,8 +3880,49 @@ namespace Motto_Vehicle_DataFeed
 
         public static string Get_OrderDetail_ByOrderId = $@"select OrderID,DATEDIFF(SECOND, '1970-01-01 00:00:00', DepartureDate) AS DepartureDate,
                                                             DATEDIFF(SECOND, '1970-01-01 00:00:00', ArrivalDate) AS ArrivalDate,IMAPNumber,Registration,
-                                                            SellerName,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,Cost,FeeCharged
+                                                            SellerName,VendorName,StorageLocation,Destination,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,Cost,FeeCharged,TypeOfTransport
                                                              from Transport_OrderDocDetail where OrderID=@OrderID";
+        #endregion
+
+        #region Transport Offsite Order & Detail
+        public static string Get_LastestOffsiteOrderID = $@"select Top(1) substring(OrderCode,12,5)OrderCode from Transport_OffsiteOrder
+                                   where LEFT(CONVERT(varchar(10),CreateDate,112), 6)=LEFT(CONVERT(varchar(10),@CreateDate,112), 6)
+                                   order by OrderCode desc";
+
+        public static string Get_LastestCreateOffsiteOrderDate = $@"select Top(1) LEFT(CONVERT(varchar(10),CreateDate,112), 6) CreateDate from Transport_OffsiteOrder 
+                                       where LEFT(CONVERT(varchar(10),CreateDate,112), 6)=LEFT(CONVERT(varchar(10),@CreateDate,112), 6) order by CreateDate desc";
+
+        public static string Save_Transport_OffsiteOrder = $@"INSERT INTO Transport_OffsiteOrder (OrderCode,UploadDate,CreateDate,CreatedBy)
+                        VALUES(@OrderCode,@UploadDate,@CreateDate,@CreatedBy);SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Save_Transport_OffsiteOrderDetail = $@"INSERT INTO Transport_OffsiteOrderDetail (OrderID, DepartureDate, ArrivalDate, IMAPNumber, Registration, SellerName, 
+                                       OffsiteName, StorageLocation, MakeDesc, ModelDesc, Variants, 
+                                       ChassisNo, PickupRoofType, Cost, FeeCharged,TypeOfTransport)
+                                        VALUES (@OrderID, @DepartureDate, @ArrivalDate, @IMAPNumber, @Registration, @SellerName, @OffsiteName, 
+                                                @StorageLocation, @MakeDesc, @ModelDesc, @Variants, @ChassisNo, @PickupRoofType, 
+                                                @Cost, @FeeCharged,@TypeOfTransport);
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Update_Transport_OffsiteOrder = $@"UPDATE Transport_OffsiteOrder set 
+                                                                                [UpdateDate]=@UpdateDate,
+                                                                                [UpdatedBy]=@UpdatedBy where OrderID=@OrderID";
+
+        public static string Delete_Transport_OffsiteOrderDetail = $@"Delete Transport_OffsiteOrderDetail where OrderID=@OrderID";
+
+        public static string Delete_Transport_OffsiteOrder = $@"Delete Transport_OffsiteOrder where OrderID=@OrderID";
+
+        public static string Get_TransportOffsiteOrder_List = $@"SELECT 
+                                                            OrderID,
+                                                            OrderCode,
+                                                            DATEDIFF(SECOND, '1970-01-01 00:00:00', UploadDate) AS UploadDate,
+                                                            DATEDIFF(SECOND, '1970-01-01 00:00:00', CreateDate) AS CreateDate
+                                                        FROM 
+                                                            Transport_OffsiteOrder";
+
+        public static string Get_OffsiteOrderDetail_ByOrderId = $@"select OrderID,DATEDIFF(SECOND, '1970-01-01 00:00:00', DepartureDate) AS DepartureDate,
+                                                            DATEDIFF(SECOND, '1970-01-01 00:00:00', ArrivalDate) AS ArrivalDate,IMAPNumber,Registration,
+                                                            SellerName,OffsiteName,StorageLocation,MakeDesc,ModelDesc,Variants,ChassisNo,PickupRoofType,Cost,FeeCharged,TypeOfTransport
+                                                             from Transport_OffsiteOrderDetail where OrderID=@OrderID";
         #endregion
 
         #region Transport Request & Detail
@@ -3201,6 +4008,19 @@ namespace Motto_Vehicle_DataFeed
 
 
         public static string Get_VendorEmails_ByName = $@"SELECT * FROM Vendor where VendorName=@VendorName";
+        #endregion
+
+        #region Offsite
+        public static string Save_Offsite = $@"INSERT INTO OffsiteLocation (OffsiteName,OffsiteLatitude,OffsiteLongitude)
+                                        VALUES(@OffsiteName,@OffsiteLatitude,@OffsiteLongitude);SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Update_Offsite = $@"UPDATE OffsiteLocation set [OffsiteName]=@OffsiteName,
+                                                                                [OffsiteLatitude]=@OffsiteLatitude,
+                                                                                [OffsiteLongitude]=@OffsiteLongitude where OffsiteID=@OffsiteID";
+
+        public static string Delete_Offsite = $@"Delete OffsiteLocation where OffsiteID=@OffsiteID";
+
+        public static string Get_Offsite_List = $@"Select * from OffsiteLocation";
         #endregion
 
         #region Location
@@ -3307,6 +4127,18 @@ namespace Motto_Vehicle_DataFeed
 
         public static string Get_BodyStyle_ForCombo = $@"SELECT DISTINCT [Identification_BodyStyle] [Identification_BodyStyle] 
                                                             FROM RAKA_VehicleDetailFlatData ORDER BY [Identification_BodyStyle]";
+
+        public static string GetMarketShare_ByBrand_PerMonth = $@"select * from DI_Brand_GetMarketShareByMonth(@Month,@Year)";
+
+        public static string GetMarketShare_BySegment_PerMonth = $@"select * from DI_Segment_GetMarketShareByMonth(@Month,@Year)";
+
+        public static string Get_VehicleMasterData = $@"SELECT * FROM [dbo].[Vehicles_August] WHERE Make = @Make AND Family = @Family";
+
+        public static string Get_Segment_SaleChart = $@"SELECT * FROM DI_Segment_SaleChart(@Month,@Year) ORDER BY BodyStyle,DataMonth,DataYear";
+
+        public static string Get_Brand_SaleChart = $@"SELECT * FROM DI_Brand_SaleChart(@Month,@Year) ORDER BY Make,DataMonth,DataYear";
+
+        public static string Get_TopTwentySale_ByMonth = $@"SELECT * FROM DI_TopSale (@Month, @Year)";
 
         public static string Get_SubModel_ForCombo = $@"SELECT DISTINCT [Identification_Badge] FROM RAKA_VehicleDetailFlatData WHERE Make = @Make AND [Identification_Badge] <> '' ORDER BY [Identification_Badge]";
     }

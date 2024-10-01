@@ -26,6 +26,8 @@ namespace Motto_Vehicle_DataFeed.DAO
         public int ResponseStatus { get; set; }
         public string ResponseData { get; set; }
         public string OtherResponses { get; set; }
+        public string Latitude { get; set; }
+        public string Longitude { get; set; }
     }
 
     public class Check_Stock
@@ -36,7 +38,7 @@ namespace Motto_Vehicle_DataFeed.DAO
         public string VehicleNumber { get; set; }
         public string CurrentLocation { get; set; }
         public string ActualLocation { get; set; }
-        public string Lattitude { get; set; }
+        public string Latitude { get; set; }
         public string Longitude { get; set; }
         public string CheckBy { get; set; }
     }

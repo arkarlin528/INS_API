@@ -69,14 +69,14 @@ namespace Motto_Vehicle_DataFeed
                 // Detail
                 // Detail Header
                 worksheet.Cells[8, 1].Value = "No";
-                worksheet.Cells[8, 2].Value = "IMAP";
+                worksheet.Cells[8, 2].Value = "IMAT";
                 worksheet.Cells[8, 3].Value = "Seller";
                 worksheet.Cells[8, 4].Value = "No. Buyer";
                 worksheet.Cells[8, 5].Value = "Bid No.";
 
                 worksheet.Cells[8, 6].Value = "Lot";
                 worksheet.Cells[8, 7].Value = "Seller Ref";
-                worksheet.Cells[8, 8].Value = "Regist.";
+                worksheet.Cells[8, 8].Value = "Reg No.";
                 worksheet.Cells[8, 9].Value = "Year";
                 worksheet.Cells[8, 10].Value = "Make";
 

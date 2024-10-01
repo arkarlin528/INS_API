@@ -1,11 +1,14 @@
 ﻿using Motto_Vehicle_DataFeed;
 using Newtonsoft.Json;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web;
+using System.Web.DynamicData;
 using System.Web.Mvc;
 using System.Web.Script.Serialization;
 
@@ -162,6 +165,140 @@ namespace Motto_Vehicle_Service.Controllers
 
             string jsString = DtToJSon(dt, "data");
             return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetMarketShareByBrandPerMonth
+        [HttpPost]
+        public ActionResult GetMarketShareByBrandPerMonth()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
+            Raka_DATAFEED objDataFeed = new Raka_DATAFEED();
+            DataTable dtresult = objDataFeed.GetMarketShareByBrandPerMonth(dt);
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetMarketShareBySegmentPerMonth
+        [HttpPost]
+        public ActionResult GetMarketShareBySegmentPerMonth()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
+            Raka_DATAFEED objDataFeed = new Raka_DATAFEED();
+            DataTable dtresult = objDataFeed.GetMarketShareBySegmentPerMonth(dt);
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetSegmentSaleChart
+        [HttpPost]
+        public ActionResult GetSegmentSaleChart()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
+            Raka_DATAFEED objDataFeed = new Raka_DATAFEED();
+            DataTable dtresult = objDataFeed.GetSegmentSaleChart(dt);
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetBrandSaleChart
+        [HttpPost]
+        public ActionResult GetBrandSaleChart()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
+            Raka_DATAFEED objDataFeed = new Raka_DATAFEED();
+            DataTable dtresult = objDataFeed.GetBrandSaleChart(dt);
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetTopTwentySaleByMonth
+        [HttpPost]
+        public ActionResult GetTopTwentySaleByMonth()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
+            Raka_DATAFEED objDataFeed = new Raka_DATAFEED();
+            DataTable dtresult = objDataFeed.GetTopTwentySaleByMonth(dt);
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region ExportVehicleMasterData
+        [HttpGet]
+        public ActionResult ExportVehicleMasterData(string make, string family)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            Raka_DATAFEED objDataFeed = new Raka_DATAFEED();
+            DataTable dt = objDataFeed.GetVehicleMasterData(make, family);
+            if (dt.Rows.Count > 0)
+            {
+                using (ExcelPackage package = new ExcelPackage())
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet1");
+
+                    worksheet.Cells["A1"].LoadFromDataTable(dt, true);
+
+                    byte[] excelData = package.GetAsByteArray();
+
+                    return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "VehiclesMasterData.xlsx");
+                }
+            }
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent, "No data available for the given parameters.");
         }
         #endregion
 

@@ -261,6 +261,39 @@ namespace MOTTO_DATAFEED.DAO
         public string PickupRoofType { get; set; }
         public decimal Cost { get; set; }
         public decimal FeeCharged { get; set; }
+        public string TypeOfTransport { get; set; }
+    }
+
+    public class Transport_OffsiteOrder
+    {
+        public int OrderID { get; set; }
+        public string OrderCode { get; set; }
+        public DateTime UploadDate { get; set; }
+        public DateTime CreateDate { get; set; }
+        public string CreatedBy { get; set; }
+        public DateTime UpdateDate { get; set; }
+        public string UpdatedBy { get; set; }
+    }
+
+    public class Transport_OffsiteOrderDetail
+    {
+        public int OrderDetailId { get; set; }
+        public int OrderID { get; set; }
+        public DateTime DepartureDate { get; set; }
+        public DateTime ArrivalDate { get; set; }
+        public string IMAPNumber { get; set; }
+        public string Registration { get; set; }
+        public string SellerName { get; set; }
+        public string OffsiteName { get; set; }
+        public string StorageLocation { get; set; }
+        public string MakeDesc { get; set; }
+        public string ModelDesc { get; set; }
+        public string Variants { get; set; }
+        public string ChassisNo { get; set; }
+        public string PickupRoofType { get; set; }
+        public decimal Cost { get; set; }
+        public decimal FeeCharged { get; set; }
+        public string TypeOfTransport { get; set; }
     }
 
     public class Vendor
@@ -273,7 +306,13 @@ namespace MOTTO_DATAFEED.DAO
         public string SecondaryEmails { get; set; }
         public string Remark { get; set; }
     }
-
+    public class Offsite
+    {
+        public int OffsiteID { get; set; }
+        public string OffsiteName { get; set; }
+        public string OffsiteLatitude { get; set; }
+        public string OffsiteLongitude { get; set; }
+    }
     public class Location
     {
         public int LocationID { get; set; }

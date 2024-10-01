@@ -17,6 +17,7 @@ using System.Globalization;
 using static Motto_Vehicle_DataFeed.Operation_DATAFEED;
 using System.Web.Http;
 using System.Drawing.Drawing2D;
+using static System.Net.WebRequestMethods;
 
 namespace Motto_Vehicle_DataFeed
 {
@@ -228,6 +229,8 @@ namespace Motto_Vehicle_DataFeed
                     oATSlog.VehicleNumber = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
                     oATSlog.TxnLocation = (dtData.Rows[i]["txnLocationId"] == null ? "" : dtData.Rows[i]["txnLocationId"].ToString());
                     oATSlog.StatusUpdateBy = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
+                    oATSlog.Latitude = (dtData.Rows[i]["latitude"] == null ? "" : dtData.Rows[i]["latitude"].ToString());
+                    oATSlog.Longitude = (dtData.Rows[i]["longitude"] == null ? "" : dtData.Rows[i]["longitude"].ToString());
                     oATSlog.OtherResponses = imagesReponse;
                     if (apiResponse != null)
                     {
@@ -260,6 +263,8 @@ namespace Motto_Vehicle_DataFeed
                     new SqlParameter("@ResponseStatus",oATSlog.ResponseStatus),
                     new SqlParameter("@ResponseData",oATSlog.ResponseData),
                     new SqlParameter("@OtherResponses",oATSlog.OtherResponses),
+                    new SqlParameter("@Latitude",oATSlog.Latitude),
+                    new SqlParameter("@Longitude",oATSlog.Longitude),
                     };
 
                     #endregion Parameter
@@ -280,7 +285,7 @@ namespace Motto_Vehicle_DataFeed
         private async Task<HttpResponseMessage> SetExitStatusToIMATAsync(string vehicle, string storageLocation, string exitedDate, string staffName)
         {
             System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(768 | 3072);
-            var url = "https://mapapi-uat.mottoauction.com/connectors/api/mats/setVehicleExit";
+            var url = "https://api.mottoauction.com/connectors/api/mats/setVehicleExit";// UAT -https://mapapi-uat.mottoauction.com/connectors/api/mats/setVehicleExit
             var requestBody = new
             {
                 vehicle,
@@ -306,7 +311,7 @@ namespace Motto_Vehicle_DataFeed
         private async Task<HttpResponseMessage> SetStorageLocationIMATAsync(string vehicle, string storageTo, string userName)
         {
             System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(768 | 3072);
-            var url = "https://mapapi-uat.mottoauction.com/connectors/api/mats/setStorageLocation";
+            var url = "https://api.mottoauction.com/connectors/api/mats/setStorageLocation";// UAT -https://mapapi-uat.mottoauction.com/connectors/api/mats/setStorageLocation
             var requestBody = new
             {
                 vehicle,
@@ -386,7 +391,7 @@ namespace Motto_Vehicle_DataFeed
 
             string File = null;
             System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(768 | 3072);
-            var url = "https://mapapi-uat.mottoauction.com/connectors/api/mats/exitImage";
+            var url = "https://api.mottoauction.com/connectors/api/mats/exitImage";// UAT-https://mapapi-uat.mottoauction.com/connectors/api/mats/exitImage
             var requestBody = new
             {
                 ImageNo,
@@ -674,7 +679,7 @@ namespace Motto_Vehicle_DataFeed
         public LoginIMAPDto LoginTransportUser(DataTable dtData)
         {
             System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(768 | 3072);
-            var url = "https://mapapi-uat.mottoauction.com/inspection/api/userlogin/value";
+            var url = "https://api.mottoauction.com/inspection/api/userlogin/value";// UAT -https://mapapi-uat.mottoauction.com/inspection/api/userlogin/value
             var requestBody = new
             {
                 Username = dtData.Rows[0]["Username"]?.ToString(),
@@ -745,8 +750,9 @@ namespace Motto_Vehicle_DataFeed
 
 
         #region CheckStock
-        public void CheckStock(DataTable dtData)
+        public int CheckStock(DataTable dtData)
         {
+            int isFound = 0;
             try
             {
                 for (int i = 0; i < dtData.Rows.Count; i++)
@@ -758,7 +764,7 @@ namespace Motto_Vehicle_DataFeed
                     objchkStock.VehicleNumber = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
                     objchkStock.CurrentLocation = dtData.Rows[i]["currentLocationId"] == null ? "" : dtData.Rows[i]["currentLocationId"].ToString();
                     objchkStock.ActualLocation = dtData.Rows[i]["actualLocationId"] == null ? "" : dtData.Rows[i]["actualLocationId"].ToString();
-                    objchkStock.Lattitude = dtData.Rows[i]["lattitude"] == null ? "" : dtData.Rows[i]["lattitude"].ToString();
+                    objchkStock.Latitude = dtData.Rows[i]["latitude"] == null ? "" : dtData.Rows[i]["latitude"].ToString();
                     objchkStock.Longitude = dtData.Rows[i]["longitude"] == null ? "" : dtData.Rows[i]["longitude"].ToString();
                     objchkStock.CheckBy = (dtData.Rows[i]["checkBy"] == null ? "" : dtData.Rows[i]["checkBy"].ToString());
 
@@ -768,21 +774,41 @@ namespace Motto_Vehicle_DataFeed
                     {
                         context.Database.Connection.Open();
                     }
-                    #region Parameter
 
-                    var Param = new List<SqlParameter> {
+                    DataTable isCheckStocked = new DataTable();
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_IsAlreadyCheckStocked;
+
+                        #region Parameters
+                        command.Parameters.Add(new SqlParameter("@VehicleNumber", objchkStock.VehicleNumber));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            isCheckStocked.Load(reader);
+                        }
+                    }
+                    if (isCheckStocked.Rows.Count == 0)
+                    {
+                        #region Parameter
+
+                        var Param = new List<SqlParameter> {
                         new SqlParameter("@TxnDate",objchkStock.TxnDate),
                         new SqlParameter("@TxnTime",objchkStock.TxnTime),
                         new SqlParameter("@VehicleNumber",objchkStock.VehicleNumber),
                         new SqlParameter("@CurrentLocation",objchkStock.CurrentLocation),
                         new SqlParameter("@ActualLocation",objchkStock.ActualLocation),
-                        new SqlParameter("@Lattitude",objchkStock.Lattitude),
+                        new SqlParameter("@Latitude",objchkStock.Latitude),
                         new SqlParameter("@Longitude",objchkStock.Longitude),
                         new SqlParameter("@CheckBy",objchkStock.CheckBy),
                         };
-                    #endregion Parameter
+                        #endregion Parameter
 
-                    context.Database.ExecuteSqlCommand(Operation_Query.Save_Check_Stock, Param.ToArray());
+                        context.Database.ExecuteSqlCommand(Operation_Query.Save_Check_Stock, Param.ToArray());
+
+                        isFound = 1;
+                    }
                 }
             }
             catch (Exception ex)
@@ -790,6 +816,7 @@ namespace Motto_Vehicle_DataFeed
                 Console.WriteLine("===================================================================");
                 Console.WriteLine(ex.Message);
             }
+            return isFound;
         }
         #endregion
 
@@ -801,15 +828,20 @@ namespace Motto_Vehicle_DataFeed
             {
                 for (int i = 0; i < dtData.Rows.Count; i++)
                 {
-                    Transport_ScheduleDetail odetail = new Transport_ScheduleDetail();
-                    odetail.Vehicle = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
-                    odetail.CheckOutLocation = dtData.Rows[i]["txnLocationId"] == null ? "" : dtData.Rows[i]["txnLocationId"].ToString();
-                    odetail.CheckInLocation = dtData.Rows[i]["checkInLocationId"] == null ? "" : dtData.Rows[i]["checkInLocationId"].ToString();
+                    Transport_ATS_Log oATSlog = new Transport_ATS_Log();
+                    int txnType = 4;//MoveOut
+                    string imagesReponse = "";
+                    string checkInLocation = dtData.Rows[i]["checkInLocationId"] == null ? "" : dtData.Rows[i]["checkInLocationId"].ToString();
                     double dFromDate = Convert.ToDouble(dtData.Rows[0]["txnDate"] == null ? 0 : dtData.Rows[0]["txnDate"]);
-                    odetail.CheckOutDate = (dFromDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dFromDate));
-                    odetail.CheckOutTime = (dtData.Rows[i]["txnTime"] == null ? "" : dtData.Rows[i]["txnTime"].ToString());
-                    string updateduser = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
-                    int txnType = 1;//CheckOut
+                    oATSlog.TxnDate = (dFromDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dFromDate));
+                    oATSlog.TxnTime = (dtData.Rows[i]["txnTime"] == null ? "" : dtData.Rows[i]["txnTime"].ToString());
+                    oATSlog.VehicleNumber = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
+                    oATSlog.TxnLocation = (dtData.Rows[i]["txnLocationId"] == null ? "" : dtData.Rows[i]["txnLocationId"].ToString());
+                    oATSlog.StatusUpdateBy = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
+                    oATSlog.Latitude = (dtData.Rows[i]["latitude"] == null ? "" : dtData.Rows[i]["latitude"].ToString());
+                    oATSlog.Longitude = (dtData.Rows[i]["longitude"] == null ? "" : dtData.Rows[i]["longitude"].ToString());
+                    oATSlog.ResponseStatus = 0;
+                    oATSlog.ResponseData = "";
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
@@ -824,7 +856,7 @@ namespace Motto_Vehicle_DataFeed
                         command.CommandText = Operation_Query.Get_NotComplete_QuickTransport;
 
                         #region Parameters
-                        command.Parameters.Add(new SqlParameter("@Vehicle", odetail.Vehicle));
+                        command.Parameters.Add(new SqlParameter("@Vehicle", oATSlog.VehicleNumber));
                         #endregion Parameters
 
                         using (var reader = command.ExecuteReader())
@@ -837,26 +869,31 @@ namespace Motto_Vehicle_DataFeed
                         #region Parameter
 
                         var quickTransportParam = new List<SqlParameter> {
-                        new SqlParameter("@Vehicle",odetail.Vehicle),
-                        new SqlParameter("@CheckOutLocation",odetail.CheckOutLocation),
-                        new SqlParameter("@CheckInLocation",odetail.CheckInLocation),
-                        new SqlParameter("@CheckOutDate",odetail.CheckOutDate),
-                        new SqlParameter("@CheckOutTime",odetail.CheckOutTime),
+                        new SqlParameter("@Vehicle",oATSlog.VehicleNumber),
+                        new SqlParameter("@CheckOutLocation",oATSlog.TxnLocation),
+                        new SqlParameter("@CheckInLocation",checkInLocation),
+                        new SqlParameter("@CheckOutDate",oATSlog.TxnDate),
+                        new SqlParameter("@CheckOutTime",oATSlog.TxnTime),
                         };
 
                         var LogParam = new List<SqlParameter> {
-                        new SqlParameter("@VehicleNumber",odetail.Vehicle),
-                        new SqlParameter("@TxnType",txnType),
-                        new SqlParameter("@TxnLocation",odetail.CheckOutLocation),
-                        new SqlParameter("@TxnDate",odetail.CheckOutDate),
-                        new SqlParameter("@TxnTime",odetail.CheckOutTime),
-                        new SqlParameter("@StatusUpdateBy",updateduser),
+                        new SqlParameter("@TxnType", txnType),
+                        new SqlParameter("@TxnDate", oATSlog.TxnDate),
+                        new SqlParameter("@TxnTime", oATSlog.TxnTime),
+                        new SqlParameter("@VehicleNumber", oATSlog.VehicleNumber),
+                        new SqlParameter("@TxnLocation", oATSlog.TxnLocation),
+                        new SqlParameter("@StatusUpdateBy", oATSlog.StatusUpdateBy),
+                        new SqlParameter("@ResponseStatus", oATSlog.ResponseStatus),
+                        new SqlParameter("@ResponseData", oATSlog.ResponseData),
+                        new SqlParameter("@OtherResponses", imagesReponse),
+                        new SqlParameter("@Latitude", oATSlog.Latitude),
+                        new SqlParameter("@Longitude", oATSlog.Longitude),
                         };
                         #endregion Parameter
 
                         context.Database.ExecuteSqlCommand(Operation_Query.QuickCheckOut_Vehicles, quickTransportParam.ToArray());
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.Save_Transport_ATS_Log, LogParam.ToArray());
+                        context.Database.ExecuteSqlCommand(Operation_Query.Create_Transport_ATS_Log, LogParam.ToArray());
 
                         isFound = 1;
                     }
@@ -873,21 +910,41 @@ namespace Motto_Vehicle_DataFeed
         #endregion
 
         #region QuickCheckInVehicles
-        public int QuickCheckInVehicles(DataTable dtData)
+        public async Task<int> QuickCheckInVehiclesAsync(DataTable dtData)
         {
             int isFound = 0;
             try
             {
                 for (int i = 0; i < dtData.Rows.Count; i++)
                 {
-                    Transport_ScheduleDetail odetail = new Transport_ScheduleDetail();
-                    odetail.Vehicle = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
-                    odetail.CheckInLocation = dtData.Rows[i]["txnLocationId"] == null ? "" : dtData.Rows[i]["txnLocationId"].ToString();
+
+                    HttpResponseMessage apiResponse = await SetStorageLocationIMATAsync(
+                           dtData.Rows[i]["vehicleNumber"].ToString(),
+                           dtData.Rows[i]["txnLocation"].ToString(),
+                           dtData.Rows[i]["statusUpdateBy"].ToString()
+                       );
+
+                    Transport_ATS_Log oATSlog = new Transport_ATS_Log();
+                    int txnType = 5;//MoveIn
+                    string imagesReponse = "";
                     double dFromDate = Convert.ToDouble(dtData.Rows[0]["txnDate"] == null ? 0 : dtData.Rows[0]["txnDate"]);
-                    odetail.CheckInDate = (dFromDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dFromDate));
-                    odetail.CheckInTime = (dtData.Rows[i]["txnTime"] == null ? "" : dtData.Rows[i]["txnTime"].ToString());
-                    int txnType = 2;//CheckIn
-                    string updateduser = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
+                    oATSlog.TxnDate = (dFromDate == 0 ? new DateTime(1970, 01, 01) : UnixTimeStampToDateTime(dFromDate));
+                    oATSlog.TxnTime = (dtData.Rows[i]["txnTime"] == null ? "" : dtData.Rows[i]["txnTime"].ToString());
+                    oATSlog.VehicleNumber = dtData.Rows[i]["vehicleNumber"] == null ? "" : dtData.Rows[i]["vehicleNumber"].ToString();
+                    oATSlog.TxnLocation = (dtData.Rows[i]["txnLocationId"] == null ? "" : dtData.Rows[i]["txnLocationId"].ToString());
+                    oATSlog.StatusUpdateBy = (dtData.Rows[i]["statusUpdateBy"] == null ? "" : dtData.Rows[i]["statusUpdateBy"].ToString());
+                    oATSlog.Latitude = (dtData.Rows[i]["latitude"] == null ? "" : dtData.Rows[i]["latitude"].ToString());
+                    oATSlog.Longitude = (dtData.Rows[i]["longitude"] == null ? "" : dtData.Rows[i]["longitude"].ToString());
+                    if (apiResponse != null)
+                    {
+                        oATSlog.ResponseStatus = (int?)apiResponse.StatusCode ?? 0;
+                        oATSlog.ResponseData = await apiResponse.Content.ReadAsStringAsync() ?? "";
+                    }
+                    else
+                    {
+                        oATSlog.ResponseStatus = 0;
+                        oATSlog.ResponseData = "";
+                    }
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
@@ -904,8 +961,8 @@ namespace Motto_Vehicle_DataFeed
                         command.CommandText = Operation_Query.Get_Last_QuickTransport;
 
                         #region Parameters
-                        command.Parameters.Add(new SqlParameter("@Vehicle", odetail.Vehicle));
-                        command.Parameters.Add(new SqlParameter("@CheckInLocation", odetail.CheckInLocation));
+                        command.Parameters.Add(new SqlParameter("@Vehicle", oATSlog.VehicleNumber));
+                        command.Parameters.Add(new SqlParameter("@CheckInLocation", oATSlog.TxnLocation));
                         #endregion Parameters
 
                         using (var reader = command.ExecuteReader())
@@ -921,25 +978,32 @@ namespace Motto_Vehicle_DataFeed
 
                         var quickTransportParam = new List<SqlParameter> {
                         new SqlParameter("@id",id),
-                        new SqlParameter("@Vehicle",odetail.Vehicle),
-                        new SqlParameter("@CheckInLocation",odetail.CheckInLocation),
-                        new SqlParameter("@CheckInDate",odetail.CheckInDate),
-                        new SqlParameter("@CheckInTime",odetail.CheckInTime)
+                        new SqlParameter("@Vehicle",oATSlog.VehicleNumber),
+                        new SqlParameter("@CheckInLocation",oATSlog.TxnLocation),
+                        new SqlParameter("@CheckInDate",oATSlog.TxnDate),
+                        new SqlParameter("@CheckInTime",oATSlog.TxnTime)
                         };
 
                         var LogParam = new List<SqlParameter> {
-                        new SqlParameter("@VehicleNumber",odetail.Vehicle),
-                        new SqlParameter("@TxnType",txnType),
-                        new SqlParameter("@TxnLocation",odetail.CheckInLocation),
-                        new SqlParameter("@TxnDate",odetail.CheckInDate),
-                        new SqlParameter("@TxnTime",odetail.CheckInTime),
-                        new SqlParameter("@StatusUpdateBy",updateduser),
+                        new SqlParameter("@TxnType", txnType),
+                        new SqlParameter("@TxnDate", oATSlog.TxnDate),
+                        new SqlParameter("@TxnTime", oATSlog.TxnTime),
+                        new SqlParameter("@VehicleNumber", oATSlog.VehicleNumber),
+                        new SqlParameter("@TxnLocation", oATSlog.TxnLocation),
+                        new SqlParameter("@StatusUpdateBy", oATSlog.StatusUpdateBy),
+                        new SqlParameter("@ResponseStatus", oATSlog.ResponseStatus),
+                        new SqlParameter("@ResponseData", oATSlog.ResponseData),
+                        new SqlParameter("@OtherResponses", imagesReponse),
+                        new SqlParameter("@Latitude", oATSlog.Latitude),
+                        new SqlParameter("@Longitude", oATSlog.Longitude),
                         };
+
+                     
 
                         #endregion Parameter
 
                         context.Database.ExecuteSqlCommand(Operation_Query.QuickCheckIn_Vehicles, quickTransportParam.ToArray());
-                        context.Database.ExecuteSqlCommand(Operation_Query.Save_Transport_ATS_Log, LogParam.ToArray());
+                        context.Database.ExecuteSqlCommand(Operation_Query.Create_Transport_ATS_Log, LogParam.ToArray());
                         isFound = 1;
                     }
                 }
@@ -1092,6 +1156,43 @@ namespace Motto_Vehicle_DataFeed
                         command.CommandText = Operation_Query.Get_Locations_ByUser;
 
                         command.Parameters.Add(new SqlParameter("@UserID", userid));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetCheckStockDashboard
+        public DataTable GetCheckStockDashboard(string storageLoc)
+        {
+            DataTable result = new DataTable();
+
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_CheckStock_Dashboard;
+
+                        command.Parameters.Add(new SqlParameter("@StorageLocation", storageLoc));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1915,8 +2016,8 @@ namespace Motto_Vehicle_DataFeed
         public static string Get_StatusType_List = $@"Select * from Status_Type";
         #endregion
 
-        public static string Create_Transport_ATS_Log = $@"INSERT INTO Transport_ATS_Log (TxnType,TxnDate,TxnTime,VehicleNumber,TxnLocation,StatusUpdateBy,ResponseStatus,ResponseData,OtherResponses)
-                        VALUES(@TxnType,@TxnDate,@TxnTime,@VehicleNumber,@TxnLocation,@StatusUpdateBy,@ResponseStatus,@ResponseData,@OtherResponses);SELECT CAST(SCOPE_IDENTITY() AS INT);";
+        public static string Create_Transport_ATS_Log = $@"INSERT INTO Transport_ATS_Log (TxnType,TxnDate,TxnTime,VehicleNumber,TxnLocation,StatusUpdateBy,ResponseStatus,ResponseData,OtherResponses,Latitude,Longitude)
+                        VALUES(@TxnType,@TxnDate,@TxnTime,@VehicleNumber,@TxnLocation,@StatusUpdateBy,@ResponseStatus,@ResponseData,@OtherResponses,@Latitude,@Longitude);SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
         #region User
         public static string Save_Transport_User = $@"INSERT INTO Transport_User (UserName,UserEmail,LoginName,Password,DepartmentID,UserType)
@@ -1937,11 +2038,13 @@ namespace Motto_Vehicle_DataFeed
         public static string Login_Transport_User = $@"Select * from Transport_User where LoginName=@LoginName and Password=@Password";
         #endregion
 
-        public static string Save_Transport_ATS_Log = $@"INSERT INTO Transport_ATS_Log (TxnType,TxnDate,TxnTime,VehicleNumber,TxnLocation,StatusUpdateBy)
-                                                         VALUES(@TxnType,@TxnDate,@TxnTime,@VehicleNumber,@TxnLocation,@StatusUpdateBy)";
+        //public static string Save_Transport_ATS_Log = $@"INSERT INTO Transport_ATS_Log (TxnType,TxnDate,TxnTime,VehicleNumber,TxnLocation,StatusUpdateBy,Latitude,Longitude)
+        //                                                 VALUES(@TxnType,@TxnDate,@TxnTime,@VehicleNumber,@TxnLocation,@StatusUpdateBy,@Latitude,@Longitude)";
 
-        public static string Save_Check_Stock = $@"INSERT INTO CheckStock (TxnDate,TxnTime,VehicleNumber,CurrentLocation,ActualLocation,Lattitude,Longitude,CheckBy)
-                                                         VALUES(@TxnDate,@TxnTime,@VehicleNumber,@CurrentLocation,@ActualLocation,@Lattitude,@Longitude,@CheckBy)";
+        public static string Save_Check_Stock = $@"INSERT INTO CheckStock (TxnDate,TxnTime,VehicleNumber,CurrentLocation,ActualLocation,Latitude,Longitude,CheckBy)
+                                                         VALUES(@TxnDate,@TxnTime,@VehicleNumber,@CurrentLocation,@ActualLocation,@Latitude,@Longitude,@CheckBy)";
+
+        public static string Get_IsAlreadyCheckStocked = $@"Select * from CheckStock where VehicleNumber = @VehicleNumber";
 
         public static string QuickCheckOut_Vehicles = $@"INSERT INTO Quick_Transport(CheckOutDate,CheckOutTime,IMAPNumber,CheckOutLocation,CheckInLocation)
                                                           VALUES(@CheckOutDate,@CheckOutTime,@Vehicle,@CheckOutLocation,@CheckInLocation)";
@@ -1965,6 +2068,8 @@ namespace Motto_Vehicle_DataFeed
         public static string Get_OperationLocation = $@"SELECT * FROM fn_GetATSLocation() where latitude is not null or longitude is not null";
 
         public static string Get_Locations_ByUser = $@"select userID,locationID from User_Location where UserID = @UserID";
+
+        public static string Get_CheckStock_Dashboard = $@"SELECT * FROM MAMS_CheckStock_Dashboard(GETDATE(),@StorageLocation)";
 
         public static string Get_ATS_Log_Exited = $@"select * from Transport_ATS_Log where TxnType = 3 and OtherResponses is not null and OtherResponses <> ''";
 

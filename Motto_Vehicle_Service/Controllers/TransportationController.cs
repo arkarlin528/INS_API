@@ -446,6 +446,141 @@ namespace Motto_Vehicle_Service.Controllers
             dtresult.Columns["PickupRoofType"].ColumnName = "pickuprooftype";
             dtresult.Columns["Cost"].ColumnName = "cost";
             dtresult.Columns["FeeCharged"].ColumnName = "feeCharged";
+            dtresult.Columns["TypeOfTransport"].ColumnName = "typeOfTransport";
+
+            string jsString = DtToJSon(dtresult, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+        #endregion
+
+        #region Transport Offsite Order & Detail
+        #region UploadTransportOffsiteOrder
+        [HttpPost]
+        public ActionResult UploadTransportOffsiteOrder()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            objDataFeed.UploadTransportOffsiteOrder(dt);
+
+            //#region Send Email
+            //dt.Columns.Remove("cost");
+            //dt.Columns.Remove("feeCharged");
+
+            //string strSubject = $"Testing";
+            //string content = GetTableForEmail(dt);
+
+            //string Vname = dt.Rows[0]["vendorName"] == null ? "" : dt.Rows[0]["vendorName"].ToString();
+            //Vendor objv = objDataFeed.GetVendorEmailsByName(Vname);
+
+            //if (objv != null)
+            //{
+            //    SendEmail(objv.Email, Vname, content, strSubject, objv.SecondaryEmails);
+            //}
+            //#endregion
+
+            return Json(new { success = true, message = "Uploading Transport Offsite Order completed successfully." });
+        }
+        #endregion
+
+        #region UpdateTransportOffsiteOrder
+        [HttpPost]
+        public ActionResult UpdateTransportOffsiteOrder()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            objDataFeed.UpdateTransportOffsiteOrder(dt);
+
+            return Json(new { success = true, message = "Updating Transport Offsite Order completed successfully." });
+        }
+        #endregion
+
+        #region DeleteTransportOffsiteOrder
+        [HttpPost]
+        public ActionResult DeleteTransportOffsiteOrder()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            objDataFeed.DeleteTransportOffsiteOrder(dt);
+
+            return Json(new { success = true, message = "Deleting Transport Offsite Order completed successfully." });
+        }
+        #endregion
+
+        #region TransportOffsiteOrderList
+        [HttpGet]
+        public ActionResult TransportOffsiteOrderList()
+        {
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            DataTable dt = objDataFeed.GetTransportOffsiteOrderList();
+
+            dt.Columns["OrderID"].ColumnName = "orderID";
+            dt.Columns["OrderCode"].ColumnName = "orderCode";
+            dt.Columns["UploadDate"].ColumnName = "uploadDate";
+            dt.Columns["CreateDate"].ColumnName = "createDate";
+
+            string jsString = DtToJSon(dt, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #region GetTransportOffsiteOrderDetailByOrderId
+        [HttpPost]
+        public ActionResult GetTransportOffsiteOrderDetailByOrderId()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            DataTable dtresult = objDataFeed.GetTransportOffsiteOrderDetailByOrderId(dt);
+
+            dtresult.Columns["OrderID"].ColumnName = "orderID";
+            dtresult.Columns["DepartureDate"].ColumnName = "departureDate";
+            dtresult.Columns["ArrivalDate"].ColumnName = "arrivalDate";
+            dtresult.Columns["IMAPNumber"].ColumnName = "iMAPnumber";
+            dtresult.Columns["Registration"].ColumnName = "registration";
+            dtresult.Columns["SellerName"].ColumnName = "sellerName";
+            dtresult.Columns["OffsiteName"].ColumnName = "offsiteName";
+            dtresult.Columns["StorageLocation"].ColumnName = "storageLocation";
+            dtresult.Columns["MakeDesc"].ColumnName = "makeDesc";
+            dtresult.Columns["ModelDesc"].ColumnName = "modelDesc";
+            dtresult.Columns["Variants"].ColumnName = "variants";
+            dtresult.Columns["ChassisNo"].ColumnName = "chassisNo";
+            dtresult.Columns["PickupRoofType"].ColumnName = "pickuprooftype";
+            dtresult.Columns["Cost"].ColumnName = "cost";
+            dtresult.Columns["FeeCharged"].ColumnName = "feeCharged";
+            dtresult.Columns["TypeOfTransport"].ColumnName = "typeOfTransport";
 
             string jsString = DtToJSon(dtresult, "data");
             return Content(jsString, "application/json");
@@ -759,6 +894,100 @@ namespace Motto_Vehicle_Service.Controllers
 
             dt.Columns["VendorId"].ColumnName = "vendorId";
             dt.Columns["VendorName"].ColumnName = "vendorName";
+
+            string jsString = DtToJSon(dt, "data");
+            return Content(jsString, "application/json");
+        }
+        #endregion
+
+        #endregion
+
+        #region Offsite
+        #region CreateOffsite
+        [HttpPost]
+        public ActionResult CreateOffsite()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            int id = objDataFeed.SaveOffsite(dt);
+            if (id == 0)
+            {
+                Response.StatusCode = 409;
+                return Json(new { success = false, message = "Offsite Creation failed." });
+            }
+            else
+            {
+                return Json(new { success = true, message = "Offsite Creation completed successfully.", id = id });
+            }
+        }
+        #endregion
+
+        #region UpdateOffsite
+        [HttpPost]
+        public ActionResult UpdateOffsite()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            int isDuplicate = objDataFeed.UpdateOffsite(dt);
+            if (isDuplicate == 0)
+            {
+                Response.StatusCode = 409;
+                return Json(new { success = false, message = "Updating Offsite failed." });
+            }
+            else
+            {
+                return Json(new { success = true, message = "Updating Offsite completed successfully." });
+            }
+        }
+        #endregion
+
+        #region DeleteOffsite
+        [HttpPost]
+        public ActionResult DeleteOffsite()
+        {
+            // Read the form data from the request
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            objDataFeed.DeleteOffsite(dt);
+
+            return Json(new { success = true, message = "Deleting Offsite completed successfully." });
+        }
+        #endregion
+
+        #region OffsiteList
+        [HttpGet]
+        public ActionResult OffsiteList()
+        {
+            Transport_DATAFEED objDataFeed = new Transport_DATAFEED();
+            DataTable dt = objDataFeed.GetOffsiteList();
+
+            dt.Columns["OffsiteID"].ColumnName = "offsiteId";
+            dt.Columns["OffsiteName"].ColumnName = "offsiteName";
+            dt.Columns["OffsiteLatitude"].ColumnName = "offsiteLatitude";
+            dt.Columns["OffsiteLongitude"].ColumnName = "offsiteLongitude";
 
             string jsString = DtToJSon(dt, "data");
             return Content(jsString, "application/json");

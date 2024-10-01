@@ -185,6 +185,7 @@
     <Compile Include="Controllers\OperationController.cs" />
     <Compile Include="Controllers\RakaController.cs" />
     <Compile Include="Controllers\SimulcastController.cs" />
+    <Compile Include="Controllers\TeamController.cs" />
     <Compile Include="Controllers\TransportationController.cs" />
     <Compile Include="Email\Email.cs" />
     <Compile Include="Email\Helper.cs" />
@@ -253,6 +254,7 @@
     <Folder Include="Views\Operation\" />
     <Folder Include="Views\Raka\" />
     <Folder Include="Views\Simulcast\" />
+    <Folder Include="Views\Team\" />
     <Folder Include="Views\Transportation\" />
     <Folder Include="Views\Vehicle\" />
   </ItemGroup>
