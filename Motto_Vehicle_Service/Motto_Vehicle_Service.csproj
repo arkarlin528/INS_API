@@ -187,6 +187,7 @@
     <Compile Include="Controllers\SimulcastController.cs" />
     <Compile Include="Controllers\TeamController.cs" />
     <Compile Include="Controllers\TransportationController.cs" />
+    <Compile Include="Controllers\VIMController.cs" />
     <Compile Include="Email\Email.cs" />
     <Compile Include="Email\Helper.cs" />
     <Compile Include="Global.asax.cs">
@@ -257,6 +258,7 @@
     <Folder Include="Views\Team\" />
     <Folder Include="Views\Transportation\" />
     <Folder Include="Views\Vehicle\" />
+    <Folder Include="Views\VIM\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
