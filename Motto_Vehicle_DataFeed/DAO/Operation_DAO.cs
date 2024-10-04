@@ -271,4 +271,14 @@ namespace Motto_Vehicle_DataFeed.DAO
     #endregion
 
     #endregion
+
+    public class LoginAPILogger
+    {
+        public int id { get; set; }
+        public string Username { get; set; }
+        public DateTime TxnDate { get; set; }
+        public string TxnTime { get; set; }
+        public int ResponseStatus { get; set; }
+        public string ResponseDesc { get; set; }
+    }
 }

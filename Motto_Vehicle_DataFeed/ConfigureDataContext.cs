@@ -62,3 +62,24 @@ public class RAKA_dataFeedContext : DbContext
     }
 
 }
+
+
+public class MATWEB_dataFeedContext : DbContext
+{
+    public MATWEB_dataFeedContext() : base(GetConnectionString("MATWEB_DATA"))
+    {
+    }
+
+    private static string GetConnectionString(string name)
+    {
+        var connectionString = ConfigurationManager.ConnectionStrings[name]?.ConnectionString;
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException($"Connection string '{name}' not found in configuration file.");
+        }
+
+        return connectionString;
+    }
+
+}

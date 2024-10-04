@@ -697,6 +697,36 @@ namespace Motto_Vehicle_DataFeed
 
                 string responseContent = apiResponse.Content.ReadAsStringAsync().Result;
                 LoginIMAPDto responseData = JsonConvert.DeserializeObject<LoginIMAPDto>(responseContent);
+
+                #region saveAPILogger
+                LoginAPILogger oLogger = new LoginAPILogger();
+                oLogger.Username = (dtData.Rows[0]["Username"] == null ? "" : dtData.Rows[0]["Username"].ToString());
+                oLogger.TxnDate = DateTime.Now;
+                oLogger.TxnTime = DateTime.Now.ToString("hh:mm tt");
+                oLogger.ResponseStatus = (int?)apiResponse.StatusCode ?? 0;
+                oLogger.ResponseDesc = responseContent;
+
+                var context = new MAMS_dataFeedContext();
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                #region Parameter
+
+                var LoggerParam = new List<SqlParameter> {
+                    new SqlParameter("@Username",oLogger.Username),
+                    new SqlParameter("@TxnDate",oLogger.TxnDate),
+                    new SqlParameter("@TxnTime",oLogger.TxnTime),
+                    new SqlParameter("@ResponseStatus",oLogger.ResponseStatus),
+                    new SqlParameter("@ResponseDesc",oLogger.ResponseDesc)
+                };
+
+                #endregion Parameter
+
+                context.Database.ExecuteSqlCommand(Operation_Query.Save_LoginAPILogger, LoggerParam.ToArray());
+                #endregion
                 // Validate username and password against AdminUser entities
                 //var user = _adminUserService.Authenticate(model.UserName, model.Password, out string token);
                 return responseData;
@@ -2037,6 +2067,9 @@ namespace Motto_Vehicle_DataFeed
 
         public static string Login_Transport_User = $@"Select * from Transport_User where LoginName=@LoginName and Password=@Password";
         #endregion
+
+        public static string Save_LoginAPILogger = $@"INSERT INTO LoginAPILogger (Username,TxnDate,TxnTime,ResponseStatus,ResponseDesc) 
+                                                    Values (@Username,@TxnDate,@TxnTime,@ResponseStatus,@ResponseDesc)";
 
         //public static string Save_Transport_ATS_Log = $@"INSERT INTO Transport_ATS_Log (TxnType,TxnDate,TxnTime,VehicleNumber,TxnLocation,StatusUpdateBy,Latitude,Longitude)
         //                                                 VALUES(@TxnType,@TxnDate,@TxnTime,@VehicleNumber,@TxnLocation,@StatusUpdateBy,@Latitude,@Longitude)";

@@ -23,6 +23,7 @@ using System.Web.Http.Results;
 using static Motto_Vehicle_DataFeed.Transport_DATAFEED;
 using System.Text.RegularExpressions;
 using System.Net.Http;
+using Motto_Vehicle_DataFeed.DAO;
 
 namespace Motto_Vehicle_DataFeed
 {
@@ -159,7 +160,7 @@ namespace Motto_Vehicle_DataFeed
 
             try
             {
-                var context = new dataFeedContext();
+                var context = new MAMS_dataFeedContext();
                 context.Database.CommandTimeout = 300000;
 
                 var conn = context.Database.Connection;
@@ -3798,14 +3799,22 @@ namespace Motto_Vehicle_DataFeed
         public static string Location_Get = "SELECT * FROM ATS_Locations_ToTransfer ORDER BY id";
 
         public static string get_vehicle_details = @"SELECT id,business_type,current_location_id, country_id,VehicleNumber qr_code,Inv_id,
-                                                    make, model, submodel, licence_plate_number, engine_number, 
-                                                    chassis_number, engine_capacity, 3 AS inv_country_id,manufacture_year,stockinhand,sc.Desc_BU body,v.Km mileage,v.Colour_BU colour
-                                                    FROM [fn_getVehicleWithStatus](GETDATE()) SIH
-                                                    LEFT JOIN IMAP.dbo.Vehicles v
-                                                    ON CONVERT(int,v.Vehicle) = SIH.id
-                                                    LEFT JOIN IMAP.dbo.SellingCategories SC
-                                                    ON v.SellingCategory = sc.SellingCategory
-                                                    WHERE id = @id or licence_plate_number=@RegNo";
+                                                        make, model, submodel, licence_plate_number, engine_number, 
+                                                        chassis_number, engine_capacity, 3 AS inv_country_id,manufacture_year,stockinhand,sc.Desc_BU body,mileage,colour
+                                                        FROM [fn_getVehicleWithStatus](GETDATE()) SIH
+                                                        LEFT JOIN IMAP_SellingCategories SC
+                                                        ON SIH.SellingCategory = sc.SellingCategory
+                                                        WHERE id = @id or licence_plate_number=@RegNo";
+
+        //SELECT id, business_type, current_location_id, country_id, VehicleNumber qr_code,Inv_id,
+        //                                            make, model, submodel, licence_plate_number, engine_number, 
+        //                                            chassis_number, engine_capacity, 3 AS inv_country_id, manufacture_year, stockinhand, sc.Desc_BU body, v.Km mileage, v.Colour_BU colour
+        //                                            FROM[fn_getVehicleWithStatus] (GETDATE()) SIH
+        //                                            LEFT JOIN IMAP.dbo.Vehicles v
+        //                                            ON CONVERT(int, v.Vehicle) = SIH.id
+        //                                            LEFT JOIN IMAP.dbo.SellingCategories SC
+        //                                            ON v.SellingCategory = sc.SellingCategory
+        //                                            WHERE id = @id or licence_plate_number = @RegNo
 
         public static string Clear_Vehicle_Snapshot = @"TRUNCATE TABLE [dbo].[ATS_Vehicles_Prev];";
         public static string Vehicle_Load_Data = @"EXEC ATS_Vehicle_Migrate";
