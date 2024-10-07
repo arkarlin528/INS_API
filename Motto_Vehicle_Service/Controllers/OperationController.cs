@@ -2,11 +2,13 @@
 using Motto_Vehicle_DataFeed;
 using Motto_Vehicle_DataFeed.DAO;
 using Newtonsoft.Json;
+using OfficeOpenXml;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -386,8 +388,6 @@ namespace Motto_Vehicle_Service.Controllers
         }
         #endregion
 
-
-
         #region GetFilterStorageLocation
         [HttpGet]
         public ActionResult GetFilterStorageLocation()
@@ -535,6 +535,43 @@ namespace Motto_Vehicle_Service.Controllers
             {
                 return Json(new { success = false, message = "CheckStock for this vehicle is already done!" });
             }
+        }
+        #endregion
+
+        #region ExportCheckStockDataExcel
+        [HttpGet]
+        public ActionResult ExportCheckStockDataExcel(string storageLocation)
+        {
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+            Operation_DATAFEED objDataFeed = new Operation_DATAFEED();
+            DataTable dtSummary = objDataFeed.GetCheckStockDashboard(storageLocation);
+            DataTable dtDetail = objDataFeed.GetCheckStockDetail(storageLocation);
+            if (dtSummary.Rows.Count > 0)
+            {
+                using (ExcelPackage package = new ExcelPackage())
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Summary");
+
+                    worksheet.Cells["A1"].LoadFromDataTable(dtSummary, true);
+                    worksheet.Cells.AutoFitColumns();
+
+                    ExcelWorksheet worksheet2 = package.Workbook.Worksheets.Add("Detail");
+
+                    worksheet2.Cells["A1"].LoadFromDataTable(dtDetail, true);
+                    worksheet2.Cells.AutoFitColumns();
+                    int txnDateColumnIndex = dtDetail.Columns["TxnDate"]?.Ordinal + 1 ?? -1;
+
+                    if (txnDateColumnIndex > 0)
+                    {
+                        worksheet2.Column(txnDateColumnIndex).Style.Numberformat.Format = "dd-mm-yyyy";
+                    }
+
+                    byte[] excelData = package.GetAsByteArray();
+
+                    return File(excelData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CheckStockData.xlsx");
+                }
+            }
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent, "No data available for the given parameters.");
         }
         #endregion
 

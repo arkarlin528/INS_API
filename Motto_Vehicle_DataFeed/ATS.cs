@@ -4052,11 +4052,11 @@ namespace Motto_Vehicle_DataFeed
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
-        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,1 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) Where TransportStatus = 'Pending'
+        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,1 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) Where TransportStatus = 'Pending'
                                                             UNION ALL
-                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,2 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check Out'
+                                                            SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,2 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check Out'
                                                             UNION ALL
-                                                            SELECT IMAPNumber,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,3 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check In'";
+                                                            SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,3 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check In'";
 
         public static string get_TransportLocfordb = "SELECT * FROM fn_Transport_Location(@VendorID, @FromDate, @ToDate) ORDER BY TotalPending DESC,TotalCheckOut DESC,TotalCheckIn DESC";
 

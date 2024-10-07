@@ -41,7 +41,9 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Closed)
                     {
                         context.Database.Connection.Open();
                     }
@@ -56,7 +58,15 @@ namespace Motto_Vehicle_DataFeed
 
                     #endregion Parameter
                     Id = context.Database.SqlQuery<int>(Operation_Query.Save_StatusType, Param.ToArray()).SingleOrDefault();
-                    
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
+                    }
+
                 }
             }
             catch (Exception ex)
@@ -84,7 +94,9 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Closed)
                     {
                         context.Database.Connection.Open();
                     }
@@ -101,6 +113,14 @@ namespace Motto_Vehicle_DataFeed
                     #endregion Parameter
                     context.Database.ExecuteSqlCommand(Operation_Query.Update_StatusType, Param.ToArray());
                     Id++;
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -125,6 +145,8 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
+                    try
+                    {
                     if (context.Database.Connection.State == ConnectionState.Closed)
                     {
                         context.Database.Connection.Open();
@@ -139,6 +161,14 @@ namespace Motto_Vehicle_DataFeed
                     #endregion Parameter
 
                     context.Database.ExecuteSqlCommand(Operation_Query.Delete_StatusType, Param.ToArray());
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
+                    }
                 }
 
 
@@ -164,7 +194,6 @@ namespace Motto_Vehicle_DataFeed
                     {
                         context.Database.Connection.Open();
                     }
-
                     using (var command = context.Database.Connection.CreateCommand())
                     {
                         command.CommandText = Operation_Query.Get_StatusType_List;
@@ -246,14 +275,16 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
+                        if (context.Database.Connection.State == ConnectionState.Closed)
+                        {
+                            context.Database.Connection.Open();
+                        }
 
-                    #region Parameter
+                        #region Parameter
 
-                    var Param = new List<SqlParameter> {
+                        var Param = new List<SqlParameter> {
                     new SqlParameter("@TxnType",oATSlog.TxnType),
                     new SqlParameter("@TxnDate",oATSlog.TxnDate),
                     new SqlParameter("@TxnTime",oATSlog.TxnTime),
@@ -267,9 +298,16 @@ namespace Motto_Vehicle_DataFeed
                     new SqlParameter("@Longitude",oATSlog.Longitude),
                     };
 
-                    #endregion Parameter
-                    Id = context.Database.SqlQuery<int>(Operation_Query.Create_Transport_ATS_Log, Param.ToArray()).SingleOrDefault();
-
+                        #endregion Parameter
+                        Id = context.Database.SqlQuery<int>(Operation_Query.Create_Transport_ATS_Log, Param.ToArray()).SingleOrDefault();
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -451,14 +489,16 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
+                        if (context.Database.Connection.State == ConnectionState.Closed)
+                        {
+                            context.Database.Connection.Open();
+                        }
 
-                    #region Parameter
+                        #region Parameter
 
-                    var UserParam = new List<SqlParameter> {
+                        var UserParam = new List<SqlParameter> {
                     new SqlParameter("@UserName",User.UserName),
                     new SqlParameter("@LoginName",User.LoginName),
                     new SqlParameter("@UserEmail",User.UserEmail),
@@ -467,37 +507,45 @@ namespace Motto_Vehicle_DataFeed
                     new SqlParameter("@UserType",User.UserType)
                     };
 
-                    #endregion Parameter
+                        #endregion Parameter
 
-                    DataTable chkDuplicate = new DataTable();
-                    using (var command = context.Database.Connection.CreateCommand())
-                    {
-                        command.CommandText = Operation_Query.Check_Duplicate_User;
-
-                        #region Parameters
-
-                        command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
-                        command.Parameters.Add(new SqlParameter("@UserEmail", User.UserEmail));
-                        command.Parameters.Add(new SqlParameter("@UserID", Id));
-                        #endregion Parameters
-
-                        using (var reader = command.ExecuteReader())
+                        DataTable chkDuplicate = new DataTable();
+                        using (var command = context.Database.Connection.CreateCommand())
                         {
-                            chkDuplicate.Load(reader);
+                            command.CommandText = Operation_Query.Check_Duplicate_User;
+
+                            #region Parameters
+
+                            command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
+                            command.Parameters.Add(new SqlParameter("@UserEmail", User.UserEmail));
+                            command.Parameters.Add(new SqlParameter("@UserID", Id));
+                            #endregion Parameters
+
+                            using (var reader = command.ExecuteReader())
+                            {
+                                chkDuplicate.Load(reader);
+                            }
                         }
-                    }
-                    if (chkDuplicate.Rows.Count == 0)
-                    {
-                        Id = context.Database.SqlQuery<int>(Operation_Query.Save_Transport_User, UserParam.ToArray()).SingleOrDefault();
-                        
-                        #region OperationUserLocationParameters
-                        var OperationUserLocationParam = new List<SqlParameter> {
+                        if (chkDuplicate.Rows.Count == 0)
+                        {
+                            Id = context.Database.SqlQuery<int>(Operation_Query.Save_Transport_User, UserParam.ToArray()).SingleOrDefault();
+
+                            #region OperationUserLocationParameters
+                            var OperationUserLocationParam = new List<SqlParameter> {
                         new SqlParameter("@LocationID",Locationid),
                         new SqlParameter("@UserID",Id)
                         };
-                        #endregion Parameters
+                            #endregion Parameters
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.Save_OperationUserLocation, OperationUserLocationParam.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.Save_OperationUserLocation, OperationUserLocationParam.ToArray());
+                        }
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
                     }
                     return Id;
                 }
@@ -531,14 +579,17 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
+                        if (context.Database.Connection.State == ConnectionState.Closed)
+                        {
+                            context.Database.Connection.Open();
+                        }
 
-                    #region Parameter
 
-                    var UserParam = new List<SqlParameter> {
+                        #region Parameter
+
+                        var UserParam = new List<SqlParameter> {
                     new SqlParameter("@UserID",User.UserID),
                     new SqlParameter("@UserName",User.UserName),
                     new SqlParameter("@LoginName",User.LoginName),
@@ -548,45 +599,53 @@ namespace Motto_Vehicle_DataFeed
                     new SqlParameter("@UserType",User.UserType)
                     };
 
-                    #endregion Parameter
-                    DataTable chkDuplicate = new DataTable();
-                    using (var command = context.Database.Connection.CreateCommand())
-                    {
-                        command.CommandText = Operation_Query.Check_Duplicate_User;
-
-                        #region Parameters
-
-                        command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
-                        command.Parameters.Add(new SqlParameter("@UserEmail", User.UserEmail));
-                        command.Parameters.Add(new SqlParameter("@UserID", User.UserID));
-                        #endregion Parameters
-
-                        using (var reader = command.ExecuteReader())
+                        #endregion Parameter
+                        DataTable chkDuplicate = new DataTable();
+                        using (var command = context.Database.Connection.CreateCommand())
                         {
-                            chkDuplicate.Load(reader);
+                            command.CommandText = Operation_Query.Check_Duplicate_User;
+
+                            #region Parameters
+
+                            command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
+                            command.Parameters.Add(new SqlParameter("@UserEmail", User.UserEmail));
+                            command.Parameters.Add(new SqlParameter("@UserID", User.UserID));
+                            #endregion Parameters
+
+                            using (var reader = command.ExecuteReader())
+                            {
+                                chkDuplicate.Load(reader);
+                            }
                         }
-                    }
-                    if (chkDuplicate.Rows.Count == 0)
-                    {
-                        context.Database.ExecuteSqlCommand(Operation_Query.Update_Transport_User, UserParam.ToArray());
+                        if (chkDuplicate.Rows.Count == 0)
+                        {
+                            context.Database.ExecuteSqlCommand(Operation_Query.Update_Transport_User, UserParam.ToArray());
 
 
-                        #region OperationUserLocationParameters
-                        var deleteOperationUserLocationParam = new List<SqlParameter> {
+                            #region OperationUserLocationParameters
+                            var deleteOperationUserLocationParam = new List<SqlParameter> {
                         new SqlParameter("@UserID",User.UserID)
                         };
 
-                        var OperationUserLocationParam = new List<SqlParameter> {
+                            var OperationUserLocationParam = new List<SqlParameter> {
                         new SqlParameter("@LocationID",Locationid),
                         new SqlParameter("@UserID",User.UserID)
                         };
-                        #endregion Parameters
+                            #endregion Parameters
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.Delete_OperationUserLocation, deleteOperationUserLocationParam.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.Delete_OperationUserLocation, deleteOperationUserLocationParam.ToArray());
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.Save_OperationUserLocation, OperationUserLocationParam.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.Save_OperationUserLocation, OperationUserLocationParam.ToArray());
 
-                        Id++;
+                            Id++;
+                        }
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
                     }
                 }
 
@@ -613,22 +672,32 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
+                        if (context.Database.Connection.State == ConnectionState.Closed)
+                        {
+                            context.Database.Connection.Open();
+                        }
 
-                    #region Parameter
+                        #region Parameter
 
-                    var UserParam = new List<SqlParameter> {
+                        var UserParam = new List<SqlParameter> {
                     new SqlParameter("@UserID",User.UserID)
                     };
 
-                    #endregion Parameter
+                        #endregion Parameter
 
-                    context.Database.ExecuteSqlCommand(Operation_Query.Delete_Transport_User, UserParam.ToArray());
+                        context.Database.ExecuteSqlCommand(Operation_Query.Delete_Transport_User, UserParam.ToArray());
 
-                    context.Database.ExecuteSqlCommand(Operation_Query.Delete_OperationUserLocation, UserParam.ToArray());
+                        context.Database.ExecuteSqlCommand(Operation_Query.Delete_OperationUserLocation, UserParam.ToArray());
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
+                    }
                 }
 
 
@@ -708,24 +777,34 @@ namespace Motto_Vehicle_DataFeed
 
                 var context = new MAMS_dataFeedContext();
                 context.Database.CommandTimeout = 300000;
-                if (context.Database.Connection.State == ConnectionState.Closed)
+                try
                 {
-                    context.Database.Connection.Open();
-                }
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
 
-                #region Parameter
+                    #region Parameter
 
-                var LoggerParam = new List<SqlParameter> {
+                    var LoggerParam = new List<SqlParameter> {
                     new SqlParameter("@Username",oLogger.Username),
                     new SqlParameter("@TxnDate",oLogger.TxnDate),
                     new SqlParameter("@TxnTime",oLogger.TxnTime),
                     new SqlParameter("@ResponseStatus",oLogger.ResponseStatus),
                     new SqlParameter("@ResponseDesc",oLogger.ResponseDesc)
-                };
+                    };
 
-                #endregion Parameter
+                    #endregion Parameter
 
-                context.Database.ExecuteSqlCommand(Operation_Query.Save_LoginAPILogger, LoggerParam.ToArray());
+                    context.Database.ExecuteSqlCommand(Operation_Query.Save_LoginAPILogger, LoggerParam.ToArray());
+                }
+                finally
+                {
+                    if (context.Database.Connection.State == ConnectionState.Open)
+                    {
+                        context.Database.Connection.Close();
+                    }
+                }
                 #endregion
                 // Validate username and password against AdminUser entities
                 //var user = _adminUserService.Authenticate(model.UserName, model.Password, out string token);
@@ -800,30 +879,32 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
-
-                    DataTable isCheckStocked = new DataTable();
-                    using (var command = context.Database.Connection.CreateCommand())
-                    {
-                        command.CommandText = Operation_Query.Get_IsAlreadyCheckStocked;
-
-                        #region Parameters
-                        command.Parameters.Add(new SqlParameter("@VehicleNumber", objchkStock.VehicleNumber));
-                        #endregion Parameters
-
-                        using (var reader = command.ExecuteReader())
+                        if (context.Database.Connection.State == ConnectionState.Closed)
                         {
-                            isCheckStocked.Load(reader);
+                            context.Database.Connection.Open();
                         }
-                    }
-                    if (isCheckStocked.Rows.Count == 0)
-                    {
-                        #region Parameter
 
-                        var Param = new List<SqlParameter> {
+                        DataTable isCheckStocked = new DataTable();
+                        using (var command = context.Database.Connection.CreateCommand())
+                        {
+                            command.CommandText = Operation_Query.Get_IsAlreadyCheckStocked;
+
+                            #region Parameters
+                            command.Parameters.Add(new SqlParameter("@VehicleNumber", objchkStock.VehicleNumber));
+                            #endregion Parameters
+
+                            using (var reader = command.ExecuteReader())
+                            {
+                                isCheckStocked.Load(reader);
+                            }
+                        }
+                        if (isCheckStocked.Rows.Count == 0)
+                        {
+                            #region Parameter
+
+                            var Param = new List<SqlParameter> {
                         new SqlParameter("@TxnDate",objchkStock.TxnDate),
                         new SqlParameter("@TxnTime",objchkStock.TxnTime),
                         new SqlParameter("@VehicleNumber",objchkStock.VehicleNumber),
@@ -833,11 +914,19 @@ namespace Motto_Vehicle_DataFeed
                         new SqlParameter("@Longitude",objchkStock.Longitude),
                         new SqlParameter("@CheckBy",objchkStock.CheckBy),
                         };
-                        #endregion Parameter
+                            #endregion Parameter
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.Save_Check_Stock, Param.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.Save_Check_Stock, Param.ToArray());
 
-                        isFound = 1;
+                            isFound = 1;
+                        }
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
                     }
                 }
             }
@@ -875,30 +964,32 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
-
-                    DataTable notCompleteQuickTransport = new DataTable();
-                    using (var command = context.Database.Connection.CreateCommand())
-                    {
-                        command.CommandText = Operation_Query.Get_NotComplete_QuickTransport;
-
-                        #region Parameters
-                        command.Parameters.Add(new SqlParameter("@Vehicle", oATSlog.VehicleNumber));
-                        #endregion Parameters
-
-                        using (var reader = command.ExecuteReader())
+                        if (context.Database.Connection.State == ConnectionState.Closed)
                         {
-                            notCompleteQuickTransport.Load(reader);
+                            context.Database.Connection.Open();
                         }
-                    }
-                    if (notCompleteQuickTransport.Rows.Count == 0)
-                    {
-                        #region Parameter
 
-                        var quickTransportParam = new List<SqlParameter> {
+                        DataTable notCompleteQuickTransport = new DataTable();
+                        using (var command = context.Database.Connection.CreateCommand())
+                        {
+                            command.CommandText = Operation_Query.Get_NotComplete_QuickTransport;
+
+                            #region Parameters
+                            command.Parameters.Add(new SqlParameter("@Vehicle", oATSlog.VehicleNumber));
+                            #endregion Parameters
+
+                            using (var reader = command.ExecuteReader())
+                            {
+                                notCompleteQuickTransport.Load(reader);
+                            }
+                        }
+                        if (notCompleteQuickTransport.Rows.Count == 0)
+                        {
+                            #region Parameter
+
+                            var quickTransportParam = new List<SqlParameter> {
                         new SqlParameter("@Vehicle",oATSlog.VehicleNumber),
                         new SqlParameter("@CheckOutLocation",oATSlog.TxnLocation),
                         new SqlParameter("@CheckInLocation",checkInLocation),
@@ -906,7 +997,7 @@ namespace Motto_Vehicle_DataFeed
                         new SqlParameter("@CheckOutTime",oATSlog.TxnTime),
                         };
 
-                        var LogParam = new List<SqlParameter> {
+                            var LogParam = new List<SqlParameter> {
                         new SqlParameter("@TxnType", txnType),
                         new SqlParameter("@TxnDate", oATSlog.TxnDate),
                         new SqlParameter("@TxnTime", oATSlog.TxnTime),
@@ -919,13 +1010,21 @@ namespace Motto_Vehicle_DataFeed
                         new SqlParameter("@Latitude", oATSlog.Latitude),
                         new SqlParameter("@Longitude", oATSlog.Longitude),
                         };
-                        #endregion Parameter
+                            #endregion Parameter
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.QuickCheckOut_Vehicles, quickTransportParam.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.QuickCheckOut_Vehicles, quickTransportParam.ToArray());
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.Create_Transport_ATS_Log, LogParam.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.Create_Transport_ATS_Log, LogParam.ToArray());
 
-                        isFound = 1;
+                            isFound = 1;
+                        }
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
                     }
                 }
 
@@ -978,35 +1077,37 @@ namespace Motto_Vehicle_DataFeed
 
                     var context = new MAMS_dataFeedContext();
                     context.Database.CommandTimeout = 300000;
-                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    try
                     {
-                        context.Database.Connection.Open();
-                    }
-
-                    
-
-                    DataTable lastQuickTransport = new DataTable();
-                    using (var command = context.Database.Connection.CreateCommand())
-                    {
-                        command.CommandText = Operation_Query.Get_Last_QuickTransport;
-
-                        #region Parameters
-                        command.Parameters.Add(new SqlParameter("@Vehicle", oATSlog.VehicleNumber));
-                        command.Parameters.Add(new SqlParameter("@CheckInLocation", oATSlog.TxnLocation));
-                        #endregion Parameters
-
-                        using (var reader = command.ExecuteReader())
+                        if (context.Database.Connection.State == ConnectionState.Closed)
                         {
-                            lastQuickTransport.Load(reader);
+                            context.Database.Connection.Open();
                         }
-                    }
-                    if (lastQuickTransport.Rows.Count > 0)
-                    {
-                        int id= int.Parse(lastQuickTransport.Rows[0]["id"].ToString());
 
-                        #region Parameter
 
-                        var quickTransportParam = new List<SqlParameter> {
+
+                        DataTable lastQuickTransport = new DataTable();
+                        using (var command = context.Database.Connection.CreateCommand())
+                        {
+                            command.CommandText = Operation_Query.Get_Last_QuickTransport;
+
+                            #region Parameters
+                            command.Parameters.Add(new SqlParameter("@Vehicle", oATSlog.VehicleNumber));
+                            command.Parameters.Add(new SqlParameter("@CheckInLocation", oATSlog.TxnLocation));
+                            #endregion Parameters
+
+                            using (var reader = command.ExecuteReader())
+                            {
+                                lastQuickTransport.Load(reader);
+                            }
+                        }
+                        if (lastQuickTransport.Rows.Count > 0)
+                        {
+                            int id = int.Parse(lastQuickTransport.Rows[0]["id"].ToString());
+
+                            #region Parameter
+
+                            var quickTransportParam = new List<SqlParameter> {
                         new SqlParameter("@id",id),
                         new SqlParameter("@Vehicle",oATSlog.VehicleNumber),
                         new SqlParameter("@CheckInLocation",oATSlog.TxnLocation),
@@ -1014,7 +1115,7 @@ namespace Motto_Vehicle_DataFeed
                         new SqlParameter("@CheckInTime",oATSlog.TxnTime)
                         };
 
-                        var LogParam = new List<SqlParameter> {
+                            var LogParam = new List<SqlParameter> {
                         new SqlParameter("@TxnType", txnType),
                         new SqlParameter("@TxnDate", oATSlog.TxnDate),
                         new SqlParameter("@TxnTime", oATSlog.TxnTime),
@@ -1028,13 +1129,21 @@ namespace Motto_Vehicle_DataFeed
                         new SqlParameter("@Longitude", oATSlog.Longitude),
                         };
 
-                     
 
-                        #endregion Parameter
 
-                        context.Database.ExecuteSqlCommand(Operation_Query.QuickCheckIn_Vehicles, quickTransportParam.ToArray());
-                        context.Database.ExecuteSqlCommand(Operation_Query.Create_Transport_ATS_Log, LogParam.ToArray());
-                        isFound = 1;
+                            #endregion Parameter
+
+                            context.Database.ExecuteSqlCommand(Operation_Query.QuickCheckIn_Vehicles, quickTransportParam.ToArray());
+                            context.Database.ExecuteSqlCommand(Operation_Query.Create_Transport_ATS_Log, LogParam.ToArray());
+                            isFound = 1;
+                        }
+                    }
+                    finally
+                    {
+                        if (context.Database.Connection.State == ConnectionState.Open)
+                        {
+                            context.Database.Connection.Close();
+                        }
                     }
                 }
             }
@@ -1221,6 +1330,43 @@ namespace Motto_Vehicle_DataFeed
                     using (var command = context.Database.Connection.CreateCommand())
                     {
                         command.CommandText = Operation_Query.Get_CheckStock_Dashboard;
+
+                        command.Parameters.Add(new SqlParameter("@StorageLocation", storageLoc));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetCheckStockDetail
+        public DataTable GetCheckStockDetail(string storageLoc)
+        {
+            DataTable result = new DataTable();
+
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_CheckStock_Detail;
 
                         command.Parameters.Add(new SqlParameter("@StorageLocation", storageLoc));
 
@@ -2103,6 +2249,8 @@ namespace Motto_Vehicle_DataFeed
         public static string Get_Locations_ByUser = $@"select userID,locationID from User_Location where UserID = @UserID";
 
         public static string Get_CheckStock_Dashboard = $@"SELECT * FROM MAMS_CheckStock_Dashboard(GETDATE(),@StorageLocation)";
+
+        public static string Get_CheckStock_Detail = $@"SELECT * FROM [MAMS_CheckStock_Dashboard_Detail](GETDATE(),@StorageLocation) ORDER BY TxnDate desc";
 
         public static string Get_ATS_Log_Exited = $@"select * from Transport_ATS_Log where TxnType = 3 and OtherResponses is not null and OtherResponses <> ''";
 

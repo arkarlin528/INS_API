@@ -1196,6 +1196,8 @@ namespace Motto_Vehicle_Service.Controllers
             DataTable dtresult = objDataFeed.GetTransportStatusForDetaildb(dt);
 
             dtresult.Columns["IMAPNumber"].ColumnName = "iMAPNumber";
+            dtresult.Columns["DepartureDate"].ColumnName = "departureDate";
+            dtresult.Columns["ArrivalDate"].ColumnName = "arrivalDate";
             dtresult.Columns["Registration"].ColumnName = "registration";
             dtresult.Columns["SellerName"].ColumnName = "sellerName";
             dtresult.Columns["VendorName"].ColumnName = "vendorName";
