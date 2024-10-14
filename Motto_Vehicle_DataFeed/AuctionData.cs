@@ -123,7 +123,7 @@ namespace Motto_Vehicle_DataFeed
     #region Auction_Query
     public class Auction_Query
     {
-        public static string upcomingAuction = "SELECT * FROM MAMS_DataDashboard_Detail(@AuctionCode,@AuctionDate) ORDER BY AuctionCode,AuctionDate";
+        public static string upcomingAuction = "SELECT * FROM MAMS_DataDashboard_Detail('@AuctionCode','@AuctionDate') ORDER BY AuctionCode,AuctionDate";
     }
     #endregion
 
