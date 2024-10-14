@@ -34,14 +34,19 @@ namespace Motto_Vehicle_DataFeed
                     for (int i = 0; i < distinctAuction.Count(); i++)
                     {
                         AuctionHeader_DAO oHeader = new AuctionHeader_DAO();
-
                        
-                        List<AuctionData_DAO> lstDetail = allDataDetail.Where(row=> row.AuctionCode == distinctAuction[i]).ToList();                       
+
+                        List<AuctionData_DAO> lstDetail = allDataDetail.Where(row=> row.AuctionCode == distinctAuction[i]).ToList();
+                        List<AuctionData_DAO> lstDataComplete = lstDetail.Where(row => row.DataStatus == 1).ToList();
+                        
                         oHeader.AuctionCode = distinctAuction[i];
                         oHeader.TotalVehicle = lstDetail.Count;
                         oHeader.AuctionDetail = lstDetail;
                         oHeader.AuctionDate = lstDetail[0].AuctionDate;
                         oHeader.AuctionLane = lstDetail[0].LaneNumber;
+                        oHeader.TotalDataComplete = lstDataComplete.Count;
+                        oHeader.TotatDataInComplete = lstDetail.Count - lstDataComplete.Count;
+                        oHeader.PercentageDataComplete = Math.Round((Convert.ToDecimal(lstDataComplete.Count) / (lstDetail.Count == 0 ? 1 : Convert.ToDecimal(lstDetail.Count))) * 100,2);
                         oHeader.AuctionTime = "";
 
                         var sellingCategoryGroup = lstDetail
@@ -124,6 +129,9 @@ namespace Motto_Vehicle_DataFeed
         public int TotalVehicle { get; set; }
         public string AuctionTime { get; set; }
         public string AuctionLane { get; set; }
+        public int TotalDataComplete { get; set; }
+        public int TotatDataInComplete { get; set; }
+        public decimal PercentageDataComplete { get; set; }
         public List<AuctionData_DAO> AuctionDetail { get; set; }
         public List<VehicleCategory_DAO> VehicleCategory { get; set; }
 
