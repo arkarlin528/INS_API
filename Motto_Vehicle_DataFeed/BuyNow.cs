@@ -223,7 +223,21 @@ namespace Motto_Vehicle_DataFeed
                 return vehicleData;
             }
         }
+        public void AddViewerCount(string vehicle)
+        {
+            using (var context = new MATWEB_dataFeedContext())
+            {
+                context.Database.CommandTimeout = 300000;
+                var updatebnbScheduleDetailQuery = $@"update BnBScheduleDetail set ViewerCount=(ISNULL(ViewerCount,0)+1) where VehicleNumber=@VehicleNumber";
+                var updatebnbScheduleDetailParam = new List<SqlParameter> {
+                    new SqlParameter("@VehicleNumber",vehicle)
+                };
+                context.Database.ExecuteSqlCommand(updatebnbScheduleDetailQuery, updatebnbScheduleDetailParam.ToArray());
+            }
+        }
         #endregion
+
+
 
         #region SaveBnBBidLog
         public int SaveBnBBidLog(DataTable dtData)

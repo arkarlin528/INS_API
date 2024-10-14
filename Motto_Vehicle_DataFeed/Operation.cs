@@ -1190,6 +1190,47 @@ namespace Motto_Vehicle_DataFeed
         }
         #endregion
 
+        #region GetCheckOutList
+        public DataTable GetCheckOutList(DataTable dtData)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                string strFromDate = dtData.Rows[0]["fromDate"] == null ? "1900-01-01" : dtData.Rows[0]["fromDate"].ToString();
+                string strToDate = dtData.Rows[0]["toDate"] == null ? "1900-01-01" : dtData.Rows[0]["toDate"].ToString();
+
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_CheckOut_List;
+
+                        command.Parameters.Add(new SqlParameter("@FromDate", strFromDate));
+                        command.Parameters.Add(new SqlParameter("@ToDate", strToDate));
+
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region GetLastQuickTransport
         public int GetLastQuickTransport(DataTable dtData)
         {
@@ -1313,7 +1354,7 @@ namespace Motto_Vehicle_DataFeed
         #endregion
 
         #region GetCheckStockDashboard
-        public DataTable GetCheckStockDashboard(string storageLoc)
+        public DataTable GetCheckStockDashboard(string storageLoc, string seller)
         {
             DataTable result = new DataTable();
 
@@ -1332,6 +1373,7 @@ namespace Motto_Vehicle_DataFeed
                         command.CommandText = Operation_Query.Get_CheckStock_Dashboard;
 
                         command.Parameters.Add(new SqlParameter("@StorageLocation", storageLoc));
+                        command.Parameters.Add(new SqlParameter("@Seller", seller));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1350,7 +1392,7 @@ namespace Motto_Vehicle_DataFeed
         #endregion
 
         #region GetCheckStockDetail
-        public DataTable GetCheckStockDetail(string storageLoc)
+        public DataTable GetCheckStockDetail(string storageLoc,string seller)
         {
             DataTable result = new DataTable();
 
@@ -1369,6 +1411,7 @@ namespace Motto_Vehicle_DataFeed
                         command.CommandText = Operation_Query.Get_CheckStock_Detail;
 
                         command.Parameters.Add(new SqlParameter("@StorageLocation", storageLoc));
+                        command.Parameters.Add(new SqlParameter("@Seller", seller));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1643,6 +1686,51 @@ namespace Motto_Vehicle_DataFeed
         }
         #endregion
 
+        #endregion
+
+        #region OprDashboard_ReinspectionDetail
+        public DataTable OprDashboard_ReinspectionDetail(DataTable dtData)
+        {
+            DataTable dtresult = new DataTable();
+            string strAuctionCode = dtData.Rows[0]["auctionCode"] == null ? "" : dtData.Rows[0]["auctionCode"].ToString();
+            string strSellingCategory = dtData.Rows[0]["sellingCategory"] == null ? "" : dtData.Rows[0]["sellingCategory"].ToString();
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    strSellingCategory = strSellingCategory == "All" ? "" : strSellingCategory;
+
+                    var context = new MAMS_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+                   
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_UpcomingAuctionReInspection_Detail;
+
+                        #region Parameters
+                        command.Parameters.Add(new SqlParameter("@AuctionCode", strAuctionCode));
+                        command.Parameters.Add(new SqlParameter("@SellingCategory", strSellingCategory));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            dtresult.Load(reader);
+                        }
+                    }
+                    return dtresult;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return dtresult;
+        }
         #endregion
 
         #region OverallLocationDashboard
@@ -2051,7 +2139,7 @@ namespace Motto_Vehicle_DataFeed
                 foreach (DataRow row in resultTable.Rows)
                 {
                     string sellingCategory = row["SellingCategory"]?.ToString();
-                    row["Icon"] = GetIcon(sellingCategory);
+                    row["Icon"] = GetIconForKanbanAllStatus(sellingCategory);
                 }
             }
             catch (Exception ex)
@@ -2061,6 +2149,77 @@ namespace Motto_Vehicle_DataFeed
             }
             return resultTable;
         }
+
+        public DataTable GetKanbanAllStatusDetail(DataTable dtData)
+        {
+
+            DataTable resultTable = new DataTable();
+            try
+            {
+                string strDate = dtData.Rows[0]["date"] == null ? "1900-01-01" : dtData.Rows[0]["date"].ToString();
+                string Seller = dtData.Rows[0]["seller"] == null ? "" : dtData.Rows[0]["seller"].ToString();
+                string Location = dtData.Rows[0]["location"] == null ? "" : dtData.Rows[0]["location"].ToString();
+
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Operation_Query.Get_Kanban_AllStatus_Detail;
+
+                        #region Parameters
+
+                        command.Parameters.Add(new SqlParameter("@Location", Location));
+                        command.Parameters.Add(new SqlParameter("@Date", strDate));
+                        command.Parameters.Add(new SqlParameter("@Seller", Seller));
+
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            resultTable.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return resultTable;
+        }
+
+        #region GetIconForKanbanAllStatus
+        private string GetIconForKanbanAllStatus(string code)
+        {
+            if (string.IsNullOrEmpty(code))
+                return "icon-ot";
+
+            var item = SellingCategoryForKanban.FirstOrDefault(i => i.Code.Trim() == code.Trim());
+            if (item == null)
+                return "icon-ot";
+
+            return item.Icon;
+        }
+
+        #endregion
+
+        #region SellingCategory
+        private SellingCategory[] SellingCategoryForKanban = new SellingCategory[]
+        {
+            new SellingCategory { Code = "Car",      Icon = "icon-ca"},
+            new SellingCategory { Code = "Salvage",      Icon = "icon-sa"},
+            new SellingCategory { Code = "Motorbike",      Icon = "icon-mb"},
+            new SellingCategory { Code = "Farm equipment",     Icon = "icon-mce"},
+            new SellingCategory { Code = "Others",     Icon = "icon-ot"}
+        };
+        #endregion
 
         public DataTable GetStockAging(DataTable dtData)
         {
@@ -2102,8 +2261,8 @@ namespace Motto_Vehicle_DataFeed
 
                 foreach (DataRow row in resultTable.Rows)
                 {
-                    string sellingCategoryCode = row["SellingCategoryCode"]?.ToString();
-                    row["Icon"] = GetIcon(sellingCategoryCode);
+                    string sellingCategoryCode = row["BodyStyle"]?.ToString();
+                    row["Icon"] = GetIconForKanbanAllStatus(sellingCategoryCode);
                 }
             }
             catch (Exception ex)
@@ -2114,6 +2273,8 @@ namespace Motto_Vehicle_DataFeed
             return resultTable;
         }
         #endregion
+
+
 
         #region GetSellers
         public DataTable GetSellers()
@@ -2240,6 +2401,12 @@ namespace Motto_Vehicle_DataFeed
                                                                 left join (select * from fn_GetATSLocation())to_loc on to_loc.id=CheckInLocation
                                                                 where CheckInDate is null ";
 
+        public static string Get_CheckOut_List = $@"select CO.Id,IMAPNumber,FromID,from_loc.display_name fromLocation,ToID,to_loc.display_name toLocation, 
+                                                    DATEDIFF(SECOND, '1970-01-01 00:00:00', DATEADD(HOUR, -7, TxnDate)) AS checkOutDate,CheckOutTime  from fn_getTransportStatus('', @FromDate, @ToDate) CO
+                                                    left join (select * from fn_GetATSLocation())from_loc on from_loc.id=FromID
+                                                    left join (select * from fn_GetATSLocation())to_loc on to_loc.id=ToID
+                                                    where TxnType=1";
+
         public static string Save_OperationUserLocation = $@"INSERT INTO OperationUserLocation(UserID,LocationID) VALUES(@UserID,@LocationID)";
 
         public static string Delete_OperationUserLocation = $@"Delete OperationUserLocation where UserID=@UserID";
@@ -2248,13 +2415,17 @@ namespace Motto_Vehicle_DataFeed
 
         public static string Get_Locations_ByUser = $@"select userID,locationID from User_Location where UserID = @UserID";
 
-        public static string Get_CheckStock_Dashboard = $@"SELECT * FROM MAMS_CheckStock_Dashboard(GETDATE(),@StorageLocation)";
+        public static string Get_CheckStock_Dashboard = $@"SELECT * FROM MAMS_CheckStock_Dashboard(GETDATE(),@StorageLocation,@Seller)";
 
-        public static string Get_CheckStock_Detail = $@"SELECT * FROM [MAMS_CheckStock_Dashboard_Detail](GETDATE(),@StorageLocation) ORDER BY TxnDate desc";
+        public static string Get_CheckStock_Detail = $@"SELECT * FROM [MAMS_CheckStock_Dashboard_Detail_Update](GETDATE(),@StorageLocation,@Seller) ORDER BY TxnDate desc";
+
+        public static string Get_UpcomingAuctionReInspection_Detail = $@"select *,Convert(varchar(10),AuctionDate,105) Auction_Date from fn_UpcomingAuctionReInspection_Detail(@AuctionCode,@SellingCategory)";
 
         public static string Get_ATS_Log_Exited = $@"select * from Transport_ATS_Log where TxnType = 3 and OtherResponses is not null and OtherResponses <> ''";
 
         public static string Get_Kanban_AllStatus = $@"exec [MAMS_Operation_Kanban_AllStatus] @Location,@Date,@Seller";
+
+        public static string Get_Kanban_AllStatus_Detail = $@"SELECT * FROM MAMS_Operation_Kanban_AllStatus_Log (@Date,@Seller,@Location) ORDER BY TxnDate";
 
         public static string Get_StockAging = $@"SELECT * FROM [dbo].[MAMS_Operation_StockAging]( @Location, @Date, @Seller)";
 

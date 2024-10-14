@@ -340,6 +340,16 @@ namespace MOTTO_DATAFEED.DAO
         public List<StatusDetailEntry> Arrived { get; set; }
     }
 
+
+    public class Raka_User
+    {
+        public int UserID { get; set; }
+        public string UserName { get; set; }
+        public string UserEmail { get; set; }
+        public string LoginName { get; set; }
+        public string Password { get; set; }
+        public string PhoneNumber { get; set; }
+    }
     //public class StatusEntry
     //{
     //    public string name { get; set; }

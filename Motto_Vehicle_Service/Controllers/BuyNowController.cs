@@ -139,6 +139,7 @@ namespace Motto_Vehicle_Service.Controllers
         {
             BuyNow_DATAFEED objDataFeed = new BuyNow_DATAFEED();
             BnBData Data = objDataFeed.GetBnBData(vehicleNumber);
+            objDataFeed.AddViewerCount(vehicleNumber);
 
             string jsString = JsonConvert.SerializeObject(Data);
             return Content(jsString, "application/json");

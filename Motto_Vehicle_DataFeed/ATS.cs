@@ -3184,6 +3184,329 @@ namespace Motto_Vehicle_DataFeed
     {
         public Raka_DATAFEED() { }
 
+        #region User
+        #region SaveRakaUser
+        public int SaveRakaUser(DataTable dtData)
+        {
+            int Id = 0;
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Raka_User User = new Raka_User();
+                    User.UserName = (dtData.Rows[i]["userName"] == null ? "" : dtData.Rows[i]["userName"].ToString());
+                    User.UserEmail = (dtData.Rows[i]["userEmail"] == null ? "" : dtData.Rows[i]["userEmail"].ToString());
+                    User.LoginName = (dtData.Rows[i]["login"] == null ? "" : dtData.Rows[i]["login"].ToString());
+                    User.Password = (dtData.Rows[i]["password"] == null ? "" : dtData.Rows[i]["password"].ToString());
+                    User.PhoneNumber = (dtData.Rows[i]["phoneNumber"] == null ? "" : dtData.Rows[i]["phoneNumber"].ToString());
+
+                    var context = new RAKA_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var UserParam = new List<SqlParameter> {
+                    new SqlParameter("@UserName",User.UserName),
+                    new SqlParameter("@LoginName",User.LoginName),
+                    new SqlParameter("@Email",User.UserEmail),
+                    new SqlParameter("@Password",User.Password),
+                    new SqlParameter("@PhoneNumber",User.PhoneNumber)
+                    };
+
+                    #endregion Parameter
+
+                    DataTable chkDuplicate = new DataTable();
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Check_Duplicate_User;
+
+                        #region Parameters
+
+                        command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
+                        command.Parameters.Add(new SqlParameter("@Email", User.UserEmail));
+                        command.Parameters.Add(new SqlParameter("@UserID", Id));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            chkDuplicate.Load(reader);
+                        }
+                    }
+                    if (chkDuplicate.Rows.Count == 0)
+                    {
+                        Id = context.Database.SqlQuery<int>(Raka_Query.Save_Raka_User, UserParam.ToArray()).SingleOrDefault();
+                    }
+                    return Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return Id;
+        }
+        #endregion
+
+        #region UpdateRakaUser
+        public int UpdateRakaUser(DataTable dtData)
+        {
+            int Id = 0;
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Raka_User User = new Raka_User();
+                    User.UserID = int.Parse(dtData.Rows[i]["userid"] == null ? "0" : dtData.Rows[i]["userid"].ToString());
+                    User.UserName = (dtData.Rows[i]["userName"] == null ? "" : dtData.Rows[i]["userName"].ToString());
+                    User.UserEmail = (dtData.Rows[i]["userEmail"] == null ? "" : dtData.Rows[i]["userEmail"].ToString());
+                    User.LoginName = (dtData.Rows[i]["login"] == null ? "" : dtData.Rows[i]["login"].ToString());
+                    //User.Password = (dtData.Rows[i]["password"] == null ? "" : dtData.Rows[i]["password"].ToString());
+                    User.PhoneNumber = (dtData.Rows[i]["phoneNumber"] == null ? "" : dtData.Rows[i]["phoneNumber"].ToString());
+
+                    var context = new RAKA_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var UserParam = new List<SqlParameter> {
+                    new SqlParameter("@UserID",User.UserID),
+                    new SqlParameter("@UserName",User.UserName),
+                    new SqlParameter("@LoginName",User.LoginName),
+                    new SqlParameter("@Email",User.UserEmail),
+                    //new SqlParameter("@Password",User.Password),
+                    new SqlParameter("@PhoneNumber",User.PhoneNumber)
+                    };
+
+                    #endregion Parameter
+                    DataTable chkDuplicate = new DataTable();
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Check_Duplicate_User;
+
+                        #region Parameters
+
+                        command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
+                        command.Parameters.Add(new SqlParameter("@Email", User.UserEmail));
+                        command.Parameters.Add(new SqlParameter("@UserID", User.UserID));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            chkDuplicate.Load(reader);
+                        }
+                    }
+                    if (chkDuplicate.Rows.Count == 0)
+                    {
+                        context.Database.ExecuteSqlCommand(Raka_Query.Update_Raka_User, UserParam.ToArray());
+                        Id++;
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return Id;
+        }
+        #endregion
+
+        #region UpdatePassword
+        public void UpdatePassword(DataTable dtData)
+        {
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Raka_User User = new Raka_User();
+                    User.UserID = int.Parse(dtData.Rows[i]["userid"] == null ? "0" : dtData.Rows[i]["userid"].ToString());
+                    User.Password = (dtData.Rows[i]["password"] == null ? "" : dtData.Rows[i]["password"].ToString());
+
+                    var context = new RAKA_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var UserParam = new List<SqlParameter> {
+                    new SqlParameter("@UserID",User.UserID),
+                    new SqlParameter("@Password",User.Password),
+                    };
+
+                    #endregion Parameter
+
+                    context.Database.ExecuteSqlCommand(Raka_Query.Update_Password, UserParam.ToArray());
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+        #region DeleteRakaUser
+        public void DeleteRakaUser(DataTable dtData)
+        {
+            try
+            {
+                for (int i = 0; i < dtData.Rows.Count; i++)
+                {
+                    Raka_User User = new Raka_User();
+                    User.UserID = int.Parse(dtData.Rows[i]["userid"] == null ? "0" : dtData.Rows[i]["userid"].ToString());
+
+                    var context = new RAKA_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    #region Parameter
+
+                    var UserParam = new List<SqlParameter> {
+                    new SqlParameter("@UserID",User.UserID)
+                    };
+
+                    #endregion Parameter
+
+                    context.Database.ExecuteSqlCommand(Raka_Query.Delete_Raka_User, UserParam.ToArray());
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+        #region LoginRakaUser
+        public DataTable LoginRakaUser(DataTable dtData)
+        {
+            DataTable resultTable = new DataTable();
+            try
+            {
+                Raka_User User = new Raka_User();
+                User.LoginName = (dtData.Rows[0]["login"] == null ? "" : dtData.Rows[0]["login"].ToString());
+                User.Password = (dtData.Rows[0]["password"] == null ? "" : dtData.Rows[0]["password"].ToString());
+
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Login_Raka_User;
+
+                        #region Parameters
+
+                        command.Parameters.Add(new SqlParameter("@LoginName", User.LoginName));
+                        command.Parameters.Add(new SqlParameter("@Password", User.Password));
+
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            resultTable.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return resultTable;
+        }
+        #endregion
+
+        //#region LoginTransportUser
+        //public LoginIMAPDto LoginTransportUser(DataTable dtData)
+        //{
+        //    System.Net.ServicePointManager.SecurityProtocol = (System.Net.SecurityProtocolType)(768 | 3072);
+        //    var url = "https://mapapi-uat.mottoauction.com/inspection/api/userlogin/value";
+        //    var requestBody = new
+        //    {
+        //        Username = dtData.Rows[0]["Username"]?.ToString(),
+        //        Password = dtData.Rows[0]["Password"]?.ToString()
+        //    };
+        //    var json = JsonConvert.SerializeObject(requestBody);
+        //    var data = new StringContent(json, Encoding.UTF8, "application/json");
+        //    using (var client = new HttpClient())
+        //    {
+        //        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+        //        request.Headers.TryAddWithoutValidation("x-api-key", "e9ab5c97-019e-4a83-ad6f-b1d571b24d5d");
+        //        request.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+        //        request.Content = data;
+        //        var apiResponse = client.SendAsync(request).Result;
+
+        //        string responseContent = apiResponse.Content.ReadAsStringAsync().Result;
+        //        LoginIMAPDto responseData = JsonConvert.DeserializeObject<LoginIMAPDto>(responseContent);
+        //        return responseData;
+        //    }
+        //}
+        //#endregion
+
+        #region GetUserList
+        public DataTable GetUserList()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new RAKA_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Raka_Query.Get_User_List;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+        #endregion
+
         #region SearchMagicWords
         public DataTable SearchMagicWords(DataTable dtData)
         {
@@ -3191,7 +3514,7 @@ namespace Motto_Vehicle_DataFeed
             string strSearchText = (dtData.Rows[0]["searchText"] == null ? "" : dtData.Rows[0]["searchText"].ToString());
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3236,7 +3559,7 @@ namespace Motto_Vehicle_DataFeed
 
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3279,7 +3602,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3313,7 +3636,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3349,7 +3672,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3383,7 +3706,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3417,7 +3740,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3451,7 +3774,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3485,7 +3808,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -3521,7 +3844,7 @@ namespace Motto_Vehicle_DataFeed
             DataTable result = new DataTable();
             try
             {
-                using (var context = new dataFeedContext())
+                using (var context = new RAKA_dataFeedContext())
                 {
                     context.Database.CommandTimeout = 300000;
                     if (context.Database.Connection.State == ConnectionState.Closed)
@@ -4052,11 +4375,9 @@ namespace Motto_Vehicle_DataFeed
                                                             WHERE IMAPNumber = @IMAPNumber ORDER BY OrderDetailID DESC";
 
         #region dashboard
-        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,1 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) Where TransportStatus = 'Pending'
-                                                            UNION ALL
-                                                            SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,2 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check Out'
-                                                            UNION ALL
-                                                            SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,3 Status FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate) WHERE TransportStatus = 'Check In'";
+        public static string get_TransportStatusfordb = @"SELECT IMAPNumber,Convert(varchar(10),DepartureDate,105)DepartureDate,Convert(varchar(10),ArrivalDate,105)ArrivalDate,Registration,SellerName,VendorName,StorageLocation,Destination,OrderCode,Vin,
+                                                            (CASE TransportStatus WHEN 'Pending' THEN 1 WHEN 'Check Out' THEN 2 WHEN 'Check In' THEN 3 END) Status 
+                                                            FROM fn_getTransportStatus(@VendorID, @FromDate, @ToDate)";
 
         public static string get_TransportLocfordb = "SELECT * FROM fn_Transport_Location(@VendorID, @FromDate, @ToDate) ORDER BY TotalPending DESC,TotalCheckOut DESC,TotalCheckIn DESC";
 
@@ -4108,20 +4429,79 @@ namespace Motto_Vehicle_DataFeed
     #region Raka_Query
     public class Raka_Query
     {
+        #region User
+        public static string Save_Raka_User = $@"INSERT INTO Raka_Users (UserName,Email,LoginName,Password,PhoneNumber)
+                                        VALUES(@UserName,@Email,@LoginName,@Password,@PhoneNumber);SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Update_Raka_User = $@"UPDATE Raka_Users set [UserName]=@UserName,
+                                                                                [Email]=@Email,
+                                                                                [LoginName]=@LoginName,
+                                                                                [PhoneNumber]=@PhoneNumber where UserID=@UserID"; //[Password]=@Password,
+
+        public static string Update_Password = $@"Update Raka_Users set [Password]=@Password where UserID=@UserID";
+
+        public static string Delete_Raka_User = $@"Delete Raka_Users where UserID=@UserID ";
+
+        public static string Login_Raka_User = $@"Select * from Raka_Users where LoginName=@LoginName and Password=@Password";
+
+        public static string Check_Duplicate_User = $@"Select * from Raka_Users where LoginName=@LoginName and Email=@Email and UserID<>@UserID";
+
+        public static string Get_User_List = $@"Select * from Raka_Users";
+
+        public static string Get_UserByUserID = $@"Select * from Raka_Users where UserID=@UserID";
+        #endregion
+
         public static string Search_MagicWords = $@"EXEC [RAKA_SearchMagicWords] @search";
 
-        public static string Get_viewdetail = $@"SELECT * FROM RAKA_VehicleDetailFlatData WHERE ID = @id";
+        public static string Get_viewdetail = $@"exec RAKA_ViewDetail @id";
 
-        public static string Advance_Search = $@"SELECT *
-                                                    FROM RAKA_VehicleDetailFlatData
-                                                    WHERE ISNULL(Make,'') = (CASE WHEN ISNULL(@Make,'') = '' THEN Make ELSE @Make END)
-                                                    AND ISNULL(Family,'') =(CASE WHEN ISNULL(@Model,'') = '' THEN Family ELSE @Model END)
-                                                    AND ISNULL([Identification_Badge],'') =(CASE WHEN ISNULL(@SubModel,'') = '' THEN [Identification_Badge] ELSE @SubModel END)
-                                                    AND ISNULL([Year],'') =(CASE WHEN ISNULL(@BuildYear,'') = '' THEN [Year] ELSE @BuildYear END)
-                                                    AND ISNULL([Engine_EngineType],'') =(CASE WHEN ISNULL(@EngineType,'') = '' THEN [Engine_EngineType] ELSE @EngineType END)
-                                                    AND ISNULL([Identification_SeatingCapacity],'') =(CASE WHEN ISNULL(@Seats,'') = '' THEN [Identification_SeatingCapacity] ELSE @Seats END)
-                                                    AND ISNULL([Identification_BodyStyle],'') =(CASE WHEN ISNULL(@BodyType,'') = '' THEN [Identification_BodyStyle] ELSE @BodyType END)
-                                                    AND ISNULL([Identification_VIN],'') LIKE (CASE WHEN ISNULL(@VINNumber,'') = '' THEN [Identification_VIN] ELSE @VINNumber + '%' END)";
+        public static string Advance_Search = $@"SELECT top 100 [ID],[VehicleName]
+                                                      ,[Identification_BodyStyle]
+                                                      ,[Identification_Series]
+                                                      ,[Identification_ModelCode]
+                                                      ,[Identification_Badge]
+                                                      ,[Identification_Doors]
+                                                      ,[Identification_SeatingCapacity]
+                                                      ,[Identification_SeriesReleaseDate]
+                                                      ,[Identification_VIN]
+                                                      ,[DriveTrain_Drive]
+                                                      ,[DriveTrain_Transmission]
+                                                      ,[DriveTrain_GearLocation]
+                                                      ,[DriveTrain_Steering]
+                                                      ,[Engine_EngineSize]
+                                                      ,[Engine_Cylinders]
+                                                      ,[Engine_EngineConfiguration]
+                                                      ,[Engine_Cam]
+                                                      ,[Engine_ValvesPerCylinder]
+                                                      ,[Engine_CompressionRatio]
+                                                      ,[Engine_EngineCycle]
+                                                      ,[Engine_EngineType]
+                                                      ,[Engine_EngineLocation]
+                                                      ,[Engine_EngineCode]
+                                                      ,[Fuel_FuelType]
+                                                      ,[Fuel_FuelCapacity]
+                                                      ,[Fuel_FuelDelivery]
+                                                      ,[Fuel_MethodOfDelivery]
+                                                      ,[Fuel_InductionSystem]
+                                                      ,[Specifications_Power]
+                                                      ,[Specifications_Torque]
+                                                      ,[Specifications_Length]
+                                                      ,[Specifications_Width]
+                                                      ,[Specifications_Height]
+                                                      ,[Specifications_Wheelbase]
+                                                      ,[Specifications_CountryOfOrigin]
+                                                      ,[SortedDataKey]
+                                                      ,[Vehicle]
+                                                      ,[Make]
+                                                      ,[Family]
+                                                      ,[Year]
+                                                      ,CONVERT(NUMERIC(18,2),
+                                                   REPLACE((CASE WHEN ISNUMERIC([Good Wholesale]) = 1 OR  ISNULL([Good Wholesale],'') <>'' THEN ISNULL([Good Wholesale],'0') ELSE '0' END),',',''))
+                                                   - 15000 [FromGoodWholesale]
+                                                      ,CONVERT(NUMERIC(18,2),
+                                                   REPLACE((CASE WHEN ISNUMERIC([Good Wholesale]) = 1 OR  ISNULL([Good Wholesale],'') <>'' THEN ISNULL([Good Wholesale],'0') ELSE '0' END),',',''))
+                                                   + 15000 [ToGoodWholesale]
+                                                      ,[New Price] FROM RAKA_VehicleDetailFlatData";
 
         public static string Get_Make_ForCombo = $@"SELECT DISTINCT Make FROM RAKA_VehicleDetailFlatData ORDER BY Make";
 
