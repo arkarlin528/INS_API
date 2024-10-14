@@ -124,6 +124,7 @@
     <Compile Include="Account.cs" />
     <Compile Include="AccountTemplate.cs" />
     <Compile Include="ATS.cs" />
+    <Compile Include="AuctionData.cs" />
     <Compile Include="BuyNow.cs" />
     <Compile Include="ConfigureDataContext.cs" />
     <Compile Include="DAO\ATS_DAO.cs" />

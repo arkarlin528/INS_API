@@ -193,6 +193,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\ATSController.cs" />
+    <Compile Include="Controllers\AuctionController.cs" />
     <Compile Include="Controllers\BuyNowController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\OperationController.cs" />
@@ -286,6 +287,7 @@
     <Folder Include="Models\" />
     <Folder Include="Views\Account\" />
     <Folder Include="Views\ATS\" />
+    <Folder Include="Views\Auction\" />
     <Folder Include="Views\BuyNow\" />
     <Folder Include="Views\Operation\" />
     <Folder Include="Views\Raka\" />
