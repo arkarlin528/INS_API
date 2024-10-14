@@ -2401,7 +2401,7 @@ namespace Motto_Vehicle_DataFeed
                                                                 left join (select * from fn_GetATSLocation())to_loc on to_loc.id=CheckInLocation
                                                                 where CheckInDate is null ";
 
-        public static string Get_CheckOut_List = $@"select CO.Id,IMAPNumber,FromID,from_loc.display_name fromLocation,ToID,to_loc.display_name toLocation, 
+        public static string Get_CheckOut_List = $@"select CO.Id,VehicleNumber IMAPNumber,FromID,from_loc.display_name fromLocation,ToID,to_loc.display_name toLocation, 
                                                     DATEDIFF(SECOND, '1970-01-01 00:00:00', DATEADD(HOUR, -7, TxnDate)) AS checkOutDate,CheckOutTime  from fn_getTransportStatus('', @FromDate, @ToDate) CO
                                                     left join (select * from fn_GetATSLocation())from_loc on from_loc.id=FromID
                                                     left join (select * from fn_GetATSLocation())to_loc on to_loc.id=ToID
