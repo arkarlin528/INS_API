@@ -23,8 +23,17 @@ namespace Motto_Vehicle_Service.Controllers
         [HttpPost]
         public ActionResult GetAuctionDataStatus()
         {
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            // Convert JSON string to DataTable
+            DataTable dt = JsonToDt(formData);
+
             AuctionData_DataFeed oFeed = new AuctionData_DataFeed();
-            List<AuctionHeader_DAO> lstDataResult = oFeed.getUpcomingAuctionDataStatus();
+            List<AuctionHeader_DAO> lstDataResult = oFeed.getUpcomingAuctionDataStatus(dt);
 
             //string jsString = DtToJSon(dtresult, "data");
             string jsonResult = JsonConvert.SerializeObject(lstDataResult);

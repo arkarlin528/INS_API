@@ -8,14 +8,19 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http.Results;
 using Motto_Vehicle_DataFeed.DAO;
+using System.Xml.Linq;
 
 namespace Motto_Vehicle_DataFeed
 {
     public class AuctionData_DataFeed
     {
         #region getUpcomingAuctionDataStatus
-        public List<AuctionHeader_DAO> getUpcomingAuctionDataStatus()
+        public List<AuctionHeader_DAO> getUpcomingAuctionDataStatus(DataTable dtData)
         {
+            
+            string strAuctionDate = dtData.Rows[0]["date"] == null ? "" : dtData.Rows[0]["date"].ToString();
+            string strAuctionCode = dtData.Rows[0]["code"] == null ? "" : dtData.Rows[0]["code"].ToString();
+
             List<AuctionHeader_DAO> rtnValue = new List<AuctionHeader_DAO>(); 
             using (var context = new MAMS_dataFeedContext())
             {
@@ -26,7 +31,8 @@ namespace Motto_Vehicle_DataFeed
                 {
                     context.Database.Connection.Open();
                 }
-                allDataDetail = context.Database.SqlQuery<AuctionData_DAO>(Auction_Query.upcomingAuction).OrderBy(p => p.AuctionDate).ThenBy(p=>p.AuctionCode).ToList();
+                string strQuery = Auction_Query.upcomingAuction.Replace("@AuctionCode", strAuctionCode).Replace("@AuctionDate",strAuctionDate);
+                allDataDetail = context.Database.SqlQuery<AuctionData_DAO>(strQuery).OrderBy(p => p.AuctionDate).ThenBy(p=>p.AuctionCode).ToList();
 
                 var distinctAuction = allDataDetail.Select(p => p.AuctionCode).Distinct().ToList();
                 if(distinctAuction.Any())
@@ -117,7 +123,7 @@ namespace Motto_Vehicle_DataFeed
     #region Auction_Query
     public class Auction_Query
     {
-        public static string upcomingAuction = "SELECT * FROM MAMS_DataDashboard_Detail('') ORDER BY AuctionCode,AuctionDate";
+        public static string upcomingAuction = "SELECT * FROM MAMS_DataDashboard_Detail(@AuctionCode,@AuctionDate) ORDER BY AuctionCode,AuctionDate";
     }
     #endregion
 
