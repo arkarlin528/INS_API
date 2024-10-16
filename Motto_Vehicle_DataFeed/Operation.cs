@@ -857,7 +857,6 @@ namespace Motto_Vehicle_DataFeed
 
         #endregion
 
-
         #region CheckStock
         public int CheckStock(DataTable dtData)
         {

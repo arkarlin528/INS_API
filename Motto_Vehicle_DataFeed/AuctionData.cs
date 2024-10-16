@@ -56,13 +56,13 @@ namespace Motto_Vehicle_DataFeed
                         oHeader.AuctionTime = "";
 
                         var sellingCategoryGroup = lstDetail
-                                                    .GroupBy(p => new { p.SellingCategoryCode, p.SellingCategory })
+                                                    .GroupBy(p => new { p.BodyCode, p.Body })
                                                     .Select(g => new VehicleCategory_DAO()
                                                     {
-                                                        SellingCatgoryCode = g.Key.SellingCategoryCode,
-                                                        SellingCategory = g.Key.SellingCategory,
+                                                        SellingCatgoryCode = g.Key.BodyCode,
+                                                        SellingCategory = g.Key.Body,
                                                         TotalVehicle = g.Count(),
-                                                        Icon = GetIcon(g.Key.SellingCategoryCode)
+                                                        Icon = GetIcon(g.Key.BodyCode)
                                                     }).ToList();
 
 
@@ -77,13 +77,24 @@ namespace Motto_Vehicle_DataFeed
         }
         #endregion
 
+        #region SellingCategory
+        private SellingCategory[] SellingCategoryForKanban = new SellingCategory[]
+        {
+            new SellingCategory { Code = "Car",      Icon = "icon-ca"},
+            new SellingCategory { Code = "Salvage",      Icon = "icon-sa"},
+            new SellingCategory { Code = "Motorbike",      Icon = "icon-mb"},
+            new SellingCategory { Code = "Farm equipment",     Icon = "icon-mce"},
+            new SellingCategory { Code = "Others",     Icon = "icon-ot"}
+        };
+        #endregion
+
         #region GetIcon
         private string GetIcon(string code)
         {
             if (string.IsNullOrEmpty(code))
                 return "icon-ot";
 
-            var item = SellingCategory.FirstOrDefault(i => i.Code.Trim() == code.ToUpper().Trim());
+            var item = SellingCategoryForKanban.FirstOrDefault(i => i.Code.Trim() == code.ToUpper().Trim());
             if (item == null)
                 return "icon-ot";
 
