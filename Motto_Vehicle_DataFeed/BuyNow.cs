@@ -140,7 +140,7 @@ namespace Motto_Vehicle_DataFeed
                     {
                         context.Database.Connection.Open();
                     }
-                    var data = context.Database.SqlQuery<BnBData>($"[BNB_GetVehicleCatalog] '{Make}', '{Model}', '{GearBox}','',''")
+                    var data = context.Database.SqlQuery<BnBData>($"[BNB_GetVehicleCatalog] '{Make}', '{Model}', '{GearBox}','','','KKP'")
                     .ToList();
 
                     var gregorianCalendar = new GregorianCalendar();
@@ -216,7 +216,7 @@ namespace Motto_Vehicle_DataFeed
                 {
                     context.Database.Connection.Open();
                 }
-                var allVehicleList = context.Database.SqlQuery<BnBData>($"[BNB_GetVehicleCatalog_Detail] '', '', '','{vehicleNumber}',''")
+                var allVehicleList = context.Database.SqlQuery<BnBData>($"[BNB_GetVehicleCatalog_Detail] '', '', '','{vehicleNumber}','','KKP'")
                  .ToList();
 
                 var vehicleData = allVehicleList.Where(row => row.Vehicle == vehicleNumber).ToList().FirstOrDefault();
