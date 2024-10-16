@@ -64,8 +64,6 @@ namespace Motto_Vehicle_DataFeed
                                                         TotalVehicle = g.Count(),
                                                         Icon = GetIcon(g.Key.BodyStyle)//GetIcon(g.Key.BodyCode)
                                                     }).ToList();
-
-
                         oHeader.AuctionDetail = lstDetail;
                         oHeader.VehicleCategory = sellingCategoryGroup;
                         rtnValue.Add(oHeader);
@@ -94,7 +92,7 @@ namespace Motto_Vehicle_DataFeed
             if (string.IsNullOrEmpty(code))
                 return "icon-ot";
 
-            var item = SellingCategoryForKanban.FirstOrDefault(i => i.Code.Trim() == code.ToUpper().Trim());
+            var item = SellingCategoryForKanban.FirstOrDefault(i => i.Code.ToUpper().Trim() == code.ToUpper().Trim());
             if (item == null)
                 return "icon-ot";
 
