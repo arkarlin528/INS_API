@@ -56,13 +56,13 @@ namespace Motto_Vehicle_DataFeed
                         oHeader.AuctionTime = "";
 
                         var sellingCategoryGroup = lstDetail
-                                                    .GroupBy(p => new { p.BodyCode, p.Body })
+                                                    .GroupBy(p => new { p.BodyStyle})//{ p.BodyCode, p.Body })
                                                     .Select(g => new VehicleCategory_DAO()
                                                     {
-                                                        SellingCatgoryCode = g.Key.BodyCode,
-                                                        SellingCategory = g.Key.Body,
+                                                        SellingCatgoryCode = g.Key.BodyStyle,//g.Key.BodyCode,
+                                                        SellingCategory = g.Key.BodyStyle,//g.Key.Body,
                                                         TotalVehicle = g.Count(),
-                                                        Icon = GetIcon(g.Key.BodyCode)
+                                                        Icon = GetIcon(g.Key.BodyStyle)//GetIcon(g.Key.BodyCode)
                                                     }).ToList();
 
 
@@ -211,6 +211,7 @@ namespace Motto_Vehicle_DataFeed
         public string BodyCode { get; set; }
         public string LaneNumber { get; set; }
         public string AuctionLocation { get; set; }
+        public string BodyStyle { get; set; }
     }
     #endregion
 }
