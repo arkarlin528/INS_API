@@ -317,6 +317,40 @@ namespace INS_API_DataFeed
             return result;
         }
         #endregion
+
+        #region GetSeller
+        public DataTable GetSeller()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_Seller;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
     }
 
     #region INS_Query
@@ -339,6 +373,8 @@ namespace INS_API_DataFeed
         public static string get_MatVariant = "SELECT * FROM IMAP_View_Mat_Variant";
 
         public static string get_MatVariant_ByModel = "SELECT * FROM IMAP_View_Mat_Variant where Model_BU=@Model";
+
+        public static string get_Seller = "SELECT Customer SellerCode,CompanyName_LO SellerNameTh,CompanyName_BU SellerNameEn FROM IMAP.dbo.Customers WHERE CustomerType = 'S'";
     }
     #endregion
 }

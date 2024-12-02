@@ -27,3 +27,4 @@ namespace INS_API.Controllers
             return View();
         }
     }
+}
