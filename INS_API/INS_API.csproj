@@ -192,6 +192,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\INSController.cs" />
     <Compile Include="Email\Email.cs" />
     <Compile Include="Email\Helper.cs" />
