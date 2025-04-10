@@ -13,3 +13,7 @@
 /.vs/INS_API/FileContentIndex/844fcaa8-172c-4a88-bc70-d79e0aef819e.vsidx
 /INS_API/obj/Debug/INS_API.csproj.AssemblyReference.cache
 /.vs/INS_API/v17/.suo
+*.vsidx
+/.vs/INS_API/v17/DocumentLayout.json
+/INS_API_DataFeed/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+/INS_API_DataFeed/obj/Debug/INS_API_DataFeed.csproj.AssemblyReference.cache
