@@ -192,6 +192,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\DataPortController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\INSController.cs" />
     <Compile Include="Email\Email.cs" />
@@ -263,6 +264,7 @@
     <Folder Include="Images\RicePlantingVehicle\" />
     <Folder Include="Images\StrawBaler\" />
     <Folder Include="Models\" />
+    <Folder Include="Views\DataPort\" />
     <Folder Include="Views\INS\" />
   </ItemGroup>
   <ItemGroup>
