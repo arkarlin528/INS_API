@@ -1,0 +1,11 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/INS_API/obj/Debug/INS_API.pdb
+/.vs/INS_API/v17/.suo
+/INS_API/bin/INS_API.dll
+/INS_API/bin/INS_API.pdb
+/INS_API/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+/INS_API/obj/Debug/INS_API.csproj.CoreCompileInputs.cache
+/INS_API/obj/Debug/INS_API.dll
