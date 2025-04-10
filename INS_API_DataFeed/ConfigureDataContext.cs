@@ -43,6 +43,26 @@ public class MAMS_dataFeedContext : DbContext
 
 }
 
+public class INS_WEB_dataFeedContext : DbContext
+{
+    public INS_WEB_dataFeedContext() : base(GetConnectionString("INS_WEB_DATA"))
+    {
+    }
+
+    private static string GetConnectionString(string name)
+    {
+        var connectionString = ConfigurationManager.ConnectionStrings[name]?.ConnectionString;
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException($"Connection string '{name}' not found in configuration file.");
+        }
+
+        return connectionString;
+    }
+
+}
+
 public class RAKA_dataFeedContext : DbContext
 {
     public RAKA_dataFeedContext() : base(GetConnectionString("RAKA_DATA"))

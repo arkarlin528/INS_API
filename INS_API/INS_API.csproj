@@ -256,6 +256,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="Images\BookIn\" />
+    <Folder Include="Images\DieselEngine\" />
+    <Folder Include="Images\Drone\" />
+    <Folder Include="Images\Excavator\" />
+    <Folder Include="Images\RiceHarvester\" />
+    <Folder Include="Images\RicePlantingVehicle\" />
+    <Folder Include="Images\StrawBaler\" />
     <Folder Include="Models\" />
     <Folder Include="Views\DataPort\" />
     <Folder Include="Views\INS\" />
