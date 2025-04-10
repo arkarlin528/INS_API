@@ -364,3 +364,13 @@ D:\motto\Inspection App - Innorithm\API_DEV\INS_API\obj\Debug\INS_API.csproj.Cor
 D:\motto\Inspection App - Innorithm\API_DEV\INS_API\obj\Debug\INS_API.csproj.CopyComplete
 D:\motto\Inspection App - Innorithm\API_DEV\INS_API\obj\Debug\INS_API.dll
 D:\motto\Inspection App - Innorithm\API_DEV\INS_API\obj\Debug\INS_API.pdb
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\Microsoft.Bcl.AsyncInterfaces.dll
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.IO.Pipelines.dll
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.Text.Encodings.Web.dll
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.Text.Json.dll
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.ValueTuple.dll
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\Microsoft.Bcl.AsyncInterfaces.xml
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.IO.Pipelines.xml
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.Text.Encodings.Web.xml
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.Text.Json.xml
+D:\motto\Inspection App - Innorithm\API_DEV\INS_API\bin\System.ValueTuple.xml

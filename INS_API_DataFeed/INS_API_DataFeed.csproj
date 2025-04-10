@@ -123,6 +123,7 @@
   <ItemGroup>
     <Compile Include="ConfigureDataContext.cs" />
     <Compile Include="DAO\INS_DAO.cs" />
+    <Compile Include="InnoSync.cs" />
     <Compile Include="INS.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
