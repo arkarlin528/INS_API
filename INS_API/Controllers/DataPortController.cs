@@ -52,12 +52,15 @@ namespace INS_API.Controllers
                 innoSync.ReceiverName = doc.RootElement.GetProperty("inspector_user_id").GetInt32().ToString();
                 innoSync.MobileNumber = doc.RootElement.GetProperty("data").GetProperty("ContractNumber").GetString();
                 innoSync.SellerCode = doc.RootElement.GetProperty("data").GetProperty("SellerName").GetString();
-                innoSync.Inspector = doc.RootElement.GetProperty("inspector_user_id").GetInt32().ToString();
+                innoSync.ReceiverName = doc.RootElement.GetProperty("inspector_user_id").GetInt32().ToString();
+                innoSync.InspectorID = doc.RootElement.GetProperty("inspector_user_id").GetInt32().ToString();
+                innoSync.Inspector = doc.RootElement.GetProperty("inspector_user_email").GetString();
                 innoSync.VehicleId = "";
                 innoSync.ChasisNumber = doc.RootElement.GetProperty("data").GetProperty("ChassisNumber").GetString();
                 innoSync.VIN = "";
-                innoSync.RegistrationNumber = doc.RootElement.GetProperty("data").GetProperty("LicensePlateNumber").GetString();
-                innoSync.CreatedBy = doc.RootElement.GetProperty("inspector_user_id").GetInt32().ToString();
+                innoSync.RegistrationNumber = (doc.RootElement.GetProperty("inspector_user_email").ValueKind == JsonValueKind.Null ? "" : 
+                                                doc.RootElement.GetProperty("data").GetProperty("LicensePlateNumber").GetString());
+                innoSync.CreatedBy = doc.RootElement.GetProperty("inspector_user_email").GetString().ToString();
                 innoSync.CreatedDate = DateTime.Now;
 
                 //var root = new InnoSync

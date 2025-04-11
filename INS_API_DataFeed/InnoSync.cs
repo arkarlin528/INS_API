@@ -22,6 +22,7 @@ namespace INS_API_DataFeed
         public string ReceiverName { get; set; }
         public string MobileNumber { get; set; }
         public string SellerCode { get; set; }
+        public string InspectorID { get; set; }
         public string Inspector { get; set; }
         public string VehicleId { get; set; }
         public string ChasisNumber { get; set; }
@@ -30,9 +31,9 @@ namespace INS_API_DataFeed
         public string CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
 
-        public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] (TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate)" +
-                                               "VALUES (@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@Inspector,@VehicleId," +
-                                                "@ChasisNumber,@VIN,@RegistrationNumber,@CreatedBy,@CreatedDate);SELECT SCOPE_IDENTITY();";
+        public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] " +
+                                               "VALUES (@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
+                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate)";
         public string strSyncError = "";
 
         public InnoSync()
@@ -46,6 +47,7 @@ namespace INS_API_DataFeed
             this.ReceiverName = "";
             this.MobileNumber = "";
             this.SellerCode = "";
+            this.InspectorID = "";
             this.Inspector = "";
             this.VehicleId = "";
             this.ChasisNumber = "";
@@ -53,31 +55,6 @@ namespace INS_API_DataFeed
             this.RegistrationNumber = "";
             this.CreatedBy = "";
             this.CreatedDate = new DateTime();
-        }
-
-        public bool SyncData(DataTable dt)
-        {
-            bool blRtn = false;
-            if (dt.Rows.Count > 0)
-            {
-                this.ID = 0;
-                this.TxnDate = DateTime.Parse(dt.Rows[0]["TxnDate"] != null ? dt.Rows[0]["TxnDate"].ToString() : new DateTime(1900, 1, 1).ToString("yyyy-MM-dd"));
-                this.SchemaName = (dt.Rows[0]["SchemaName"] != null ? dt.Rows[0]["SchemaName"].ToString() : "");
-                this.InspectionData = (dt.Rows[0]["InspectionData"] != null ? dt.Rows[0]["InspectionData"].ToString() : ""); ;
-                this.SenderName = (dt.Rows[0]["SenderName"] != null ? dt.Rows[0]["SenderName"].ToString() : ""); ;
-                this.ReceiverName = (dt.Rows[0]["ReceiverName"] != null ? dt.Rows[0]["ReceiverName"].ToString() : ""); ;
-                this.MobileNumber = (dt.Rows[0]["MobileNumber"] != null ? dt.Rows[0]["MobileNumber"].ToString() : ""); ;
-                this.SellerCode = (dt.Rows[0]["SellerCode"] != null ? dt.Rows[0]["SellerCode"].ToString() : ""); ;
-                this.Inspector = (dt.Rows[0]["Inspector"] != null ? dt.Rows[0]["Inspector"].ToString() : ""); ;
-                this.VehicleId = (dt.Rows[0]["VehicleId"] != null ? dt.Rows[0]["VehicleId"].ToString() : ""); ;
-                this.ChasisNumber = (dt.Rows[0]["ChasisNumber"] != null ? dt.Rows[0]["ChasisNumber"].ToString() : ""); ;
-                this.VIN = (dt.Rows[0]["VIN"] != null ? dt.Rows[0]["VIN"].ToString() : ""); ;
-                this.RegistrationNumber = (dt.Rows[0]["RegistrationNumber"] != null ? dt.Rows[0]["RegistrationNumber"].ToString() : ""); ;
-                this.CreatedBy = (dt.Rows[0]["CreatedBy"] != null ? dt.Rows[0]["CreatedBy"].ToString() : ""); ;
-                this.CreatedDate = DateTime.Parse(dt.Rows[0][""] != null ? dt.Rows[0][""].ToString() : new DateTime(1900, 1, 1).ToString("yyyy-MM-dd"));
-                blRtn = CreateInnoSyncRecord();
-            }
-            return blRtn;
         }
 
         #region CreateInnoSyncRecord
@@ -95,26 +72,38 @@ namespace INS_API_DataFeed
 
                 #region Parameter
 
-                var detailParam = new List<SqlParameter> {
-                            new SqlParameter("@TxnDate", this.TxnDate),
-                            new SqlParameter("@SchemaName", this.SchemaName),
-                            new SqlParameter("@SchemaInfo", this.SchemaInfo),
-                            new SqlParameter("@InspectionData", this.InspectionData),
-                            new SqlParameter("@SenderName", this.SenderName),
-                            new SqlParameter("@ReceiverName", this.ReceiverName),
-                             new SqlParameter("@MobileNumber", this.MobileNumber),
-                            new SqlParameter("@SellerCode", this.SellerCode),
-                            new SqlParameter("@Inspector", this.Inspector),
-                            new SqlParameter("@VehicleId", this.VehicleId),
-                            new SqlParameter("@ChasisNumber", this.ChasisNumber),
-                             new SqlParameter("@VIN", this.VIN),
-                            new SqlParameter("@RegistrationNumber", this.RegistrationNumber),
-                            new SqlParameter("@CreatedBy", this.CreatedBy),
-                            new SqlParameter("@CreatedDate", DateTime.Today),
-                        };
+                this.SenderName = (this.SenderName == null ? "" : this.SenderName);
+                this.ReceiverName = (this.ReceiverName == null ? "" : this.ReceiverName);
+                this.MobileNumber = (this.SenderName == null ? "" : this.MobileNumber);
+                this.SellerCode = (this.SellerCode == null ? "" : this.SellerCode);
+                this.Inspector = (this.Inspector == null ? "" : this.Inspector);
+                this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
+                this.ChasisNumber = (this.ChasisNumber == null ? "" : this.ChasisNumber);
+                this.VIN = (this.VIN == null ? "" : this.VIN);
+                this.RegistrationNumber = (this.RegistrationNumber == null ? "" : this.RegistrationNumber);
+                this.CreatedBy = (this.CreatedBy == null ? "" : this.CreatedBy);              
 
                 #endregion Parameter
-                context.Database.SqlQuery<decimal>(Query_CreateInspection, detailParam.ToArray()).SingleOrDefault();
+                using (SqlCommand command = new SqlCommand(Query_CreateInspection, (SqlConnection)context.Database.Connection))
+                {
+                    command.Parameters.AddWithValue("@TxnDate", this.TxnDate);
+                    command.Parameters.AddWithValue("@SchemaName", this.SchemaName);
+                    command.Parameters.AddWithValue("@SchemaInfo", this.SchemaInfo);
+                    command.Parameters.AddWithValue("@InspectionData", this.InspectionData);
+                    command.Parameters.AddWithValue("@SenderName", this.SenderName);
+                    command.Parameters.AddWithValue("@ReceiverName", this.ReceiverName);
+                    command.Parameters.AddWithValue("@MobileNumber", this.MobileNumber);
+                    command.Parameters.AddWithValue("@SellerCode", this.SellerCode);
+                    command.Parameters.AddWithValue("@InspectorID", this.InspectorID);
+                    command.Parameters.AddWithValue("@Inspector", this.Inspector);
+                    command.Parameters.AddWithValue("@VehicleId", this.VehicleId); 
+                    command.Parameters.AddWithValue("@ChasisNumber", this.ChasisNumber);
+                    command.Parameters.AddWithValue("@VIN", this.VIN);
+                    command.Parameters.AddWithValue("@Reg", this.RegistrationNumber);
+                    command.Parameters.AddWithValue("@CreatedBy", this.CreatedBy);
+                    command.Parameters.AddWithValue("@CreatedDate", DateTime.Today);
+                    command.ExecuteNonQuery(); // Or appropriate execution method
+                }
                 if (context.Database.Connection.State == ConnectionState.Open)
                 {
                     context.Database.Connection.Close();
@@ -128,47 +117,5 @@ namespace INS_API_DataFeed
             return blRtn;
         }
         #endregion
-
-        public class InnoPostData
-        {
-            [JsonProperty("inspector_user_id")]
-            public int InspectorUserId { get; set; } // Changed to int based on JSON structure
-
-            [JsonProperty("end_time")]
-            public string EndTime { get; set; }
-
-            [JsonProperty("countdown_time")]
-            public string CountdownTime { get; set; }
-
-            [JsonProperty("data")]
-            public string Data { get; set; } // Keeping data as a string
-
-            [JsonProperty("schema")]
-            public string Schema { get; set; } // Updated to PascalCase for C# convention
-        }
-
-        public class PostDataSchema
-        {
-            [JsonProperty("id")]
-            public int Id { get; set; }
-
-            [JsonProperty("name")]
-            public string Name { get; set; }
-
-            [JsonProperty("origin")]
-            public string Origin { get; set; }
-
-            [JsonProperty("created_at")]
-            public string CreatedAt { get; set; }
-
-            [JsonProperty("created_by")]
-            public int CreatedBy { get; set; } // Changed to int based on JSON structure
-
-            [JsonProperty("key")]
-            public string Key { get; set; }
-
-            [JsonProperty("is_deleted")]
-            public string IsDeleted { get; set; }
-        }
     }
 }
