@@ -296,6 +296,7 @@
     <Compile Include="Controllers\DataPortController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\INSController.cs" />
+    <Compile Include="Controllers\SheetController.cs" />
     <Compile Include="Email\Email.cs" />
     <Compile Include="Email\Helper.cs" />
     <Compile Include="Global.asax.cs">
@@ -377,6 +378,7 @@
     <Folder Include="Models\" />
     <Folder Include="Views\DataPort\" />
     <Folder Include="Views\INS\" />
+    <Folder Include="Views\Sheet\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
