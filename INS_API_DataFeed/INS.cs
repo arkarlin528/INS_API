@@ -2836,7 +2836,6 @@ namespace INS_API_DataFeed
         }
         #endregion
 
-
         #region AddBookIn
         public string AddBookIn(BookIn bookIn)
         {
@@ -3560,7 +3559,143 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetBookInSheet
+        public DataTable GetBookInSheet(string RefNumber)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
 
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_BookInSheet;
+                        command.Parameters.Add(new SqlParameter("@RefKey", RefNumber));
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetInspectionSheet
+        public DataTable GetInspectionSheet(string RefNumber)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_InspectionSheet;
+                        command.Parameters.Add(new SqlParameter("@RefKey", RefNumber));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GenerateDataSheet
+        public DataTable GenerateDataSheet(string RefNumber)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_GenerateDataSheet;
+                        command.Parameters.Add(new SqlParameter("@RefKey", RefNumber));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetInspectionList
+        public DataTable GetInspectionDataList()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_InspectionDataList;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
 
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
         {
@@ -4071,6 +4206,23 @@ namespace INS_API_DataFeed
                                     SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
         public static string get_CarInspectionByBookIn = @"SELECT * FROM CarInspection WHERE BookInNumber = @bookinNo";
+
+        public static string get_BookInSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
+                                                VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                FROM [dbo].[INNO_SYNC] WHERE SchemaName LIKE '%bookin%' AND RefKey = @RefKey ORDER BY ID DESC";
+
+        public static string get_InspectionSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
+                                                VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                FROM [dbo].[INNO_SYNC] WHERE SchemaName LIKE '%inspection%' AND RefKey = @RefKey ORDER BY ID DESC";
+
+        public static string get_InspectionDataList = "SELECT ID,RefKey,TxnDate,Schemaname,Sendername,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate, " +
+                                                    "(CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType " +
+                                                    "FROM InspectionWeb.dbo.INNO_SYNC";
+        public static string get_GenerateDataSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
+                                                        VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
+                                                        (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType,
+                                                        (CASE WHEN SCHEMANAME LIKE  '%Motor%' THEN 'Motorbike' WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' ELSE '' END) SchemaVehicle
+                                                        FROM [dbo].[INNO_SYNC] WHERE RefKey = @RefKey ORDER BY ID DESC";
 
     }
     #endregion
