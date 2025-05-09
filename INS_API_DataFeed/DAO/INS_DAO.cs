@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI;
+using System.Web.UI.WebControls.WebParts;
 
 namespace INS_API_DataFeed.DAO
 {
@@ -1026,6 +1027,380 @@ namespace INS_API_DataFeed.DAO
         public string[] DamageImage { get; set; }
     }
     #endregion
+
+    #region BookInModel
+    public class BookinModel
+    {
+        public BookinReceiver BookInType { get; set; }
+        public Vehicle VehicleType { get; set; }
+        public External ExternalType { get; set; }
+        public Spare SpareType { get; set; }
+        public Cabin CabinType { get; set; }
+        public KeyOption KeyOptionType { get; set; }
+        public Engine EngineType { get; set; }
+
+    }
+
+    public class BookinReceiver
+    {
+        public string BookInNumber { get; set; }
+        public Nullable<System.DateTime> BookInDate { get; set; }
+        public string SenderName { get; set; }
+        public string ReceiverName { get; set; }
+        public string ContractNumber { get; set; }
+        public string MobileNumber { get; set; }
+        public Nullable<int> Status { get; set; }
+        public string SellerCode { get; set; }
+        public string Inspector { get; set; }
+        public string SenderSignature { get; set; }
+        public string ReceiverSignature { get; set; }
+        public string VehicleId { get; set; }
+        public Nullable<System.DateTime> LatestUpdatedDate { get; set; }
+        public string BookinType { get; set; }
+        public string CreateBy { get; set; }
+        public Nullable<System.DateTime> CreateDate { get; set; }
+        public string ModifiedBy { get; set; }
+        public Nullable<System.DateTime> ModifiedDate { get; set; }
+        public string ContractTypeCode { get; set; }
+        public string StickVin { get; set; }
+
+    }
+    public class Vehicle
+    {
+        public int VID { get; set; }
+        public string VehicleId { get; set; }
+        public string BookinNumber { get; set; }
+        public string Seller { get; set; }
+        public string SellingCategory { get; set; }
+        public string LogisticsStatus { get; set; }
+        public Nullable<System.DateTime> InspectionDate { get; set; }
+        public string SalesStatus { get; set; }
+        public string Plant { get; set; }
+        public string StorageLocation { get; set; }
+        public string ReceiverLocation { get; set; }
+        public Nullable<System.DateTime> BookedDate { get; set; }
+        public string Make { get; set; }
+        public string Make_BU { get; set; }
+        public string Make_LO { get; set; }
+        public Nullable<int> ModelCodeId { get; set; }
+        public string ModelCode { get; set; }
+        public string Model_BU { get; set; }
+        public string Model_LO { get; set; }
+        public string Body { get; set; }
+        public string BodyDesc_BU { get; set; }
+        public string BodyDesc_LO { get; set; }
+        public string Variants { get; set; }
+        public string BuildYear { get; set; }
+        public string VIN { get; set; }
+        public string ChasisNumber { get; set; }
+        public string Colour { get; set; }
+        public string ColourDesc { get; set; }
+        public string FuelDelivery { get; set; }
+        public string FuelType { get; set; }
+        public string Gearbox { get; set; }
+        public string Gears { get; set; }
+        public string Drive { get; set; }
+        public string EngineNumber { get; set; }
+        public Nullable<decimal> EngineCapacity { get; set; }
+        public string EngineCapacityUnit { get; set; }
+        public string Regisration { get; set; }
+        public string RegistrationYear { get; set; }
+        public string RegistrationProvince { get; set; }
+        public string RegistrationPlate { get; set; }
+        public string RegistrationNote { get; set; }
+        public Nullable<bool> IsRegistrationMismatch { get; set; }
+        public string RedBookCondition { get; set; }
+        public Nullable<bool> IsGasTank { get; set; }
+        public string GasTankNumber { get; set; }
+        public int GasType { get; set; }
+        public string GasNote { get; set; }
+        public Nullable<bool> IsInValidEngineNumber { get; set; }
+        public string ReasonInValidEngineNumber { get; set; }
+        public Nullable<bool> IsInValidVinNumber { get; set; }
+        public string ReasonInValidVinNumber { get; set; }
+        public Nullable<bool> IsInValidGasNumber { get; set; }
+        public string ReasonInValidGasNumber { get; set; }
+        public Nullable<bool> VehicleDeleted { get; set; }
+        public Nullable<System.DateTime> VehicleDeletedDate { get; set; }
+        public string CreateUser { get; set; }
+        public Nullable<System.DateTime> CreateDate { get; set; }
+        public string ModifiedUser { get; set; }
+        public Nullable<System.DateTime> ModifiedDate { get; set; }
+        public Nullable<bool> IsNohaveBuildYear { get; set; }
+        public Nullable<bool> IsNohaveRegis { get; set; }
+        public Nullable<int>  briefCarConditionId { get; set; }
+        public string DetallBriefCarCondition { get; set; }
+        public string MotorNumber { get; set; }
+        public Nullable<bool> IsInValidMotorNumber { get; set; }
+        public string ReasonInValidMotorNumber { get; set; }
+        public Nullable<bool> IsInVaidEngine1 { get; set; }
+        public Nullable<bool> IsInVaidEngine2 { get; set; }
+        public Nullable<bool> IsInVaidEngine3 { get; set; }
+        public Nullable<bool> IsInVaidVin1 { get; set; }
+        public Nullable<bool> IsInVaidVin2 { get; set; }
+        public Nullable<bool> IsInVaidVin3 { get; set; }
+        public string NoPlateType { get; set; }
+        public string CataLogIPAD_TH { get; set; }
+        public string CataLogIPAD_EN { get; set; }
+        public int CatalyticOption { get; set; }
+        public string CabTypeID { get; set; }
+        public string LevelCabID { get; set; }
+    }
+    public class External
+    {
+        public int ExternalId { get; set; }
+        public Nullable<int> GradeOverallId { get; set; }
+        public Nullable<int> ColorOverallId { get; set; }
+        public Nullable<bool> IsSpoiler { get; set; }
+        public Nullable<int> MagWheel { get; set; }
+        public Nullable<int> NormalWheel { get; set; }
+        public Nullable<bool> IsTyre { get; set; }
+        public Nullable<int> TyreQuality { get; set; }
+        public string DamageDesc { get; set; }
+        public string BookinNumber { get; set; }
+        public string TyreBrand { get; set; }
+        public Nullable<int> RoofTypeId { get; set; }
+    }
+    public class Spare
+    {
+        public int SpareId { get; set; }
+        public Nullable<int> SpareOverAllId { get; set; }
+        public string SpareNote { get; set; }
+        public Nullable<bool> IsSpareType { get; set; }
+        public Nullable<bool> IsHandTool { get; set; }
+        public Nullable<bool> IsMaxliner { get; set; }
+        public Nullable<bool> IsRoofRack { get; set; }
+        public Nullable<bool> IsJackCar { get; set; }
+        public Nullable<bool> IsCableChargeEV { get; set; }
+        public string AccessoriesNote { get; set; }
+        public string BookinNumber { get; set; }
+    }
+    public class Cabin
+    {
+        public int CabinId { get; set; }
+        public int CabinOverAllId { get; set; }
+        public Nullable<decimal> Mileage { get; set; }
+        public Nullable<int> MileageTypeId { get; set; }
+        public Nullable<int> FuelVolumn { get; set; }
+        public Nullable<int> GearSystemId { get; set; }
+        public Nullable<bool> IsAirback { get; set; }
+        public Nullable<bool> IsHeadGear { get; set; }
+        public Nullable<bool> IsPowerAmp { get; set; }
+        public Nullable<bool> IsLockGear { get; set; }
+        public Nullable<bool> IsPreAmp { get; set; }
+        public Nullable<bool> IsBookService { get; set; }
+        public Nullable<bool> IsSpeaker { get; set; }
+        public Nullable<bool> IsManual { get; set; }
+        public Nullable<bool> IsCigaretteLiter { get; set; }
+        public Nullable<bool> IsTaxPlate { get; set; }
+        public string IsPlateExpireDate { get; set; }
+        public Nullable<bool> IsNavigator { get; set; }
+        public Nullable<bool> IsNavigatorBuiltin { get; set; }
+        public Nullable<bool> IsNavigatorCD { get; set; }
+        public Nullable<bool> IsNavigatorSDCard { get; set; }
+        public Nullable<bool> IsNavigatorNoCD { get; set; }
+        public Nullable<bool> IsNavigatorNoSDCard { get; set; }
+        public string PlayerBrand { get; set; }
+        public Nullable<bool> IsPlayerRadio { get; set; }
+        public Nullable<bool> IsPlayerTape { get; set; }
+        public Nullable<bool> IsPlayerCD { get; set; }
+        public Nullable<bool> IsPlayerUSB { get; set; }
+        public Nullable<int> KeyOptionId { get; set; }
+        public string CabinNote { get; set; }
+        public string BookInNumber { get; set; }
+        public Nullable<bool> IsInvalidMileage { get; set; }
+        public string InvalidMileageReason { get; set; }
+    }
+    public class KeyOption
+    {
+        public int KeyOptionId { get; set; }
+        public Nullable<int> NumberOfKey { get; set; }
+        public Nullable<int> NumberOfRemote { get; set; }
+        public Nullable<int> NumberOfKeyRemote { get; set; }
+        public Nullable<int> NumberOfImmobilizer { get; set; }
+        public Nullable<int> NumberOfKeyless { get; set; }
+        public string BookinNumber { get; set; }
+    }
+    public class Engine
+    {
+        public int EngineId { get; set; }
+        public Nullable<int> EngineRoomOverAllId { get; set; }
+        public string BatteryBrand { get; set; }
+        public string BatteryIndicatorColor { get; set; }
+        public Nullable<bool> IsEcu { get; set; }
+        public Nullable<bool> IsCompressorAir { get; set; }
+        public Nullable<int> DriverSystemId { get; set; }
+        public Nullable<int> FuelSystemId { get; set; }
+        public Nullable<bool> IsFuelGas { get; set; }
+        public Nullable<int> GasTypeId { get; set; }
+        public string InsideAssetNote { get; set; }
+        public string BookinNumber { get; set; }
+    }
+    #endregion
+
+    public partial class BookIn
+    {
+        public int BookInId { get; set; }
+        public string BookInNumber { get; set; }
+        public Nullable<System.DateTime> BookInDate { get; set; }
+        public string SenderName { get; set; }
+        public string ReceiverName { get; set; }
+        public string ContractNumber { get; set; }
+        public string MobileNumber { get; set; }
+        public byte[] SenderSignature { get; set; }
+        public byte[] ReceiverSignature { get; set; }
+        public Nullable<int> Status { get; set; }
+        public string VehicleId { get; set; }
+        public string SellerCode { get; set; }
+        public string Inspector { get; set; }
+        public Nullable<System.DateTime> LatestUpdatedDate { get; set; }
+        public string BookinType { get; set; }
+        public string CreateBy { get; set; }
+        public Nullable<System.DateTime> CreateDate { get; set; }
+        public string ModifiedBy { get; set; }
+        public Nullable<System.DateTime> ModifiedDate { get; set; }
+        public string ContractTypeCode { get; set; }
+        public byte[] StickVin { get; set; }
+    }
+
+    public partial class CarInspection
+    {
+        public int InspectionId { get; set; }
+        public string BookInNumber { get; set; }
+        public string VehicleId { get; set; }
+        public string Inspector { get; set; }
+        public Nullable<System.DateTime> InspectionDate { get; set; }
+        public string InspectorName { get; set; }
+        public string Chassis { get; set; }
+        public string Front { get; set; }
+        public string Back { get; set; }
+        public string RightSide { get; set; }
+        public string LeftSide { get; set; }
+        public string Roof { get; set; }
+        public Nullable<bool> IsFlood { get; set; }
+        public string BodySummary { get; set; }
+        public Nullable<bool> IsEngineWorks { get; set; }
+        public Nullable<int> FuelSystemId { get; set; }
+        public Nullable<bool> IsLubricatorLow { get; set; }
+        public Nullable<int> EngineSystemId { get; set; }
+        public Nullable<int> GearTypeId { get; set; }
+        public Nullable<bool> IsUseableGeneral { get; set; }
+        public Nullable<bool> IsSoundAbnormal { get; set; }
+        public Nullable<bool> IsLeakFuel { get; set; }
+        public Nullable<bool> IsStainWater { get; set; }
+        public Nullable<bool> IsMachineLightShow { get; set; }
+        public Nullable<bool> IsEngineAbnomal { get; set; }
+        public Nullable<bool> IsNeedRepair { get; set; }
+        public string EngineSummary { get; set; }
+        public Nullable<int> DriveShaftConditionId { get; set; }
+        public string DriveShaftConditionNote { get; set; }
+        public Nullable<int> SuspensionConditionId { get; set; }
+        public string SuspensionConditionNote { get; set; }
+        public string SuspensionSummary { get; set; }
+        public Nullable<int> GearSystemId { get; set; }
+        public Nullable<int> GearConditionId { get; set; }
+        public Nullable<int> DriveShaftId { get; set; }
+        public Nullable<bool> Is4WD { get; set; }
+        public string GearSystemSummary { get; set; }
+        public Nullable<bool> IsUseableSteerWheel { get; set; }
+        public Nullable<bool> IsPowerSteering { get; set; }
+        public string SteeringSummary { get; set; }
+        public Nullable<bool> IsUseableBrake { get; set; }
+        public string BreakSystemSumary { get; set; }
+        public Nullable<bool> IsAirCool { get; set; }
+        public Nullable<bool> IsCompressorAir { get; set; }
+        public string AirSystemSummary { get; set; }
+        public Nullable<bool> IsUseableGuage { get; set; }
+        public string WarningLightNote { get; set; }
+        public string GaugeSummary { get; set; }
+        public Nullable<bool> IsFrontLightWorking { get; set; }
+        public Nullable<bool> IsTurnLightWorking { get; set; }
+        public Nullable<bool> IsBackLightWorking { get; set; }
+        public Nullable<bool> IsBrakeLightWoring { get; set; }
+        public Nullable<bool> IsBetteryWorking { get; set; }
+        public Nullable<bool> IsHooterWorking { get; set; }
+        public Nullable<bool> IsRoundGaugeWorking { get; set; }
+        public Nullable<bool> IsNavigator { get; set; }
+        public Nullable<bool> IsNavigatorBuiltIn { get; set; }
+        public Nullable<bool> IsNavigatorCD { get; set; }
+        public Nullable<bool> IsNavigatorSdcard { get; set; }
+        public Nullable<bool> IsNavigatorNoCD { get; set; }
+        public Nullable<bool> IsNavigatorNoSdcard { get; set; }
+        public string ElectronicNote { get; set; }
+        public string ElectronicSummary { get; set; }
+        public Nullable<System.DateTime> LatestUpdatedDate { get; set; }
+        public string Regisration { get; set; }
+        public string RegistrationProvince { get; set; }
+        public Nullable<bool> IsSunroof { get; set; }
+        public Nullable<bool> isSideMirror_1_Working { get; set; }
+        public Nullable<bool> isSideMirror_2_Working { get; set; }
+        public Nullable<bool> isSideMirror_3_Working { get; set; }
+        public Nullable<bool> isSideMirror_4_Working { get; set; }
+    }
+
+    public class VehicleModel
+    {
+        public string BookInNumber { get; set; }
+      
+        public string VehicleId { get; set; }
+      
+        public string Seller { get; set; }
+      
+        public string SellingCategory { get; set; }
+      
+        public string LogisticsStatus { get; set; }
+      
+        public string SalesStatus { get; set; }
+      
+        public string Plant { get; set; }
+      
+        public string Make { get; set; }
+      
+        public System.DateTime BookedDate { get; set; }
+      
+        public string EngineCapacityUnit { get; set; }
+      
+        public string Body { get; set; }
+      
+        public string Gearbox { get; set; }
+      
+        public string Gears { get; set; }
+      
+        public string FuelType { get; set; }
+      
+        public string FuelDelivery { get; set; }
+      
+        public string Colour_BU { get; set; }
+      
+        public string Colour_LO { get; set; }
+      
+        public Nullable<decimal> EngineCapacity { get; set; }
+      
+        public string CreateUser { get; set; }
+    }
+
+    public class InspectionImageType
+    {
+        public CarInspectionImage InspectionImage { get; set; }
+        public string Base64String { get; set; }
+
+    }
+
+    public partial class CarInspectionImage
+    {
+        public int ImageId { get; set; }
+        public string BookInNumber { get; set; }
+        public string VehicleId { get; set; }
+        public Nullable<int> ImageTypeId { get; set; }
+        public string ImageDescTh { get; set; }
+        public string ImageDescEn { get; set; }
+        public string ImageName { get; set; }
+        public string ImagePath { get; set; }
+        public Nullable<bool> IsDeleted { get; set; }
+        public string DamageDesc { get; set; }
+        public string DamageSize { get; set; }
+        public string DamageType { get; set; }
+    }
 
     //#region Schema
     //public class Schema

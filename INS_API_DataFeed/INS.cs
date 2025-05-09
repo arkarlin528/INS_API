@@ -2666,6 +2666,902 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region CreateBookinNumber
+        public List<string> CreateBookinNumber()
+        {
+            var result = new List<string>();
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "CreateBookinNumber";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                result.Add(reader[0].ToString());
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region GetNextVehicleNumber
+        public string GetNextVehicleNumber()
+        {
+            string result = "";
+
+            try
+            {
+                using (var context = new IMAT_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "NextVehicle";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        var outputParam = new SqlParameter("@NextNumber", SqlDbType.Char, 18)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+
+                        command.Parameters.Add(outputParam);
+
+                        command.ExecuteNonQuery();
+
+                        result = outputParam.Value?.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region UpdateVehicleOnCreate
+        public void UpdateVehicleOnCreate(string bookinNo, string vehicleId)
+        {
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "dbo.UpdateVehicleOnCreate";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // Add parameters
+                        var param1 = command.CreateParameter();
+                        param1.ParameterName = "@bookinNumber";
+                        param1.DbType = DbType.String;
+                        param1.Size = 10;
+                        param1.Value = bookinNo;
+                        command.Parameters.Add(param1);
+
+                        var param2 = command.CreateParameter();
+                        param2.ParameterName = "@vehicleId";
+                        param2.DbType = DbType.String;
+                        param2.Size = 18;
+                        param2.Value = vehicleId;
+                        command.Parameters.Add(param2);
+
+                        command.ExecuteNonQuery(); // Execute the stored procedure
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+        #region UpdateVehicleOnUpdate
+        public void UpdateVehicleOnUpdate(string bookinNo, string vehicleId)
+        {
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "dbo.UpdateVehicleOnUpdate";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // Add parameters
+                        var param1 = command.CreateParameter();
+                        param1.ParameterName = "@bookinNumber";
+                        param1.Value = bookinNo;
+                        param1.DbType = DbType.StringFixedLength;
+                        param1.Size = 10;
+                        command.Parameters.Add(param1);
+
+                        var param2 = command.CreateParameter();
+                        param2.ParameterName = "@vehicleId";
+                        param2.Value = vehicleId;
+                        param2.DbType = DbType.StringFixedLength;
+                        param2.Size = 18;
+                        command.Parameters.Add(param2);
+
+                        // Execute the procedure
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
+
+        #region AddBookIn
+        public string AddBookIn(BookIn bookIn)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@BookInNumber", bookIn.BookInNumber),
+                new SqlParameter("@BookInDate", bookIn.BookInDate),
+                new SqlParameter("@SenderName", bookIn.SenderName),
+                new SqlParameter("@ReceiverName", bookIn.ReceiverName),
+                new SqlParameter("@ContractNumber", bookIn.ContractNumber),
+                new SqlParameter("@MobileNumber", bookIn.MobileNumber),
+                new SqlParameter("@Status", bookIn.Status),
+                new SqlParameter("@SellerCode", bookIn.SellerCode),
+                new SqlParameter("@Inspector", bookIn.Inspector),
+                new SqlParameter("@VehicleId", bookIn.VehicleId),
+                new SqlParameter("@SenderSignature", bookIn.SenderSignature),
+                new SqlParameter("@ReceiverSignature", bookIn.ReceiverSignature),
+                new SqlParameter("@LatestUpdatedDate", bookIn.LatestUpdatedDate),
+                new SqlParameter("@BookinType", bookIn.BookinType),
+                new SqlParameter("@CreateBy", bookIn.CreateBy),
+                new SqlParameter("@CreateDate", bookIn.CreateDate),
+                new SqlParameter("@ContractTypeCode", bookIn.ContractTypeCode),
+                new SqlParameter("@StickVin", bookIn.StickVin)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_BookIn, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddVehicle
+        public string AddVehicle(Vehicle vehicle)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@BookinNumber", vehicle.BookinNumber),
+                new SqlParameter("@Seller", vehicle.Seller),
+                new SqlParameter("@SellingCategory", vehicle.SellingCategory),
+                new SqlParameter("@LogisticsStatus", vehicle.LogisticsStatus),
+                new SqlParameter("@InspectionDate", vehicle.InspectionDate),
+                new SqlParameter("@SalesStatus", vehicle.SalesStatus),
+                new SqlParameter("@Plant", vehicle.Plant),
+                new SqlParameter("@StorageLocation", vehicle.StorageLocation),
+                new SqlParameter("@ReceiverLocation", vehicle.ReceiverLocation),
+                new SqlParameter("@BookedDate", vehicle.BookedDate),
+                new SqlParameter("@Make", vehicle.Make),
+                new SqlParameter("@Make_BU", vehicle.Make_BU),
+                new SqlParameter("@Make_LO", vehicle.Make_LO),
+                new SqlParameter("@ModelCode", vehicle.ModelCode),
+                new SqlParameter("@ModelCodeId", vehicle.ModelCodeId),
+                new SqlParameter("@Model_BU", vehicle.Model_BU),
+                new SqlParameter("@Model_LO", vehicle.Model_LO),
+                new SqlParameter("@Body", vehicle.Body),
+                new SqlParameter("@BodyDesc_BU", vehicle.BodyDesc_BU),
+                new SqlParameter("@BodyDesc_LO", vehicle.BodyDesc_LO),
+                new SqlParameter("@Variants", vehicle.Variants),
+                new SqlParameter("@BuildYear", vehicle.BuildYear),
+                new SqlParameter("@VIN", vehicle.VIN),
+                new SqlParameter("@ChasisNumber", vehicle.ChasisNumber),
+                new SqlParameter("@Colour", vehicle.Colour),
+                new SqlParameter("@ColourDesc", vehicle.ColourDesc),
+                new SqlParameter("@FuelDelivery", vehicle.FuelDelivery),
+                new SqlParameter("@FuelType", vehicle.FuelType),
+                new SqlParameter("@Gearbox", vehicle.Gearbox),
+                new SqlParameter("@Gears", vehicle.Gears),
+                new SqlParameter("@Drive", vehicle.Drive),
+                new SqlParameter("@EngineNumber", vehicle.EngineNumber),
+                new SqlParameter("@EngineCapacity", vehicle.EngineCapacity),
+                new SqlParameter("@EngineCapacityUnit", vehicle.EngineCapacityUnit),
+                new SqlParameter("@Regisration", vehicle.Regisration),
+                new SqlParameter("@RegistrationYear", vehicle.RegistrationYear),
+                new SqlParameter("@RegistrationProvince", vehicle.RegistrationProvince),
+                new SqlParameter("@RegistrationPlate", vehicle.RegistrationPlate),
+                new SqlParameter("@RegistrationNote", vehicle.RegistrationNote),
+                new SqlParameter("@IsRegistrationMismatch", vehicle.IsRegistrationMismatch),
+                new SqlParameter("@RedBookCondition", vehicle.RedBookCondition),
+                new SqlParameter("@IsGasTank", vehicle.IsGasTank),
+                new SqlParameter("@GasType", vehicle.GasType),
+                new SqlParameter("@GasTankNumber", vehicle.GasTankNumber),
+                new SqlParameter("@GasNote", vehicle.GasNote),
+                new SqlParameter("@IsInValidEngineNumber", vehicle.IsInValidEngineNumber),
+                new SqlParameter("@ReasonInValidEngineNumber", vehicle.ReasonInValidEngineNumber),
+                new SqlParameter("@IsInValidGasNumber", vehicle.IsInValidGasNumber),
+                new SqlParameter("@ReasonInValidGasNumber", vehicle.ReasonInValidGasNumber),
+                new SqlParameter("@IsInValidVinNumber", vehicle.IsInValidVinNumber),
+                new SqlParameter("@ReasonInValidVinNumber", vehicle.ReasonInValidVinNumber),
+                new SqlParameter("@IsNohaveBuildYear", vehicle.IsNohaveBuildYear),
+                new SqlParameter("@IsNohaveRegis", vehicle.IsNohaveRegis),
+                new SqlParameter("@briefCarConditionId", vehicle.briefCarConditionId),
+                new SqlParameter("@DetallBriefCarCondition", vehicle.DetallBriefCarCondition),
+                new SqlParameter("@MotorNumber", vehicle.MotorNumber),
+                new SqlParameter("@IsInValidMotorNumber", vehicle.IsInValidMotorNumber),
+                new SqlParameter("@ReasonInValidMotorNumber", vehicle.ReasonInValidMotorNumber),
+                new SqlParameter("@IsInVaidEngine1", vehicle.IsInVaidEngine1),
+                new SqlParameter("@IsInVaidEngine2", vehicle.IsInVaidEngine2),
+                new SqlParameter("@IsInVaidEngine3", vehicle.IsInVaidEngine3),
+                new SqlParameter("@IsInVaidVin1", vehicle.IsInVaidVin1),
+                new SqlParameter("@IsInVaidVin2", vehicle.IsInVaidVin2),
+                new SqlParameter("@IsInVaidVin3", vehicle.IsInVaidVin3),
+                new SqlParameter("@NoPlateType", vehicle.NoPlateType),
+                new SqlParameter("@CatalyticOption", vehicle.CatalyticOption),
+                new SqlParameter("@CabTypeID", vehicle.CabTypeID),
+                new SqlParameter("@LevelCabID", vehicle.LevelCabID)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_Vehicle, param.ToArray()).SingleOrDefault();
+                  
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddExternal
+        public string AddExternal(External external)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+                    {
+                        new SqlParameter("@GradeOverallId", (object)external.GradeOverallId ?? DBNull.Value),
+                        new SqlParameter("@ColorOverallId", (object)external.ColorOverallId ?? DBNull.Value),
+                        new SqlParameter("@IsSpoiler", (object)external.IsSpoiler ?? DBNull.Value),
+                        new SqlParameter("@MagWheel", (object)external.MagWheel ?? DBNull.Value),
+                        new SqlParameter("@NormalWheel", (object)external.NormalWheel ?? DBNull.Value),
+                        new SqlParameter("@IsTyre", (object)external.IsTyre ?? DBNull.Value),
+                        new SqlParameter("@TyreQuality", (object)external.TyreQuality ?? DBNull.Value),
+                        new SqlParameter("@DamageDesc", (object)(external.DamageDesc ?? string.Empty)),
+                        new SqlParameter("@BookinNumber", external.BookinNumber ?? string.Empty),
+                        new SqlParameter("@TyreBrand", (object)(external.TyreBrand ?? string.Empty)),
+                        new SqlParameter("@RoofTypeId", (object)external.RoofTypeId ?? DBNull.Value),
+                    };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_External, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddSpare
+        public string AddSpare(Spare spare)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@SpareOverAllId", (object)spare.SpareOverAllId ?? DBNull.Value),
+                new SqlParameter("@SpareNote", (object)(spare.SpareNote ?? string.Empty)),
+                new SqlParameter("@IsSpareType", (object)spare.IsSpareType ?? DBNull.Value),
+                new SqlParameter("@IsHandTool", (object)spare.IsHandTool ?? DBNull.Value),
+                new SqlParameter("@IsMaxliner", (object)spare.IsMaxliner ?? DBNull.Value),
+                new SqlParameter("@IsRoofRack", (object)spare.IsRoofRack ?? DBNull.Value),
+                new SqlParameter("@IsJackCar", (object)spare.IsJackCar ?? DBNull.Value),
+                new SqlParameter("@IsCableChargeEV", (object)spare.IsCableChargeEV ?? DBNull.Value),
+                new SqlParameter("@AccessoriesNote", (object)(spare.AccessoriesNote ?? string.Empty)),
+                new SqlParameter("@BookinNumber", spare.BookinNumber ?? string.Empty)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_Spare, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddCabin
+        public string AddCabin(Cabin cabin)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@CabinOverAllId", cabin.CabinOverAllId),
+                new SqlParameter("@Mileage", (object)cabin.Mileage ?? DBNull.Value),
+                new SqlParameter("@MileageTypeId", (object)cabin.MileageTypeId ?? DBNull.Value),
+                new SqlParameter("@FuelVolumn", (object)cabin.FuelVolumn ?? DBNull.Value),
+                new SqlParameter("@GearSystemId", (object)cabin.GearSystemId ?? DBNull.Value),
+                new SqlParameter("@IsAirback", (object)cabin.IsAirback ?? DBNull.Value),
+                new SqlParameter("@IsHeadGear", (object)cabin.IsHeadGear ?? DBNull.Value),
+                new SqlParameter("@IsPowerAmp", (object)cabin.IsPowerAmp ?? DBNull.Value),
+                new SqlParameter("@IsLockGear", (object)cabin.IsLockGear ?? DBNull.Value),
+                new SqlParameter("@IsPreAmp", (object)cabin.IsPreAmp ?? DBNull.Value),
+                new SqlParameter("@IsBookService", (object)cabin.IsBookService ?? DBNull.Value),
+                new SqlParameter("@IsSpeaker", (object)cabin.IsSpeaker ?? DBNull.Value),
+                new SqlParameter("@IsManual", (object)cabin.IsManual ?? DBNull.Value),
+                new SqlParameter("@IsCigaretteLiter", (object)cabin.IsCigaretteLiter ?? DBNull.Value),
+                new SqlParameter("@IsTaxPlate", (object)cabin.IsTaxPlate ?? DBNull.Value),
+                new SqlParameter("@IsPlateExpireDate", (object)(cabin.IsPlateExpireDate ?? string.Empty)),
+                new SqlParameter("@IsNavigator", (object)cabin.IsNavigator ?? DBNull.Value),
+                new SqlParameter("@IsNavigatorBuiltin", (object)cabin.IsNavigatorBuiltin ?? DBNull.Value),
+                new SqlParameter("@IsNavigatorCD", (object)cabin.IsNavigatorCD ?? DBNull.Value),
+                new SqlParameter("@IsNavigatorSDCard", (object)cabin.IsNavigatorSDCard ?? DBNull.Value),
+                new SqlParameter("@IsNavigatorNoCD", (object)cabin.IsNavigatorNoCD ?? DBNull.Value),
+                new SqlParameter("@IsNavigatorNoSDCard", (object)cabin.IsNavigatorNoSDCard ?? DBNull.Value),
+                new SqlParameter("@PlayerBrand", (object)(cabin.PlayerBrand ?? string.Empty)),
+                new SqlParameter("@IsPlayerRadio", (object)cabin.IsPlayerRadio ?? DBNull.Value),
+                new SqlParameter("@IsPlayerTape", (object)cabin.IsPlayerTape ?? DBNull.Value),
+                new SqlParameter("@IsPlayerCD", (object)cabin.IsPlayerCD ?? DBNull.Value),
+                new SqlParameter("@IsPlayerUSB", (object)cabin.IsPlayerUSB ?? DBNull.Value),
+                new SqlParameter("@KeyOptionId", (object)cabin.KeyOptionId ?? DBNull.Value),
+                new SqlParameter("@CabinNote", (object)(cabin.CabinNote ?? string.Empty)),
+                new SqlParameter("@BookInNumber", cabin.BookInNumber ?? string.Empty),
+                new SqlParameter("@IsInvalidMileage", (object)cabin.IsInvalidMileage ?? DBNull.Value),
+                new SqlParameter("@InvalidMileageReason", (object)(cabin.InvalidMileageReason ?? string.Empty))
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_Cabin, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddKeyOption
+        public string AddKeyOption(KeyOption keyOption)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@NumberOfKey", (object)keyOption.NumberOfKey ?? DBNull.Value),
+                new SqlParameter("@NumberOfRemote", (object)keyOption.NumberOfRemote ?? DBNull.Value),
+                new SqlParameter("@NumberOfKeyRemote", (object)keyOption.NumberOfKeyRemote ?? DBNull.Value),
+                new SqlParameter("@NumberOfImmobilizer", (object)keyOption.NumberOfImmobilizer ?? DBNull.Value),
+                new SqlParameter("@NumberOfKeyless", (object)keyOption.NumberOfKeyless ?? DBNull.Value),
+                new SqlParameter("@BookinNumber", keyOption.BookinNumber ?? string.Empty)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_KeyOption, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddEngine
+        public string AddEngine(Engine engine)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@EngineRoomOverAllId", (object)engine.EngineRoomOverAllId ?? DBNull.Value),
+                new SqlParameter("@BatteryBrand", engine.BatteryBrand ?? string.Empty),
+                new SqlParameter("@BatteryIndicatorColor", engine.BatteryIndicatorColor ?? string.Empty),
+                new SqlParameter("@IsEcu", (object)engine.IsEcu ?? DBNull.Value),
+                new SqlParameter("@IsCompressorAir", (object)engine.IsCompressorAir ?? DBNull.Value),
+                new SqlParameter("@DriverSystemId", (object)engine.DriverSystemId ?? DBNull.Value),
+                new SqlParameter("@FuelSystemId", (object)engine.FuelSystemId ?? DBNull.Value),
+                new SqlParameter("@IsFuelGas", (object)engine.IsFuelGas ?? DBNull.Value),
+                new SqlParameter("@GasTypeId", (object)engine.GasTypeId ?? DBNull.Value),
+                new SqlParameter("@InsideAssetNote", engine.InsideAssetNote ?? string.Empty),
+                new SqlParameter("@BookinNumber", engine.BookinNumber ?? string.Empty),
+                //new SqlParameter("@CatalyticOption", (object)engine.CatalyticOption ?? DBNull.Value)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_Engine, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        #region AddCarInspection
+        public string AddCarInspection(CarInspection carInspection)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+                    var param = new List<SqlParameter>
+            {
+                //new SqlParameter("@InspectionId",carInspection.InspectionId),
+                new SqlParameter("@BookInNumber", carInspection.BookInNumber),
+                new SqlParameter("@VehicleId",carInspection.VehicleId),
+                new SqlParameter("@Inspector", carInspection.Inspector),
+                new SqlParameter("@InspectionDate",carInspection.InspectionDate),
+                new SqlParameter("@InspectorName", carInspection.InspectorName),
+                new SqlParameter("@Chassis", carInspection.Chassis),
+                new SqlParameter("@Front", carInspection.Front),
+                new SqlParameter("@Back", carInspection.Back),
+                new SqlParameter("@RightSide", carInspection.RightSide),
+                new SqlParameter("@LeftSide", carInspection.LeftSide),
+                new SqlParameter("@Roof", carInspection.Roof),
+                new SqlParameter("@IsFlood",carInspection.IsFlood),
+                new SqlParameter("@BodySummary", carInspection.BodySummary),
+                new SqlParameter("@IsEngineWorks",carInspection.IsEngineWorks),
+                new SqlParameter("@FuelSystemId",carInspection.FuelSystemId),
+                new SqlParameter("@IsLubricatorLow",carInspection.IsLubricatorLow),
+                new SqlParameter("@EngineSystemId",carInspection.EngineSystemId),
+                new SqlParameter("@GearTypeId",carInspection.GearTypeId),
+                new SqlParameter("@IsUseableGeneral",carInspection.IsUseableGeneral),
+                new SqlParameter("@IsSoundAbnormal",carInspection.IsSoundAbnormal),
+                new SqlParameter("@IsLeakFuel",carInspection.IsLeakFuel),
+                new SqlParameter("@IsStainWater",carInspection.IsStainWater),
+                new SqlParameter("@IsMachineLightShow",carInspection.IsMachineLightShow),
+                new SqlParameter("@IsEngineAbnomal",carInspection.IsEngineAbnomal),
+                new SqlParameter("@IsNeedRepair",carInspection.IsNeedRepair),
+                new SqlParameter("@EngineSummary", carInspection.EngineSummary),
+                new SqlParameter("@DriveShaftConditionId",carInspection.DriveShaftConditionId),
+                new SqlParameter("@DriveShaftConditionNote", carInspection.DriveShaftConditionNote),
+                new SqlParameter("@SuspensionConditionId",carInspection.SuspensionConditionId),
+                new SqlParameter("@SuspensionConditionNote", carInspection.SuspensionConditionNote),
+                new SqlParameter("@SuspensionSummary", carInspection.SuspensionSummary),
+                new SqlParameter("@GearSystemId",carInspection.GearSystemId),
+                new SqlParameter("@GearConditionId",carInspection.GearConditionId),
+                new SqlParameter("@DriveShaftId",carInspection.DriveShaftId),
+                new SqlParameter("@Is4WD",carInspection.Is4WD),
+                new SqlParameter("@GearSystemSummary", carInspection.GearSystemSummary),
+                new SqlParameter("@IsUseableSteerWheel",carInspection.IsUseableSteerWheel),
+                new SqlParameter("@IsPowerSteering",carInspection.IsPowerSteering),
+                new SqlParameter("@SteeringSummary", carInspection.SteeringSummary),
+                new SqlParameter("@IsUseableBrake",carInspection.IsUseableBrake),
+                new SqlParameter("@BrakeSystemSummary", carInspection.BreakSystemSumary),
+                new SqlParameter("@IsAirCool",carInspection.IsAirCool),
+                new SqlParameter("@IsCompressorAir",carInspection.IsCompressorAir),
+                new SqlParameter("@AirSystemSummary", carInspection.AirSystemSummary),
+                new SqlParameter("@IsUseableGuage",carInspection.IsUseableGuage),
+                new SqlParameter("@WarningLightNote", carInspection.WarningLightNote),
+                new SqlParameter("@GaugeSummary", carInspection.GaugeSummary),
+                new SqlParameter("@IsFrontLightWorking",carInspection.IsFrontLightWorking),
+                new SqlParameter("@IsTurnLightWorking",carInspection.IsTurnLightWorking),
+                new SqlParameter("@IsBackLightWorking",carInspection.IsBackLightWorking),
+                new SqlParameter("@IsBrakeLightWorking",carInspection.IsBrakeLightWoring),
+                new SqlParameter("@IsBetteryWorking",carInspection.IsBetteryWorking),
+                new SqlParameter("@IsHooterWorking",carInspection.IsHooterWorking),
+                new SqlParameter("@IsRoundGaugeWorking",carInspection.IsRoundGaugeWorking),
+                new SqlParameter("@IsNavigator",carInspection.IsNavigator),
+                new SqlParameter("@IsNavigatorBuiltIn",carInspection.IsNavigatorBuiltIn),
+                new SqlParameter("@IsNavigatorCD",carInspection.IsNavigatorCD),
+                new SqlParameter("@IsNavigatorSdcard",carInspection.IsNavigatorSdcard),
+                new SqlParameter("@IsNavigatorNoCD",carInspection.IsNavigatorNoCD),
+                new SqlParameter("@IsNavigatorNoSdcard",carInspection.IsNavigatorNoSdcard),
+                new SqlParameter("@ElectronicNote", carInspection.ElectronicNote),
+                new SqlParameter("@ElectronicSummary", carInspection.ElectronicSummary),
+                new SqlParameter("@LatestUpdatedDate",carInspection.LatestUpdatedDate),
+                new SqlParameter("@Registration", carInspection.Regisration),
+                new SqlParameter("@RegistrationProvince", carInspection.RegistrationProvince)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_CarInspection, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
+        //#region AddCarInspectionImage
+        //public string AddCarInspectionImage(CarInspectionImage carInspectionImage)
+        //{
+        //    string errorMessage = "";
+
+        //    try
+        //    {
+        //        using (var context = new Inspection_dataFeedContext())
+        //        {
+        //            context.Database.CommandTimeout = 300000;
+        //            if (context.Database.Connection.State == ConnectionState.Closed)
+        //                context.Database.Connection.Open();
+        //            var param = new List<SqlParameter>
+        //    {
+        //        //new SqlParameter("@InspectionId",carInspection.InspectionId),
+        //        new SqlParameter("@BookInNumber", carInspection.BookInNumber),
+        //        new SqlParameter("@VehicleId",carInspection.VehicleId),
+        //        new SqlParameter("@Inspector", carInspection.Inspector),
+        //        new SqlParameter("@InspectionDate",carInspection.InspectionDate),
+        //        new SqlParameter("@InspectorName", carInspection.InspectorName),
+        //        new SqlParameter("@Chassis", carInspection.Chassis),
+        //        new SqlParameter("@Front", carInspection.Front),
+        //        new SqlParameter("@Back", carInspection.Back),
+        //        new SqlParameter("@RightSide", carInspection.RightSide),
+        //        new SqlParameter("@LeftSide", carInspection.LeftSide),
+        //        new SqlParameter("@Roof", carInspection.Roof),
+        //        new SqlParameter("@IsFlood",carInspection.IsFlood),
+        //        new SqlParameter("@BodySummary", carInspection.BodySummary),
+        //        new SqlParameter("@IsEngineWorks",carInspection.IsEngineWorks),
+        //        new SqlParameter("@FuelSystemId",carInspection.FuelSystemId),
+        //        new SqlParameter("@IsLubricatorLow",carInspection.IsLubricatorLow),
+        //        new SqlParameter("@EngineSystemId",carInspection.EngineSystemId),
+        //        new SqlParameter("@GearTypeId",carInspection.GearTypeId),
+        //        new SqlParameter("@IsUseableGeneral",carInspection.IsUseableGeneral),
+        //        new SqlParameter("@IsSoundAbnormal",carInspection.IsSoundAbnormal),
+        //        new SqlParameter("@IsLeakFuel",carInspection.IsLeakFuel),
+        //        new SqlParameter("@IsStainWater",carInspection.IsStainWater),
+        //        new SqlParameter("@IsMachineLightShow",carInspection.IsMachineLightShow),
+        //        new SqlParameter("@IsEngineAbnomal",carInspection.IsEngineAbnomal),
+        //        new SqlParameter("@IsNeedRepair",carInspection.IsNeedRepair),
+        //        new SqlParameter("@EngineSummary", carInspection.EngineSummary),
+        //        new SqlParameter("@DriveShaftConditionId",carInspection.DriveShaftConditionId),
+        //        new SqlParameter("@DriveShaftConditionNote", carInspection.DriveShaftConditionNote),
+        //        new SqlParameter("@SuspensionConditionId",carInspection.SuspensionConditionId),
+        //        new SqlParameter("@SuspensionConditionNote", carInspection.SuspensionConditionNote),
+        //        new SqlParameter("@SuspensionSummary", carInspection.SuspensionSummary),
+        //        new SqlParameter("@GearSystemId",carInspection.GearSystemId),
+        //        new SqlParameter("@GearConditionId",carInspection.GearConditionId),
+        //        new SqlParameter("@DriveShaftId",carInspection.DriveShaftId),
+        //        new SqlParameter("@Is4WD",carInspection.Is4WD),
+        //        new SqlParameter("@GearSystemSummary", carInspection.GearSystemSummary),
+        //        new SqlParameter("@IsUseableSteerWheel",carInspection.IsUseableSteerWheel),
+        //        new SqlParameter("@IsPowerSteering",carInspection.IsPowerSteering),
+        //        new SqlParameter("@SteeringSummary", carInspection.SteeringSummary),
+        //        new SqlParameter("@IsUseableBrake",carInspection.IsUseableBrake),
+        //        new SqlParameter("@BrakeSystemSummary", carInspection.BreakSystemSumary),
+        //        new SqlParameter("@IsAirCool",carInspection.IsAirCool),
+        //        new SqlParameter("@IsCompressorAir",carInspection.IsCompressorAir),
+        //        new SqlParameter("@AirSystemSummary", carInspection.AirSystemSummary),
+        //        new SqlParameter("@IsUseableGuage",carInspection.IsUseableGuage),
+        //        new SqlParameter("@WarningLightNote", carInspection.WarningLightNote),
+        //        new SqlParameter("@GaugeSummary", carInspection.GaugeSummary),
+        //        new SqlParameter("@IsFrontLightWorking",carInspection.IsFrontLightWorking),
+        //        new SqlParameter("@IsTurnLightWorking",carInspection.IsTurnLightWorking),
+        //        new SqlParameter("@IsBackLightWorking",carInspection.IsBackLightWorking),
+        //        new SqlParameter("@IsBrakeLightWorking",carInspection.IsBrakeLightWoring),
+        //        new SqlParameter("@IsBetteryWorking",carInspection.IsBetteryWorking),
+        //        new SqlParameter("@IsHooterWorking",carInspection.IsHooterWorking),
+        //        new SqlParameter("@IsRoundGaugeWorking",carInspection.IsRoundGaugeWorking),
+        //        new SqlParameter("@IsNavigator",carInspection.IsNavigator),
+        //        new SqlParameter("@IsNavigatorBuiltIn",carInspection.IsNavigatorBuiltIn),
+        //        new SqlParameter("@IsNavigatorCD",carInspection.IsNavigatorCD),
+        //        new SqlParameter("@IsNavigatorSdcard",carInspection.IsNavigatorSdcard),
+        //        new SqlParameter("@IsNavigatorNoCD",carInspection.IsNavigatorNoCD),
+        //        new SqlParameter("@IsNavigatorNoSdcard",carInspection.IsNavigatorNoSdcard),
+        //        new SqlParameter("@ElectronicNote", carInspection.ElectronicNote),
+        //        new SqlParameter("@ElectronicSummary", carInspection.ElectronicSummary),
+        //        new SqlParameter("@LatestUpdatedDate",carInspection.LatestUpdatedDate),
+        //        new SqlParameter("@Registration", carInspection.Regisration),
+        //        new SqlParameter("@RegistrationProvince", carInspection.RegistrationProvince)
+        //    };
+
+        //            int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_CarInspection, param.ToArray()).SingleOrDefault();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("===================================================================");
+        //        Console.WriteLine(ex.Message);
+        //        errorMessage = ex.Message;
+        //    }
+
+        //    return errorMessage;
+        //}
+        //#endregion
+
+        #region GetCarInspectionByBookIn
+        public DataTable GetCarInspectionByBookIn(string bookinNo)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_CarInspectionByBookIn;
+
+                        command.Parameters.Add(new SqlParameter("@bookinNo", bookinNo));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region UpdateVehicleDocument
+        public void UpdateVehicleDocument(string vehicleId, int documentTypeId)
+        {
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "dbo.UpdateVehicleDocumentDeleted";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        var paramVehicleId = command.CreateParameter();
+                        paramVehicleId.ParameterName = "@vehicleId";
+                        paramVehicleId.DbType = DbType.String;
+                        paramVehicleId.Value = vehicleId;
+                        command.Parameters.Add(paramVehicleId);
+
+                        var paramDocumentTypeId = command.CreateParameter();
+                        paramDocumentTypeId.ParameterName = "@documentTypeID";
+                        paramDocumentTypeId.DbType = DbType.Int32;
+                        paramDocumentTypeId.Value = documentTypeId;
+                        command.Parameters.Add(paramDocumentTypeId);
+
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine($"Error in UpdateVehicleDocument: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region CreateVehicleDocument
+        public void CreateVehicleDocument(string vehicleId, string documentDescBU, string documentDescLO, int documentTypeId, string documentPath, byte[] carImage)
+        {
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "dbo.CreateVehicleDocument";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // VehicleId
+                        var paramVehicleId = command.CreateParameter();
+                        paramVehicleId.ParameterName = "@vehicleId";
+                        paramVehicleId.DbType = DbType.String;
+                        paramVehicleId.Value = vehicleId;
+                        command.Parameters.Add(paramVehicleId);
+
+                        // DocumentDescription_BU
+                        var paramDescBU = command.CreateParameter();
+                        paramDescBU.ParameterName = "@documentDescription_BU";
+                        paramDescBU.DbType = DbType.String;
+                        paramDescBU.Value = documentDescBU;
+                        command.Parameters.Add(paramDescBU);
+
+                        // DocumentDescription_LO
+                        var paramDescLO = command.CreateParameter();
+                        paramDescLO.ParameterName = "@documentDescription_LO";
+                        paramDescLO.DbType = DbType.String;
+                        paramDescLO.Value = documentDescLO;
+                        command.Parameters.Add(paramDescLO);
+
+                        // DocumentTypeID
+                        var paramTypeId = command.CreateParameter();
+                        paramTypeId.ParameterName = "@documentTypeID";
+                        paramTypeId.DbType = DbType.Int32;
+                        paramTypeId.Value = documentTypeId;
+                        command.Parameters.Add(paramTypeId);
+
+                        // DocumentPath
+                        var paramPath = command.CreateParameter();
+                        paramPath.ParameterName = "@documentPath";
+                        paramPath.DbType = DbType.String;
+                        paramPath.Value = documentPath;
+                        command.Parameters.Add(paramPath);
+
+                        // Image document as varbinary
+                        var paramImage = command.CreateParameter();
+                        paramImage.ParameterName = "@document";
+                        paramImage.DbType = DbType.Binary;
+                        paramImage.Value = carImage;
+                        command.Parameters.Add(paramImage);
+
+                        // Execute
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine($"Error in CreateVehicleDocument: {ex.Message}");
+            }
+        }
+        #endregion
+
+
+
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
         {
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -2909,6 +3805,273 @@ namespace INS_API_DataFeed
         public static string get_CabType = @"SELECT RTRIM(CabTypeID) AS CabTypeID,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.CabType";
 
         public static string get_LevelCab = @"SELECT RTRIM(levelCabID) AS levelCabID,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.levelCabs";
+
+        public static string Add_BookIn = @"INSERT INTO BookIn (
+                                        BookInNumber, BookInDate, SenderName, ReceiverName, ContractNumber,
+                                        MobileNumber, Status, SellerCode, Inspector, VehicleId,
+                                        SenderSignature, ReceiverSignature, LatestUpdatedDate, BookinType,
+                                        CreateBy, CreateDate, ContractTypeCode, StickVin
+                                    )
+                                    VALUES (
+                                        @BookInNumber, @BookInDate, @SenderName, @ReceiverName, @ContractNumber,
+                                        @MobileNumber, @Status, @SellerCode, @Inspector, @VehicleId,
+                                        @SenderSignature, @ReceiverSignature, @LatestUpdatedDate, @BookinType,
+                                        @CreateBy, @CreateDate, @ContractTypeCode, @StickVin
+                                    );
+                                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_Vehicle = @"INSERT INTO Vehicle (
+                                            BookinNumber, Seller, SellingCategory, LogisticsStatus, InspectionDate,
+                                            SalesStatus, Plant, StorageLocation, ReceiverLocation, BookedDate,
+                                            Make, Make_BU, Make_LO, ModelCode, ModelCodeId,
+                                            Model_BU, Model_LO, Body, BodyDesc_BU, BodyDesc_LO,
+                                            Variants, BuildYear, VIN, ChasisNumber, Colour,
+                                            ColourDesc, FuelDelivery, FuelType, Gearbox, Gears,
+                                            Drive, EngineNumber, EngineCapacity, EngineCapacityUnit, Regisration,
+                                            RegistrationYear, RegistrationProvince, RegistrationPlate, RegistrationNote, IsRegistrationMismatch,
+                                            RedBookCondition, IsGasTank, GasType, GasTankNumber, GasNote,
+                                            IsInValidEngineNumber, ReasonInValidEngineNumber, IsInValidGasNumber, ReasonInValidGasNumber, IsInValidVinNumber,
+                                            ReasonInValidVinNumber, IsNohaveBuildYear, IsNohaveRegis, briefCarConditionId, DetallBriefCarCondition,
+                                            MotorNumber, IsInValidMotorNumber, ReasonInValidMotorNumber,
+                                            IsInVaidEngine1, IsInVaidEngine2, IsInVaidEngine3,
+                                            IsInVaidVin1, IsInVaidVin2, IsInVaidVin3,
+                                            NoPlateType, CatalyticOption, CabTypeID, LevelCabID
+                                        )
+                                        VALUES (
+                                            @BookinNumber, @Seller, @SellingCategory, @LogisticsStatus, @InspectionDate,
+                                            @SalesStatus, @Plant, @StorageLocation, @ReceiverLocation, @BookedDate,
+                                            @Make, @Make_BU, @Make_LO, @ModelCode, @ModelCodeId,
+                                            @Model_BU, @Model_LO, @Body, @BodyDesc_BU, @BodyDesc_LO,
+                                            @Variants, @BuildYear, @VIN, @ChasisNumber, @Colour,
+                                            @ColourDesc, @FuelDelivery, @FuelType, @Gearbox, @Gears,
+                                            @Drive, @EngineNumber, @EngineCapacity, @EngineCapacityUnit, @Regisration,
+                                            @RegistrationYear, @RegistrationProvince, @RegistrationPlate, @RegistrationNote, @IsRegistrationMismatch,
+                                            @RedBookCondition, @IsGasTank, @GasType, @GasTankNumber, @GasNote,
+                                            @IsInValidEngineNumber, @ReasonInValidEngineNumber, @IsInValidGasNumber, @ReasonInValidGasNumber, @IsInValidVinNumber,
+                                            @ReasonInValidVinNumber, @IsNohaveBuildYear, @IsNohaveRegis, @briefCarConditionId, @DetallBriefCarCondition,
+                                            @MotorNumber, @IsInValidMotorNumber, @ReasonInValidMotorNumber,
+                                            @IsInVaidEngine1, @IsInVaidEngine2, @IsInVaidEngine3,
+                                            @IsInVaidVin1, @IsInVaidVin2, @IsInVaidVin3,
+                                            @NoPlateType, @CatalyticOption, @CabTypeID, @LevelCabID
+                                        );
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_External = @"INSERT INTO [dbo].[External] (
+                                            GradeOverallId, ColorOverallId, IsSpoiler, MagWheel, NormalWheel, 
+                                            IsTyre, TyreQuality, DamageDesc, BookinNumber, TyreBrand, RoofTypeId
+                                        )
+                                        VALUES (
+                                            @GradeOverallId, @ColorOverallId, @IsSpoiler, @MagWheel, @NormalWheel, 
+                                            @IsTyre, @TyreQuality, @DamageDesc, @BookinNumber, @TyreBrand, @RoofTypeId
+                                        ); 
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_Spare = @"INSERT INTO Spare (
+                                            SpareOverAllId, SpareNote, IsSpareType, IsHandTool, IsMaxliner, 
+                                            IsRoofRack, IsJackCar, IsCableChargeEV, AccessoriesNote, BookinNumber
+                                        )
+                                        VALUES (
+                                            @SpareOverAllId, @SpareNote, @IsSpareType, @IsHandTool, @IsMaxliner, 
+                                            @IsRoofRack, @IsJackCar, @IsCableChargeEV, @AccessoriesNote, @BookinNumber
+                                        ); 
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_Cabin = @"INSERT INTO Cabin (
+                                            CabinOverAllId, Mileage, MileageTypeId, FuelVolumn, GearSystemId,
+                                            IsAirback, IsHeadGear, IsPowerAmp, IsLockGear, IsPreAmp,
+                                            IsBookService, IsSpeaker, IsManual, IsCigaretteLiter, IsTaxPlate,
+                                            IsPlateExpireDate, IsNavigator, IsNavigatorBuiltin, IsNavigatorCD, IsNavigatorSDCard,
+                                            IsNavigatorNoCD, IsNavigatorNoSDCard, PlayerBrand, IsPlayerRadio, IsPlayerTape,
+                                            IsPlayerCD, IsPlayerUSB, KeyOptionId, CabinNote, BookInNumber,
+                                            IsInvalidMileage, InvalidMileageReason
+                                        )
+                                        VALUES (
+                                            @CabinOverAllId, @Mileage, @MileageTypeId, @FuelVolumn, @GearSystemId,
+                                            @IsAirback, @IsHeadGear, @IsPowerAmp, @IsLockGear, @IsPreAmp,
+                                            @IsBookService, @IsSpeaker, @IsManual, @IsCigaretteLiter, @IsTaxPlate,
+                                            @IsPlateExpireDate, @IsNavigator, @IsNavigatorBuiltin, @IsNavigatorCD, @IsNavigatorSDCard,
+                                            @IsNavigatorNoCD, @IsNavigatorNoSDCard, @PlayerBrand, @IsPlayerRadio, @IsPlayerTape,
+                                            @IsPlayerCD, @IsPlayerUSB, @KeyOptionId, @CabinNote, @BookInNumber,
+                                            @IsInvalidMileage, @InvalidMileageReason
+                                        );
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_KeyOption = @"INSERT INTO KeyOption (
+                                            NumberOfKey, NumberOfRemote, NumberOfKeyRemote, NumberOfImmobilizer, 
+                                            NumberOfKeyless, BookinNumber
+                                        )
+                                        VALUES (
+                                            @NumberOfKey, @NumberOfRemote, @NumberOfKeyRemote, @NumberOfImmobilizer, 
+                                            @NumberOfKeyless, @BookinNumber
+                                        );
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_Engine = @"INSERT INTO Engine (
+                                            EngineRoomOverAllId,
+                                            BatteryBrand,
+                                            BatteryIndicatorColor,
+                                            IsEcu,
+                                            IsCompressorAir,
+                                            DriverSystemId,
+                                            FuelSystemId,
+                                            IsFuelGas,
+                                            GasTypeId,
+                                            InsideAssetNote,
+                                            BookinNumber
+                                        )
+                                        VALUES (
+                                            @EngineRoomOverAllId,
+                                            @BatteryBrand,
+                                            @BatteryIndicatorColor,
+                                            @IsEcu,
+                                            @IsCompressorAir,
+                                            @DriverSystemId,
+                                            @FuelSystemId,
+                                            @IsFuelGas,
+                                            @GasTypeId,
+                                            @InsideAssetNote,
+                                            @BookinNumber
+                                        );
+                                        SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string Add_CarInspection = @"INSERT INTO CarInspection (
+                                        BookInNumber,
+                                        VehicleId,
+                                        Inspector,
+                                        InspectionDate,
+                                        InspectorName,
+                                        Chassis,
+                                        Front,
+                                        Back,
+                                        RightSide,
+                                        LeftSide,
+                                        Roof,
+                                        IsFlood,
+                                        BodySummary,
+                                        IsEngineWorks,
+                                        FuelSystemId,
+                                        IsLubricatorLow,
+                                        EngineSystemId,
+                                        GearTypeId,
+                                        IsUseableGeneral,
+                                        IsSoundAbnormal,
+                                        IsLeakFuel,
+                                        IsStainWater,
+                                        IsMachineLightShow,
+                                        IsEngineAbnomal,
+                                        IsNeedRepair,
+                                        EngineSummary,
+                                        DriveShaftConditionId,
+                                        DriveShaftConditionNote,
+                                        SuspensionConditionId,
+                                        SuspensionConditionNote,
+                                        SuspensionSummary,
+                                        GearSystemId,
+                                        GearConditionId,
+                                        DriveShaftId,
+                                        Is4WD,
+                                        GearSystemSummary,
+                                        IsUseableSteerWheel,
+                                        IsPowerSteering,
+                                        SteeringSummary,
+                                        IsUseableBrake,
+                                        BreakSystemSumary,
+                                        IsAirCool,
+                                        IsCompressorAir,
+                                        AirSystemSummary,
+                                        IsUseableGuage,
+                                        WarningLightNote,
+                                        GaugeSummary,
+                                        IsFrontLightWorking,
+                                        IsTurnLightWorking,
+                                        IsBackLightWorking,
+                                        IsBrakeLightWoring,
+                                        IsBetteryWorking,
+                                        IsHooterWorking,
+                                        IsRoundGaugeWorking,
+                                        IsNavigator,
+                                        IsNavigatorBuiltIn,
+                                        IsNavigatorCD,
+                                        IsNavigatorSdcard,
+                                        IsNavigatorNoCD,
+                                        IsNavigatorNoSdcard,
+                                        ElectronicNote,
+                                        ElectronicSummary,
+                                        LatestUpdatedDate,
+                                        Regisration,
+                                        RegistrationProvince
+                                    )
+                                    VALUES (
+                                        @BookInNumber,
+                                        @VehicleId,
+                                        @Inspector,
+                                        @InspectionDate,
+                                        @InspectorName,
+                                        @Chassis,
+                                        @Front,
+                                        @Back,
+                                        @RightSide,
+                                        @LeftSide,
+                                        @Roof,
+                                        @IsFlood,
+                                        @BodySummary,
+                                        @IsEngineWorks,
+                                        @FuelSystemId,
+                                        @IsLubricatorLow,
+                                        @EngineSystemId,
+                                        @GearTypeId,
+                                        @IsUseableGeneral,
+                                        @IsSoundAbnormal,
+                                        @IsLeakFuel,
+                                        @IsStainWater,
+                                        @IsMachineLightShow,
+                                        @IsEngineAbnomal,
+                                        @IsNeedRepair,
+                                        @EngineSummary,
+                                        @DriveShaftConditionId,
+                                        @DriveShaftConditionNote,
+                                        @SuspensionConditionId,
+                                        @SuspensionConditionNote,
+                                        @SuspensionSummary,
+                                        @GearSystemId,
+                                        @GearConditionId,
+                                        @DriveShaftId,
+                                        @Is4WD,
+                                        @GearSystemSummary,
+                                        @IsUseableSteerWheel,
+                                        @IsPowerSteering,
+                                        @SteeringSummary,
+                                        @IsUseableBrake,
+                                        @BrakeSystemSummary,
+                                        @IsAirCool,
+                                        @IsCompressorAir,
+                                        @AirSystemSummary,
+                                        @IsUseableGuage,
+                                        @WarningLightNote,
+                                        @GaugeSummary,
+                                        @IsFrontLightWorking,
+                                        @IsTurnLightWorking,
+                                        @IsBackLightWorking,
+                                        @IsBrakeLightWorking,
+                                        @IsBetteryWorking,
+                                        @IsHooterWorking,
+                                        @IsRoundGaugeWorking,
+                                        @IsNavigator,
+                                        @IsNavigatorBuiltIn,
+                                        @IsNavigatorCD,
+                                        @IsNavigatorSdcard,
+                                        @IsNavigatorNoCD,
+                                        @IsNavigatorNoSdcard,
+                                        @ElectronicNote,
+                                        @ElectronicSummary,
+                                        @LatestUpdatedDate,
+                                        @Registration,
+                                        @RegistrationProvince
+                                    );
+                                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+        public static string get_CarInspectionByBookIn = @"SELECT * FROM CarInspection WHERE BookInNumber = @bookinNo";
+
     }
     #endregion
 }

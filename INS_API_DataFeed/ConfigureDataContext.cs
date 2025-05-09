@@ -63,9 +63,9 @@ public class INS_WEB_dataFeedContext : DbContext
 
 }
 
-public class RAKA_dataFeedContext : DbContext
+public class Inspection_dataFeedContext : DbContext
 {
-    public RAKA_dataFeedContext() : base(GetConnectionString("RAKA_DATA"))
+    public Inspection_dataFeedContext() : base(GetConnectionString("Inspection_DATA"))
     {
     }
 
@@ -83,9 +83,9 @@ public class RAKA_dataFeedContext : DbContext
 
 }
 
-public class RAKA_RAW_dataFeedContext : DbContext
+public class IMAT_dataFeedContext : DbContext
 {
-    public RAKA_RAW_dataFeedContext() : base(GetConnectionString("RAKA_RAW_DATA"))
+    public IMAT_dataFeedContext() : base(GetConnectionString("IMAT_DATA"))
     {
     }
 
@@ -102,7 +102,6 @@ public class RAKA_RAW_dataFeedContext : DbContext
     }
 
 }
-
 
 public class MATWEB_dataFeedContext : DbContext
 {
