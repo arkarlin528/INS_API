@@ -3697,6 +3697,40 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetVehicleColoursSet
+        public DataTable GetVehicleColoursSet()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_VehicleColoursSet;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
         {
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -4223,6 +4257,8 @@ namespace INS_API_DataFeed
                                                         (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType,
                                                         (CASE WHEN SCHEMANAME LIKE  '%Motor%' THEN 'Motorbike' WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' ELSE '' END) SchemaVehicle
                                                         FROM [dbo].[INNO_SYNC] WHERE RefKey = @RefKey ORDER BY ID DESC";
+
+        public static string get_VehicleColoursSet = @"SELECT Cid,Colour_BU,Colour_LO FROM ZILO.IMAP.dbo.VehicleColoursSet ";
 
     }
     #endregion

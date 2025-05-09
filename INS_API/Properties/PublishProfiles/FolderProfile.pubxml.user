@@ -5,7 +5,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>C:\Users\arkarl\Documents\Motto\publish</_PublishTargetUrl>
-    <History>True|2025-05-09T10:49:34.2061113Z||;True|2025-04-10T19:02:47.1007349+07:00||;True|2024-12-02T12:56:37.1220592+07:00||;True|2024-07-29T13:25:26.7492365+07:00||;True|2024-06-25T12:36:30.0489918+07:00||;True|2024-06-25T12:04:14.4164093+07:00||;True|2024-04-25T17:06:24.5492409+07:00||;True|2024-01-23T13:31:08.6908447+07:00||;</History>
+    <History>True|2025-05-09T12:06:48.1765032Z||;True|2025-05-09T17:49:34.2061113+07:00||;True|2025-04-10T19:02:47.1007349+07:00||;True|2024-12-02T12:56:37.1220592+07:00||;True|2024-07-29T13:25:26.7492365+07:00||;True|2024-06-25T12:36:30.0489918+07:00||;True|2024-06-25T12:04:14.4164093+07:00||;True|2024-04-25T17:06:24.5492409+07:00||;True|2024-01-23T13:31:08.6908447+07:00||;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>
@@ -37,19 +37,19 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
       <publishTime>11/21/2022 19:51:06</publishTime>
     </File>
     <File Include="bin/INS_API.dll">
-      <publishTime>05/09/2025 17:49:31</publishTime>
+      <publishTime>05/09/2025 19:06:45</publishTime>
     </File>
     <File Include="bin/INS_API.pdb">
-      <publishTime>05/09/2025 17:49:31</publishTime>
+      <publishTime>05/09/2025 19:06:45</publishTime>
     </File>
     <File Include="bin/INS_API_DataFeed.dll">
-      <publishTime>05/09/2025 17:49:31</publishTime>
+      <publishTime>05/09/2025 19:06:45</publishTime>
     </File>
     <File Include="bin/INS_API_DataFeed.dll.config">
       <publishTime>10/04/2024 09:24:56</publishTime>
     </File>
     <File Include="bin/INS_API_DataFeed.pdb">
-      <publishTime>05/09/2025 17:49:31</publishTime>
+      <publishTime>05/09/2025 19:06:45</publishTime>
     </File>
     <File Include="bin/Microsoft.AspNetCore.Hosting.Abstractions.dll">
       <publishTime>06/07/2018 07:26:58</publishTime>

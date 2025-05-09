@@ -2065,6 +2065,33 @@ namespace INS_API.Controllers
         }
         #endregion
 
+        #region GetVehicleColoursSet
+        [HttpGet]
+        public ActionResult GetVehicleColoursSet()
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+            try
+            {
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                DataTable dt = objDataFeed.GetVehicleColoursSet();
+
+                string jsString = JsonConvert.SerializeObject(dt);
+                return Content(jsString, "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
         #region BookInCreate
         [HttpPost]
         public ActionResult BookInCreate()
