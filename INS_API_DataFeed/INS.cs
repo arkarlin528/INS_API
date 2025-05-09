@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 using System.Xml.Linq;
 using INS_API_DataFeed.DAO;
 
@@ -1937,6 +1938,40 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetVehicleColoursSet
+        public DataTable GetVehicleColoursSet()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_VehicleColoursSet;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region SaveRiceHarvester
         public string SaveRiceHarvester(RiceHarvesterData data)
         {
@@ -2666,13 +2701,16 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region UnixTimeStampToDateTime
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
         {
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             dateTime = dateTime.AddSeconds(unixTimeStamp).ToLocalTime();
             return dateTime;
         }
+        #endregion
 
+        #region UploadImage
         private string UploadImage(string Photo, string newFolder, string imageName, string inspecType)
         {
             try
@@ -2710,6 +2748,145 @@ namespace INS_API_DataFeed
                 return "";
             }
         }
+        #endregion
+
+        #region GetBookInSheet
+        public DataTable GetBookInSheet(string RefNumber)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_BookInSheet;
+                        command.Parameters.Add(new SqlParameter("@RefKey", RefNumber));
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetInspectionSheet
+        public DataTable GetInspectionSheet(string RefNumber)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_InspectionSheet;
+                        command.Parameters.Add(new SqlParameter("@RefKey", RefNumber));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GenerateDataSheet
+        public DataTable GenerateDataSheet(string RefNumber)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_GenerateDataSheet;
+                        command.Parameters.Add(new SqlParameter("@RefKey", RefNumber));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetInspectionList
+        public DataTable GetInspectionDataList()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_InspectionDataList;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
     }
 
     #region INS_Query
@@ -2909,6 +3086,25 @@ namespace INS_API_DataFeed
         public static string get_CabType = @"SELECT RTRIM(CabTypeID) AS CabTypeID,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.CabType";
 
         public static string get_LevelCab = @"SELECT RTRIM(levelCabID) AS levelCabID,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.levelCabs";
+
+        public static string get_VehicleColoursSet = @"SELECT Cid,Colour_BU,Colour_LO FROM ZILO.IMAP.dbo.VehicleColoursSet ";
+
+        public static string get_BookInSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
+                                                VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                FROM [dbo].[INNO_SYNC] WHERE SchemaName LIKE '%bookin%' AND RefKey = @RefKey ORDER BY ID DESC";
+
+        public static string get_InspectionSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
+                                                VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                FROM [dbo].[INNO_SYNC] WHERE SchemaName LIKE '%inspection%' AND RefKey = @RefKey ORDER BY ID DESC";
+
+        public static string get_InspectionDataList = "SELECT ID,RefKey,TxnDate,Schemaname,Sendername,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate, " +
+                                                    "(CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType " +
+                                                    "FROM InspectionWeb.dbo.INNO_SYNC";
+        public static string get_GenerateDataSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
+                                                        VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
+                                                        (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType,
+                                                        (CASE WHEN SCHEMANAME LIKE  '%Motor%' THEN 'Motorbike' WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' ELSE '' END) SchemaVehicle
+                                                        FROM [dbo].[INNO_SYNC] WHERE RefKey = @RefKey ORDER BY ID DESC";
     }
     #endregion
 }

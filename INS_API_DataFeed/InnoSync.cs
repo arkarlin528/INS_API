@@ -14,6 +14,7 @@ namespace INS_API_DataFeed
     public class InnoSync
     {
         public int ID { get; set; }
+        public string RefKey { get; set; }
         public DateTime TxnDate { get; set; }
         public string SchemaName { get; set; }
         public string SchemaInfo { get; set; }
@@ -32,13 +33,14 @@ namespace INS_API_DataFeed
         public DateTime CreatedDate { get; set; }
 
         public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] " +
-                                               "VALUES (@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
-                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate)";
+                                               "VALUES (@RefKey,@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
+                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate);SELECT SCOPE_IDENTITY();";
         public string strSyncError = "";
 
         public InnoSync()
         {
             this.ID = 0;
+            this.RefKey = "";
             this.TxnDate = new DateTime();
             this.SchemaName = "";
             this.SchemaInfo = "";
@@ -86,6 +88,7 @@ namespace INS_API_DataFeed
                 #endregion Parameter
                 using (SqlCommand command = new SqlCommand(Query_CreateInspection, (SqlConnection)context.Database.Connection))
                 {
+                    command.Parameters.AddWithValue("@RefKey", this.RefKey);
                     command.Parameters.AddWithValue("@TxnDate", this.TxnDate);
                     command.Parameters.AddWithValue("@SchemaName", this.SchemaName);
                     command.Parameters.AddWithValue("@SchemaInfo", this.SchemaInfo);
@@ -102,7 +105,9 @@ namespace INS_API_DataFeed
                     command.Parameters.AddWithValue("@Reg", this.RegistrationNumber);
                     command.Parameters.AddWithValue("@CreatedBy", this.CreatedBy);
                     command.Parameters.AddWithValue("@CreatedDate", DateTime.Today);
-                    command.ExecuteNonQuery(); // Or appropriate execution method
+                    object result = command.ExecuteScalar();
+
+                    this.ID = Convert.ToInt32(result);
                 }
                 if (context.Database.Connection.State == ConnectionState.Open)
                 {
