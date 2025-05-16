@@ -35,6 +35,8 @@ namespace INS_API_DataFeed
         public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] " +
                                                "VALUES (@RefKey,@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
                                                 "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate);SELECT SCOPE_IDENTITY();";
+
+        public string Query_UpdateVehicleId = @"UPDATE [dbo].[INNO_SYNC] SET VehicleId = @VehicleId WHERE ID = @ID;";
         public string strSyncError = "";
 
         public InnoSync()
@@ -76,7 +78,7 @@ namespace INS_API_DataFeed
 
                 this.SenderName = (this.SenderName == null ? "" : this.SenderName);
                 this.ReceiverName = (this.ReceiverName == null ? "" : this.ReceiverName);
-                this.MobileNumber = (this.SenderName == null ? "" : this.MobileNumber);
+                this.MobileNumber = (this.MobileNumber == null ? "" : this.MobileNumber);
                 this.SellerCode = (this.SellerCode == null ? "" : this.SellerCode);
                 this.Inspector = (this.Inspector == null ? "" : this.Inspector);
                 this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
@@ -120,6 +122,41 @@ namespace INS_API_DataFeed
                 strSyncError = ex.ToString();
             }
             return blRtn;
+        }
+        #endregion
+
+        #region UpdateVehicleID
+        public void UpdateVehicleID()
+        {
+            try
+            {
+                var context = new INS_WEB_dataFeedContext();
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                #region Parameter
+
+                this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
+
+                #endregion Parameter
+                using (SqlCommand command = new SqlCommand(Query_UpdateVehicleId, (SqlConnection)context.Database.Connection))
+                {
+                    command.Parameters.AddWithValue("@VehicleId", this.VehicleId);
+                    command.Parameters.AddWithValue("@ID", this.ID);
+                    object result = command.ExecuteScalar();
+                }
+                if (context.Database.Connection.State == ConnectionState.Open)
+                {
+                    context.Database.Connection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                strSyncError = ex.ToString();
+            }
         }
         #endregion
     }

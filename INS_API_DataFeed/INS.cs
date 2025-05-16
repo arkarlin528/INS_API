@@ -3731,6 +3731,83 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetINNOSyncByID
+        public DataTable GetINNOSyncByID(int id)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_INNOSyncByID;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetBookInNoByVehicleID
+        public string GetBookInNoByVehicleID(string id)
+        {
+            string bookInNo = "";
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_BookInNoByVehicleID;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                    if (result.Rows.Count > 0)
+                    {
+                        bookInNo = result.Rows[0]["BookInNumber"].ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return bookInNo;
+        }
+        #endregion
+
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
         {
             DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -4259,6 +4336,12 @@ namespace INS_API_DataFeed
                                                         FROM [dbo].[INNO_SYNC] WHERE RefKey = @RefKey ORDER BY ID DESC";
 
         public static string get_VehicleColoursSet = @"SELECT Cid,Colour_BU,Colour_LO FROM ZILO.IMAP.dbo.VehicleColoursSet ";
+
+        public static string get_INNOSyncByID = @"SELECT ID,RefKey,TxnDate,Schemaname,SchemaInfo,InspectionData,Sendername,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate, " +
+                                                    "(CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType " +
+                                                    "FROM InspectionWeb.dbo.INNO_SYNC where ID=@id";
+
+        public static string get_BookInNoByVehicleID = $@"select BookInNumber from BookIn where VehicleId=@id";
 
     }
     #endregion
