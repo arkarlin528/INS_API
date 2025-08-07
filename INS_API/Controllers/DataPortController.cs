@@ -89,7 +89,7 @@ namespace INS_API.Controllers
                 }
 
                 //Inspector ID
-                if (doc.RootElement.GetProperty("data").TryGetProperty("inspector_user_id", out JsonElement inspectorID))
+                if (doc.RootElement.TryGetProperty("inspector_user_id", out JsonElement inspectorID))
                 {
                     // Check if the property is null or has a value
                     if (inspectorID.ValueKind == JsonValueKind.Null)
@@ -202,7 +202,7 @@ namespace INS_API.Controllers
                             innoSync.VehicleId = vehicleId;
                             innoSync.UpdateVehicleID();
                         }
-                        return Json(new { success = true, message = " Inspection Saved Successfully.", RefKey= innoSync.ID.ToString(), imapNo = vehicleId }, JsonRequestBehavior.AllowGet);
+                        return Json(new { success = true, message = " Inspection Saved Successfully.", refKey= innoSync.ID.ToString(), imapNo = vehicleId }, JsonRequestBehavior.AllowGet);
                     }
                     else
                     {
@@ -332,25 +332,63 @@ namespace INS_API.Controllers
             if (dt.Rows.Count > 0)
             {
                 string schemaType = dt.Rows[0]["SchemaType"]?.ToString();
+                string vehicleType = dt.Rows[0]["VehicleType"]?.ToString();
                 string apiKey = "0930939f-512f-4399-8d94-1eab8ec06c37"; 
                 string apiUrl = "";
                 object requestBody = null;
 
-                if (schemaType == "Book In")
+                if (schemaType == "Book In" && vehicleType == "Car")
                 {
                     apiUrl = "https://ins.mottoauction.com/INS/BookInCreate";
+                    //apiUrl = "https://localhost:44327/INS/BookInCreate";
                     // Map data from DataTable to BookinModel
-                    BookinModel bookinModel = MapToBookinModel(dt.Rows[0]);
+                    BookinModel bookinModel = MapToBookinCarModel(dt.Rows[0]);
                     requestBody = bookinModel;
                 }
-                else if (schemaType == "Inspection")
+                else if (schemaType == "Inspection" && vehicleType == "Car")
                 {
                     apiUrl = "https://ins.mottoauction.com/INS/InspectionCreate";
+                    //apiUrl = "https://localhost:44327/INS/InspectionCreate";
                     // Map data from DataTable to CarInspection
                     CarInspection inspection = MapToCarInspection(dt.Rows[0]);
                     requestBody = inspection;
                     //vehicleId = inspection.VehicleId;
                 }
+                else if (schemaType == "Book In" && vehicleType == "MB")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/BookInCreate";
+                    //apiUrl = "https://localhost:44327/INS/BookInCreate";
+                    // Map data from DataTable to BookinModel
+                    BookinModel bookinModel = MapToBookinMBModel(dt.Rows[0]);
+                    requestBody = bookinModel;
+                }
+                else if (schemaType == "Inspection" && vehicleType == "MB")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/InspectionCreate";
+                    //apiUrl = "https://localhost:44327/INS/InspectionCreate";
+                    // Map data from DataTable to CarInspection
+                    CarInspection inspection = MapToMBInspection(dt.Rows[0]);
+                    requestBody = inspection;
+                    //vehicleId = inspection.VehicleId;
+                }
+                else if (schemaType == "Book In" && vehicleType == "SVG")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/BookInCreate";
+                    //apiUrl = "https://localhost:44327/INS/BookInCreate";
+                    // Map data from DataTable to BookinModel
+                    BookinModel bookinModel = MapToSVGBookin(dt.Rows[0]);
+                    requestBody = bookinModel;
+                }
+                else if (schemaType == "Inspection" && vehicleType == "SVG")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/InspectionCreate";
+                    //apiUrl = "https://localhost:44327/INS/InspectionCreate";
+                    // Map data from DataTable to CarInspection
+                    CarInspection inspection = MapToSVGInspection(dt.Rows[0]);
+                    requestBody = inspection;
+                    //vehicleId = inspection.VehicleId;
+                }
+
 
                 if (!string.IsNullOrEmpty(apiUrl) && requestBody != null)
                 {
@@ -375,6 +413,10 @@ namespace INS_API.Controllers
                             if (jsonResponse["vehicleId"] != null)
                             {
                                 vehicleId = jsonResponse["vehicleId"].ToString();
+                                if(schemaType == "Inspection")
+                                {
+                                objDataFeed.UpdateInspectionCountINNOSYNC(vehicleId, id);
+                                }
                             }
                         }
                     }
@@ -384,10 +426,30 @@ namespace INS_API.Controllers
             return vehicleId;
         }
 
-        private BookinModel MapToBookinModel(DataRow row)
+        private BookinModel MapToBookinCarModel(DataRow row)
         {
             string inspectionJson = row["InspectionData"]?.ToString();
-            var inspectionData = JsonConvert.DeserializeObject<BookInDataModel>(inspectionJson);
+            var inspectionData = JsonConvert.DeserializeObject<CarBookInDataModel>(inspectionJson);
+
+            #region BodyType & FuelType
+            INS_DataFeed objDataFeed = new INS_DataFeed();
+            string variantId = (inspectionData.Variant == null ? "null" : inspectionData.Variant);
+
+            DataTable dtBodyType = objDataFeed.GetBodyByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            string bodyType = "";
+            if (dtBodyType != null && dtBodyType.Rows.Count > 0)
+            {
+                bodyType = dtBodyType.Rows[0]["BodyType"].ToString();
+            }
+
+            DataTable dtFuelType = objDataFeed.GetFuelTypeByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            string fuelType = "";
+            if (dtFuelType != null && dtFuelType.Rows.Count > 0)
+            {
+                fuelType = dtFuelType.Rows[0]["FuelType"].ToString();
+            }
+            #endregion
+
             return new BookinModel
             {
                 BookInType = new BookinReceiver
@@ -398,8 +460,8 @@ namespace INS_API.Controllers
                     ReceiverName = row["ReceiverName"]?.ToString(),
                     ContractNumber = inspectionData.ContractNumber,
                     MobileNumber = row["MobileNumber"]?.ToString(),
-                    Status = 1,//what do i need to add status
-                    SellerCode = "",//row["SellerCode"]?.ToString(),
+                    Status = 0,//what do i need to add status
+                    SellerCode = row["SellerCode"]?.ToString(),
                     Inspector = row["Inspector"]?.ToString(),
                     SenderSignature = "",//image no fields in inno
                     ReceiverSignature = "",//image no fields in inno
@@ -418,13 +480,13 @@ namespace INS_API.Controllers
                     VID = 0,
                     VehicleId = "", 
                     BookinNumber = "",
-                    Seller = "",//(inspectionData.SellerName == null ? "" : inspectionData.SellerName),
+                    Seller = row["SellerCode"]?.ToString(),
                     SellingCategory = (inspectionData.SalesCategory == null ? "" : inspectionData.SalesCategory),
                     LogisticsStatus = "",//no field in inno
                     InspectionDate = DateTime.Now,
                     SalesStatus = "",
-                    Plant = (inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
-                    StorageLocation = (inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
+                    Plant = "",//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
+                    StorageLocation = "",//(inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
                     ReceiverLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     BookedDate = DateTime.Now,
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
@@ -434,34 +496,34 @@ namespace INS_API.Controllers
                     ModelCodeId = 0,
                     Model_BU = "",
                     Model_LO = "",
-                    Body = "",//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
+                    Body = bodyType,//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
                     BodyDesc_BU = "",
                     BodyDesc_LO = "",
                     Variants = (inspectionData.Variant == null ? "" : inspectionData.Variant),//not sure
                     BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear),//not sure
                     VIN = row["VIN"]?.ToString(),
                     ChasisNumber = row["ChasisNumber"]?.ToString(),
-                    Colour = (inspectionData.Color == null ? "" : inspectionData.Color),
-                    ColourDesc = "",
+                    Colour = "",
+                    ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
                     FuelDelivery = "",
-                    FuelType = "",//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = (inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
+                    Gearbox = "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
                     Gears = "",
-                    Drive = (inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
+                    Drive = "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
                     Regisration = (inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
-                    RegistrationYear = "",//(inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
-                    RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
-                    RegistrationPlate = (inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
-                    RegistrationNote = (inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
-                    IsRegistrationMismatch = inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
+                    RegistrationYear = (inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
+                    RegistrationProvince = "",//(inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
+                    RegistrationPlate = "",//(inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
+                    RegistrationNote = "",//(inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
+                    IsRegistrationMismatch = false,//inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
                     RedBookCondition = "",
-                    IsGasTank = inspectionData.GasInstall == "ติด",//not sure
+                    IsGasTank = false,//inspectionData.GasInstall == "ติด",//not sure
                     GasTankNumber = "",
                     GasType = 0,
-                    GasNote = (inspectionData.GasInstall == null ? "" : inspectionData.GasInstall),
+                    GasNote = "",//(inspectionData.GasInstall == null ? "" : inspectionData.GasInstall),
                     IsInValidEngineNumber = null,
                     ReasonInValidEngineNumber = "",
                     IsInValidVinNumber = null,
@@ -474,10 +536,10 @@ namespace INS_API.Controllers
                     CreateDate = DateTime.Now,
                     ModifiedUser = "",
                     ModifiedDate = null,
-                    IsNohaveBuildYear = inspectionData.ManufacturingYear == null,//not sure
-                    IsNohaveRegis = inspectionData.RegistrationYear == "ตรวจสอบไม่ได้",//not sure
+                    IsNohaveBuildYear = false,//inspectionData.ManufacturingYear == null,//not sure
+                    IsNohaveRegis = false,//inspectionData.RegistrationYear == "ตรวจสอบไม่ได้",//not sure
                     briefCarConditionId = null,
-                    DetallBriefCarCondition = (inspectionData.VehicleRemarks == null ? "" : inspectionData.VehicleRemarks),//not sure
+                    DetallBriefCarCondition = "",//(inspectionData.VehicleRemarks == null ? "" : inspectionData.VehicleRemarks),//not sure
                     MotorNumber = "",//inspectionData.EVMotorNumber ?? inspectionData.EVMotorNumber2,//not sure
                     IsInValidMotorNumber = null,
                     ReasonInValidMotorNumber = "",
@@ -490,7 +552,7 @@ namespace INS_API.Controllers
                     NoPlateType = (inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),
                     CataLogIPAD_TH = "",
                     CataLogIPAD_EN = "",
-                    CatalyticOption = inspectionData.CatalyticConverter == "มี" ? 1 : 0,//not sure
+                    CatalyticOption = 0,//inspectionData.CatalyticConverter == "มี" ? 1 : 0,//not sure
                     CabTypeID ="",// (inspectionData.PickupTrayType == null ? "" : inspectionData.PickupTrayType),//not sure
                     LevelCabID = ""
                 },
@@ -590,13 +652,317 @@ namespace INS_API.Controllers
         private CarInspection MapToCarInspection(DataRow row)
         {
             string inspectionJson = row["InspectionData"]?.ToString();
-            var inspectionData = JsonConvert.DeserializeObject<InspectionDataModel>(inspectionJson);
+            var inspectionData = JsonConvert.DeserializeObject<CarInspectionDataModel>(inspectionJson);
             INS_DataFeed objDataFeed = new INS_DataFeed();
             return new CarInspection
             {
                 InspectionId = 0,
-                BookInNumber = objDataFeed.GetBookInNoByVehicleID(row["VehicleId"]?.ToString()),
-                VehicleId = row["VehicleId"]?.ToString(),
+                BookInNumber = objDataFeed.GetBookInNoByVehicleID(int.Parse(inspectionData.IMATNumber == null ? "0" : inspectionData.IMATNumber).ToString("D18")),
+                VehicleId = int.Parse(inspectionData.IMATNumber == null ? "0" : inspectionData.IMATNumber).ToString("D18"),
+                Inspector = row["Inspector"]?.ToString(),
+                InspectionDate = DateTime.Now,
+                InspectorName = row["Sendername"]?.ToString(),// not sure
+                Chassis = row["ChasisNumber"]?.ToString(),
+                Front = inspectionData.FrontBodyCondition,
+                Back = inspectionData.BackBodyCondition,
+                RightSide = inspectionData.RightBodyCondition,
+                LeftSide = inspectionData.LeftBodyCondition,
+                Roof = inspectionData.RoofCondition,
+                IsFlood = null,
+                BodySummary = inspectionData.StructureAndBodyRemarks,
+                IsEngineWorks = null,
+                FuelSystemId = null,
+                IsLubricatorLow = null,
+                EngineSystemId = null,
+                GearTypeId = null,
+                IsUseableGeneral = null,
+                IsSoundAbnormal = null,
+                IsLeakFuel = null,
+                IsStainWater = null,
+                IsMachineLightShow = null,
+                IsEngineAbnomal = null,
+                IsNeedRepair = null,
+                EngineSummary = "",
+                DriveShaftConditionId = null,
+                DriveShaftConditionNote = "",
+                SuspensionConditionId = null,
+                SuspensionConditionNote = "",
+                SuspensionSummary = "",
+                GearSystemId = null,
+                GearConditionId = null,
+                DriveShaftId = null,
+                Is4WD = null,
+                GearSystemSummary = "",
+                IsUseableSteerWheel = null,
+                IsPowerSteering = null,
+                SteeringSummary = "",
+                IsUseableBrake = null,
+                BreakSystemSumary = "",
+                IsAirCool = null,
+                IsCompressorAir = null,
+                AirSystemSummary = "",
+                IsUseableGuage = null,
+                WarningLightNote = "",
+                GaugeSummary = "",
+                IsFrontLightWorking = null,
+                IsTurnLightWorking = null,
+                IsBackLightWorking = null,
+                IsBrakeLightWoring = null,
+                IsBetteryWorking = null,
+                IsHooterWorking = null,
+                IsRoundGaugeWorking = null,
+                IsNavigator = null,
+                IsNavigatorBuiltIn = null,
+                IsNavigatorCD = null,
+                IsNavigatorSdcard = null,
+                IsNavigatorNoCD = null,
+                IsNavigatorNoSdcard = null,
+                ElectronicNote = "",
+                ElectronicSummary = "",
+                LatestUpdatedDate = null,
+                Regisration = row["RegistrationNumber"]?.ToString(),
+                RegistrationProvince = "",
+                IsSunroof = null,
+                isSideMirror_1_Working = null,
+                isSideMirror_2_Working = null,
+                isSideMirror_3_Working = null,
+                isSideMirror_4_Working = null
+            };
+        }
+
+        private BookinModel MapToBookinMBModel(DataRow row)
+        {
+            string inspectionJson = row["InspectionData"]?.ToString();
+            var inspectionData = JsonConvert.DeserializeObject<MBBookInDataModel>(inspectionJson);
+
+            #region BodyType & FuelType
+            INS_DataFeed objDataFeed = new INS_DataFeed();
+            string variantId = (inspectionData.Variant == null ? "null" : inspectionData.Variant);
+
+            DataTable dtBodyType = objDataFeed.GetBodyByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            string bodyType = "";
+            if (dtBodyType != null && dtBodyType.Rows.Count > 0)
+            {
+                bodyType = dtBodyType.Rows[0]["BodyType"].ToString();
+            }
+
+            DataTable dtFuelType = objDataFeed.GetFuelTypeByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            string fuelType = "";
+            if (dtFuelType != null && dtFuelType.Rows.Count > 0)
+            {
+                fuelType = dtFuelType.Rows[0]["FuelType"].ToString();
+            }
+            #endregion
+
+            return new BookinModel
+            {
+                BookInType = new BookinReceiver
+                {
+                    BookInNumber = "",
+                    BookInDate = DateTime.Now,
+                    SenderName = row["SenderName"]?.ToString(),
+                    ReceiverName = row["ReceiverName"]?.ToString(),
+                    ContractNumber = inspectionData.ContractNumber,
+                    MobileNumber = row["MobileNumber"]?.ToString(),
+                    Status = 1,//what do i need to add status
+                    SellerCode = row["SellerCode"]?.ToString(),
+                    Inspector = row["Inspector"]?.ToString(),
+                    SenderSignature = "",//image no fields in inno
+                    ReceiverSignature = "",//image no fields in inno
+                    VehicleId = "",
+                    LatestUpdatedDate = row.Field<DateTime?>("TxnDate"),
+                    BookinType = "",//no field in inno
+                    CreateBy = row["CreatedBy"]?.ToString(),
+                    CreateDate = row.Field<DateTime?>("CreatedDate"),
+                    ModifiedBy = "",
+                    ModifiedDate = null,
+                    ContractTypeCode = "",//no field in inno
+                    StickVin = ""//no field in inno
+                },
+                VehicleType = new Vehicle
+                {
+                    VID = 0,
+                    VehicleId = "",
+                    BookinNumber = "",
+                    Seller = row["SellerCode"]?.ToString(),
+                    SellingCategory = (inspectionData.SalesCategory == null ? "" : inspectionData.SalesCategory),
+                    LogisticsStatus = "",//no field in inno
+                    InspectionDate = DateTime.Now,
+                    SalesStatus = "",
+                    Plant = "",//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
+                    StorageLocation = "",//(inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
+                    ReceiverLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
+                    BookedDate = DateTime.Now,
+                    Make = (inspectionData.Make == null ? "" : inspectionData.Make),
+                    Make_BU = "",
+                    Make_LO = "",
+                    ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
+                    ModelCodeId = 0,
+                    Model_BU = "",
+                    Model_LO = "",
+                    Body = bodyType,//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
+                    BodyDesc_BU = "",
+                    BodyDesc_LO = "",
+                    Variants = (inspectionData.Variant == null ? "" : inspectionData.Variant),//not sure
+                    BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear.ToString()),//not sure
+                    VIN = row["VIN"]?.ToString(),
+                    ChasisNumber = row["ChasisNumber"]?.ToString(),
+                    Colour = "",
+                    ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
+                    FuelDelivery = "",
+                    FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
+                    Gearbox = "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gears = "",
+                    Drive = "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
+                    EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
+                    EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
+                    EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
+                    Regisration = (inspectionData.RegistrationNumber == null ? "" : inspectionData.RegistrationNumber),//not sure
+                    RegistrationYear = (inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
+                    RegistrationProvince = "",//(inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
+                    RegistrationPlate = "",//(inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
+                    RegistrationNote = "",//(inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
+                    IsRegistrationMismatch = false,//inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
+                    RedBookCondition = "",
+                    IsGasTank = false,//inspectionData.GasInstall == "ติด",//not sure
+                    GasTankNumber = "",
+                    GasType = 0,
+                    GasNote = "",//(inspectionData.GasInstall == null ? "" : inspectionData.GasInstall),
+                    IsInValidEngineNumber = null,
+                    ReasonInValidEngineNumber = "",
+                    IsInValidVinNumber = null,
+                    ReasonInValidVinNumber = "",
+                    IsInValidGasNumber = null,
+                    ReasonInValidGasNumber = "",
+                    VehicleDeleted = null,
+                    VehicleDeletedDate = null,
+                    CreateUser = row["CreatedBy"]?.ToString(),
+                    CreateDate = DateTime.Now,
+                    ModifiedUser = "",
+                    ModifiedDate = null,
+                    IsNohaveBuildYear = false,//inspectionData.ManufacturingYear == null,//not sure
+                    IsNohaveRegis = false,//inspectionData.RegistrationYear == "ตรวจสอบไม่ได้",//not sure
+                    briefCarConditionId = null,
+                    DetallBriefCarCondition = "",//(inspectionData.VehicleRemarks == null ? "" : inspectionData.VehicleRemarks),//not sure
+                    MotorNumber = "",//inspectionData.EVMotorNumber ?? inspectionData.EVMotorNumber2,//not sure
+                    IsInValidMotorNumber = null,
+                    ReasonInValidMotorNumber = "",
+                    IsInVaidEngine1 = null,
+                    IsInVaidEngine2 = null,
+                    IsInVaidEngine3 = null,
+                    IsInVaidVin1 = null,
+                    IsInVaidVin2 = null,
+                    IsInVaidVin3 = null,
+                    NoPlateType = (inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),
+                    CataLogIPAD_TH = "",
+                    CataLogIPAD_EN = "",
+                    CatalyticOption = 0,//inspectionData.CatalyticConverter == "มี" ? 1 : 0,//not sure
+                    CabTypeID = "",// (inspectionData.PickupTrayType == null ? "" : inspectionData.PickupTrayType),//not sure
+                    LevelCabID = ""
+                },
+                ExternalType = new External//no fields in inno
+                {
+                    ExternalId = 0,
+                    GradeOverallId = null,
+                    ColorOverallId = null,
+                    IsSpoiler = null,
+                    MagWheel = null,
+                    NormalWheel = null,
+                    IsTyre = null,
+                    TyreQuality = null,
+                    DamageDesc = "",
+                    BookinNumber = "",
+                    TyreBrand = "",
+                    RoofTypeId = null
+                },
+                SpareType = new Spare
+                {
+                    SpareId = 0,
+                    SpareOverAllId = null,
+                    SpareNote = "",
+                    IsSpareType = null,
+                    IsHandTool = null,
+                    IsMaxliner = null,
+                    IsRoofRack = null,
+                    IsJackCar = null,
+                    IsCableChargeEV = null,
+                    AccessoriesNote = "",
+                    BookinNumber = ""
+                },
+                CabinType = new Cabin
+                {
+                    CabinId = 0,
+                    CabinOverAllId = 0,
+                    Mileage = decimal.TryParse(inspectionData.Mileage, out var mile) ? mile : (decimal?)null,
+                    MileageTypeId = null,
+                    FuelVolumn = null,
+                    GearSystemId = null,
+                    IsAirback = null,
+                    IsHeadGear = null,
+                    IsPowerAmp = null,
+                    IsLockGear = null,
+                    IsPreAmp = null,
+                    IsBookService = null,
+                    IsSpeaker = null,
+                    IsManual = null,
+                    IsCigaretteLiter = null,
+                    IsTaxPlate = null,
+                    IsPlateExpireDate = "",
+                    IsNavigator = null,
+                    IsNavigatorBuiltin = null,
+                    IsNavigatorCD = null,
+                    IsNavigatorSDCard = null,
+                    IsNavigatorNoCD = null,
+                    IsNavigatorNoSDCard = null,
+                    PlayerBrand = "",
+                    IsPlayerRadio = null,
+                    IsPlayerTape = null,
+                    IsPlayerCD = null,
+                    IsPlayerUSB = null,
+                    KeyOptionId = null,
+                    CabinNote = "",
+                    BookInNumber = "",
+                    IsInvalidMileage = null,
+                    InvalidMileageReason = ""
+                },
+                KeyOptionType = new KeyOption
+                {
+                    KeyOptionId = 0,
+                    NumberOfKey = null,
+                    NumberOfRemote = null,
+                    NumberOfKeyRemote = null,
+                    NumberOfImmobilizer = null,
+                    NumberOfKeyless = null,
+                    BookinNumber = ""
+                },
+                EngineType = new Engine
+                {
+                    EngineId = 0,
+                    EngineRoomOverAllId = null,
+                    BatteryBrand = "",
+                    BatteryIndicatorColor = "",
+                    IsEcu = null,
+                    IsCompressorAir = null,
+                    DriverSystemId = null,
+                    FuelSystemId = null,
+                    IsFuelGas = null,
+                    GasTypeId = null,
+                    InsideAssetNote = "",
+                    BookinNumber = ""
+                }
+            };
+        }
+
+        private CarInspection MapToMBInspection(DataRow row)
+        {
+            string inspectionJson = row["InspectionData"]?.ToString();
+            var inspectionData = JsonConvert.DeserializeObject<MBInspectionDataModel>(inspectionJson);
+            INS_DataFeed objDataFeed = new INS_DataFeed();
+            return new CarInspection
+            {
+                InspectionId = 0,
+                BookInNumber = objDataFeed.GetBookInNoByVehicleID(int.Parse(inspectionData.IMATNumber == null ? "0" : inspectionData.IMATNumber).ToString("D18")),
+                VehicleId = int.Parse(inspectionData.IMATNumber == null ? "0" : inspectionData.IMATNumber).ToString("D18"),
                 Inspector = row["Inspector"]?.ToString(),
                 InspectionDate = DateTime.Now,
                 InspectorName = row["Sendername"]?.ToString(),// not sure
@@ -607,7 +973,311 @@ namespace INS_API.Controllers
                 LeftSide = "",
                 Roof = "",
                 IsFlood = null,
-                BodySummary = inspectionData.StructureAndBodySummary,
+                BodySummary = "",
+                IsEngineWorks = null,
+                FuelSystemId = null,
+                IsLubricatorLow = null,
+                EngineSystemId = null,
+                GearTypeId = null,
+                IsUseableGeneral = null,
+                IsSoundAbnormal = null,
+                IsLeakFuel = null,
+                IsStainWater = null,
+                IsMachineLightShow = null,
+                IsEngineAbnomal = null,
+                IsNeedRepair = null,
+                EngineSummary = "",
+                DriveShaftConditionId = null,
+                DriveShaftConditionNote = "",
+                SuspensionConditionId = null,
+                SuspensionConditionNote = "",
+                SuspensionSummary = "",
+                GearSystemId = null,
+                GearConditionId = null,
+                DriveShaftId = null,
+                Is4WD = null,
+                GearSystemSummary = "",
+                IsUseableSteerWheel = null,
+                IsPowerSteering = null,
+                SteeringSummary = "",
+                IsUseableBrake = null,
+                BreakSystemSumary = "",
+                IsAirCool = null,
+                IsCompressorAir = null,
+                AirSystemSummary = "",
+                IsUseableGuage = null,
+                WarningLightNote = "",
+                GaugeSummary = "",
+                IsFrontLightWorking = null,
+                IsTurnLightWorking = null,
+                IsBackLightWorking = null,
+                IsBrakeLightWoring = null,
+                IsBetteryWorking = null,
+                IsHooterWorking = null,
+                IsRoundGaugeWorking = null,
+                IsNavigator = null,
+                IsNavigatorBuiltIn = null,
+                IsNavigatorCD = null,
+                IsNavigatorSdcard = null,
+                IsNavigatorNoCD = null,
+                IsNavigatorNoSdcard = null,
+                ElectronicNote = "",
+                ElectronicSummary = "",
+                LatestUpdatedDate = null,
+                Regisration = "",//row["LicensePlateNumber"]?.ToString(),
+                RegistrationProvince = "",
+                IsSunroof = null,
+                isSideMirror_1_Working = null,
+                isSideMirror_2_Working = null,
+                isSideMirror_3_Working = null,
+                isSideMirror_4_Working = null
+            };
+        }
+
+        private BookinModel MapToSVGBookin(DataRow row)
+        {
+            string inspectionJson = row["InspectionData"]?.ToString();
+            var inspectionData = JsonConvert.DeserializeObject<BookInDataModel>(inspectionJson);
+
+            #region BodyType & FuelType
+            INS_DataFeed objDataFeed = new INS_DataFeed();
+            string variantId = (inspectionData.Variant == null ? "null" : inspectionData.Variant);
+
+            DataTable dtBodyType = objDataFeed.GetBodyByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            string bodyType = "";
+            if (dtBodyType != null && dtBodyType.Rows.Count > 0)
+            {
+                bodyType = dtBodyType.Rows[0]["BodyType"].ToString();
+            }
+
+            DataTable dtFuelType = objDataFeed.GetFuelTypeByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            string fuelType = "";
+            if (dtFuelType != null && dtFuelType.Rows.Count > 0)
+            {
+                fuelType = dtFuelType.Rows[0]["FuelType"].ToString();
+            }
+            #endregion
+
+            return new BookinModel
+            {
+                BookInType = new BookinReceiver
+                {
+                    BookInNumber = "",
+                    BookInDate = DateTime.Now,
+                    SenderName = row["SenderName"]?.ToString(),
+                    ReceiverName = row["ReceiverName"]?.ToString(),
+                    ContractNumber = inspectionData.ContractNumber,
+                    MobileNumber = row["MobileNumber"]?.ToString(),
+                    Status = 0,//what do i need to add status
+                    SellerCode = row["SellerCode"]?.ToString(),
+                    Inspector = row["Inspector"]?.ToString(),
+                    SenderSignature = "",//image no fields in inno
+                    ReceiverSignature = "",//image no fields in inno
+                    VehicleId = "",
+                    LatestUpdatedDate = row.Field<DateTime?>("TxnDate"),
+                    BookinType = "",//no field in inno
+                    CreateBy = row["CreatedBy"]?.ToString(),
+                    CreateDate = row.Field<DateTime?>("CreatedDate"),
+                    ModifiedBy = "",
+                    ModifiedDate = null,
+                    ContractTypeCode = "",//no field in inno
+                    StickVin = ""//no field in inno
+                },
+                VehicleType = new Vehicle
+                {
+                    VID = 0,
+                    VehicleId = "",
+                    BookinNumber = "",
+                    Seller = row["SellerCode"]?.ToString(),
+                    SellingCategory = (inspectionData.SalesCategory == null ? "" : inspectionData.SalesCategory),
+                    LogisticsStatus = "",//no field in inno
+                    InspectionDate = DateTime.Now,
+                    SalesStatus = "",
+                    Plant = "",//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
+                    StorageLocation = (inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
+                    ReceiverLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
+                    BookedDate = DateTime.Now,
+                    Make = (inspectionData.Make == null ? "" : inspectionData.Make),
+                    Make_BU = "",
+                    Make_LO = "",
+                    ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
+                    ModelCodeId = 0,
+                    Model_BU = "",
+                    Model_LO = "",
+                    Body = bodyType,//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
+                    BodyDesc_BU = "",
+                    BodyDesc_LO = "",
+                    Variants = (inspectionData.Variant == null ? "" : inspectionData.Variant),//not sure
+                    BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear),//not sure
+                    VIN = row["VIN"]?.ToString(),
+                    ChasisNumber = row["ChasisNumber"]?.ToString(),
+                    Colour = "",
+                    ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
+                    FuelDelivery = "",
+                    FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
+                    Gearbox = "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gears = "",
+                    Drive = "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
+                    EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
+                    EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
+                    EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
+                    Regisration = (inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
+                    RegistrationYear = (inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
+                    RegistrationProvince = "",//(inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
+                    RegistrationPlate = "",//(inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
+                    RegistrationNote = "",//(inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
+                    IsRegistrationMismatch = false,//inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
+                    RedBookCondition = "",
+                    IsGasTank = false,//inspectionData.GasInstall == "ติด",//not sure
+                    GasTankNumber = "",
+                    GasType = 0,
+                    GasNote = "",//(inspectionData.GasInstall == null ? "" : inspectionData.GasInstall),
+                    IsInValidEngineNumber = null,
+                    ReasonInValidEngineNumber = "",
+                    IsInValidVinNumber = null,
+                    ReasonInValidVinNumber = "",
+                    IsInValidGasNumber = null,
+                    ReasonInValidGasNumber = "",
+                    VehicleDeleted = null,
+                    VehicleDeletedDate = null,
+                    CreateUser = row["CreatedBy"]?.ToString(),
+                    CreateDate = DateTime.Now,
+                    ModifiedUser = "",
+                    ModifiedDate = null,
+                    IsNohaveBuildYear = false,//inspectionData.ManufacturingYear == null,//not sure
+                    IsNohaveRegis = false,//inspectionData.RegistrationYear == "ตรวจสอบไม่ได้",//not sure
+                    briefCarConditionId = null,
+                    DetallBriefCarCondition = "",//(inspectionData.VehicleRemarks == null ? "" : inspectionData.VehicleRemarks),//not sure
+                    MotorNumber = "",//inspectionData.EVMotorNumber ?? inspectionData.EVMotorNumber2,//not sure
+                    IsInValidMotorNumber = null,
+                    ReasonInValidMotorNumber = "",
+                    IsInVaidEngine1 = null,
+                    IsInVaidEngine2 = null,
+                    IsInVaidEngine3 = null,
+                    IsInVaidVin1 = null,
+                    IsInVaidVin2 = null,
+                    IsInVaidVin3 = null,
+                    NoPlateType = (inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),
+                    CataLogIPAD_TH = "",
+                    CataLogIPAD_EN = "",
+                    CatalyticOption = 0,//inspectionData.CatalyticConverter == "มี" ? 1 : 0,//not sure
+                    CabTypeID = "",// (inspectionData.PickupTrayType == null ? "" : inspectionData.PickupTrayType),//not sure
+                    LevelCabID = ""
+                },
+                ExternalType = new External//no fields in inno
+                {
+                    ExternalId = 0,
+                    GradeOverallId = null,
+                    ColorOverallId = null,
+                    IsSpoiler = null,
+                    MagWheel = null,
+                    NormalWheel = null,
+                    IsTyre = null,
+                    TyreQuality = null,
+                    DamageDesc = "",
+                    BookinNumber = "",
+                    TyreBrand = "",
+                    RoofTypeId = null
+                },
+                SpareType = new Spare
+                {
+                    SpareId = 0,
+                    SpareOverAllId = null,
+                    SpareNote = "",
+                    IsSpareType = null,
+                    IsHandTool = null,
+                    IsMaxliner = null,
+                    IsRoofRack = null,
+                    IsJackCar = null,
+                    IsCableChargeEV = null,
+                    AccessoriesNote = "",
+                    BookinNumber = ""
+                },
+                CabinType = new Cabin
+                {
+                    CabinId = 0,
+                    CabinOverAllId = 0,
+                    Mileage = decimal.TryParse(inspectionData.Mileage, out var mile) ? mile : (decimal?)null,
+                    MileageTypeId = null,
+                    FuelVolumn = null,
+                    GearSystemId = null,
+                    IsAirback = null,
+                    IsHeadGear = null,
+                    IsPowerAmp = null,
+                    IsLockGear = null,
+                    IsPreAmp = null,
+                    IsBookService = null,
+                    IsSpeaker = null,
+                    IsManual = null,
+                    IsCigaretteLiter = null,
+                    IsTaxPlate = null,
+                    IsPlateExpireDate = "",
+                    IsNavigator = null,
+                    IsNavigatorBuiltin = null,
+                    IsNavigatorCD = null,
+                    IsNavigatorSDCard = null,
+                    IsNavigatorNoCD = null,
+                    IsNavigatorNoSDCard = null,
+                    PlayerBrand = "",
+                    IsPlayerRadio = null,
+                    IsPlayerTape = null,
+                    IsPlayerCD = null,
+                    IsPlayerUSB = null,
+                    KeyOptionId = null,
+                    CabinNote = "",
+                    BookInNumber = "",
+                    IsInvalidMileage = null,
+                    InvalidMileageReason = ""
+                },
+                KeyOptionType = new KeyOption
+                {
+                    KeyOptionId = 0,
+                    NumberOfKey = null,
+                    NumberOfRemote = null,
+                    NumberOfKeyRemote = null,
+                    NumberOfImmobilizer = null,
+                    NumberOfKeyless = null,
+                    BookinNumber = ""
+                },
+                EngineType = new Engine
+                {
+                    EngineId = 0,
+                    EngineRoomOverAllId = null,
+                    BatteryBrand = "",
+                    BatteryIndicatorColor = "",
+                    IsEcu = null,
+                    IsCompressorAir = null,
+                    DriverSystemId = null,
+                    FuelSystemId = null,
+                    IsFuelGas = null,
+                    GasTypeId = null,
+                    InsideAssetNote = "",
+                    BookinNumber = ""
+                }
+            };
+        }
+
+        private CarInspection MapToSVGInspection(DataRow row)
+        {
+            string inspectionJson = row["InspectionData"]?.ToString();
+            var inspectionData = JsonConvert.DeserializeObject<InspectionDataModel>(inspectionJson);
+            INS_DataFeed objDataFeed = new INS_DataFeed();
+            return new CarInspection
+            {
+                InspectionId = 0,
+                BookInNumber = objDataFeed.GetBookInNoByVehicleID(int.Parse(inspectionData.IMATNumber == null ? "0" : inspectionData.IMATNumber).ToString("D18")),
+                VehicleId = int.Parse(inspectionData.IMATNumber == null ? "0" : inspectionData.IMATNumber).ToString("D18"),
+                Inspector = row["Inspector"]?.ToString(),
+                InspectionDate = DateTime.Now,
+                InspectorName = row["Sendername"]?.ToString(),// not sure
+                Chassis = row["ChasisNumber"]?.ToString(),
+                Front = inspectionData.FrontBodyCondition,
+                Back = inspectionData.BackBodyCondition,
+                RightSide = inspectionData.RightBodyCondition,
+                LeftSide = inspectionData.BodyLCondition,
+                Roof = inspectionData.RoofCondition,
+                IsFlood = null,
+                BodySummary = inspectionData.StructureAndBodyRemarks,
                 IsEngineWorks = null,
                 FuelSystemId = null,
                 IsLubricatorLow = null,

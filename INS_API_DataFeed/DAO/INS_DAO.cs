@@ -1404,7 +1404,7 @@ namespace INS_API_DataFeed.DAO
 
     public class BookInDataModel
     {
-        public int countdown_time { get; set; }
+        public Nullable<int> countdown_time { get; set; }
         public string PlantLocation { get; set; }
         public string ContractNumber { get; set; }
         public string PhoneNumber { get; set; }
@@ -1449,7 +1449,7 @@ namespace INS_API_DataFeed.DAO
         public string CatalyticConverter { get; set; }
         public string EVCharger { get; set; }
         public string TaxSign { get; set; }
-        public DateTime TaxExpireDate { get; set; }
+        public Nullable<DateTime> TaxExpireDate { get; set; }
         public string[] Dashboard_image { get; set; }
         public string[] Dashboard_text { get; set; }
         public string Dashboard { get; set; }
@@ -1472,8 +1472,9 @@ namespace INS_API_DataFeed.DAO
 
     public class InspectionDataModel
     {
-        public int countdown_time { get; set; }
+        public Nullable<int> countdown_time { get; set; }
         public string DelivererName { get; set; }
+        public string IMATNumber { get; set; }
         public string ContractNumber { get; set; }
         public string SalesCategory { get; set; }
         public string ReceiveType { get; set; }
@@ -1584,7 +1585,7 @@ namespace INS_API_DataFeed.DAO
         public string WindowBackR { get; set; }
         public string CarManual { get; set; }
         public string InteriorConditionSummary { get; set; }
-        public DateTime TaxExpireDate { get; set; }
+        public Nullable<DateTime> TaxExpireDate { get; set; }
         public string[] SpareTire_image { get; set; }
         public string[] SpareTire_text { get; set; }
         public string SpareTire { get; set; }
@@ -1630,7 +1631,7 @@ namespace INS_API_DataFeed.DAO
         public string[] Aircondition_text { get; set; }
         public string Aircondition { get; set; }
         public string HeadlightsWorking { get; set; }
-        public string StructureAndBodySummary { get; set; }
+        public string StructureAndBodyRemarks { get; set; }
         public string DriveShaft { get; set; }
         public string SuspensionModification_text { get; set; }
         public string SuspensionModification { get; set; }
@@ -1651,8 +1652,595 @@ namespace INS_API_DataFeed.DAO
         public string[] BackRightImage { get; set; }
     }
 
+    public class CarBookInDataModel
+    {
+        public string DelivererName { get; set; }
+        public string[] Deliverersign { get; set; }
+        public string PhoneNumber { get; set; }
+        public string ReceiveLocation { get; set; }
+        public string SellerName { get; set; }
+        public string SalesCategory { get; set; }
+        public string ContractType { get; set; }
+        public string[] ReceiverSign { get; set; }
+        public string FuelType { get; set; }
+        public string EngineSizeUnit { get; set; }
+        public string ModelCode { get; set; }
+        public string EngineNumber { get; set; }
+        public string ChassisNumber { get; set; }
+        public string Variant { get; set; }
+        public string BodyType { get; set; }
+        public string ContractNumber { get; set; }
+        public string ManufacturingYear { get; set; }
+        public string EngineSize { get; set; }
+        public string RegistrationYear { get; set; }
+        public string Model { get; set; }
+        public string EVMotorNumber { get; set; }
+        public string EVMotorNumber2 { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public string[] RegistrationYearCheck_image { get; set; }
+        public string RegistrationYearCheck { get; set; }
+        public string Make { get; set; }
+        public string Color { get; set; }
+        public string PickupRideLevel { get; set; }
+        public string LicenseProvince { get; set; }
+        public string[] CatalyticConverter_image { get; set; }
+        public string[] CatalyticConverter_text { get; set; }
+        public string CatalyticConverter { get; set; }
+        public string[] PlateImage { get; set; }
+        public string LicensePlateFBCheck { get; set; }
+        public string PickupTrayType { get; set; }
+        public string PickupCabType { get; set; }
+        public string LicensePlateNumber { get; set; }
+        public string EVCharger { get; set; }
+        public string DrivableCondition { get; set; }
+        public string VehicleBookinRemarks { get; set; }
+        public string[] Dashboard_image { get; set; }
+        public string[] Dashboard_text { get; set; }
+        public string Dashboard { get; set; }
+        public string FuelAmount { get; set; }
+        public string Mileage { get; set; }
+        public string V2LEVCable { get; set; }
+        public string Maxliner { get; set; }
+        public string[] TaxSign_image { get; set; }
+        public string TaxSign { get; set; }
+        public Nullable<DateTime> TaxExpireDate { get; set; }
+        public string[] GasInstall_image { get; set; }
+        public string[] GasInstall_text { get; set; }
+        public string GasInstall { get; set; }
+        public string SpareTire { get; set; }
+        public string Asset { get; set; }
+        public string[] GearType_image { get; set; }
+        public string GearType { get; set; }
+        public string DriveSystem { get; set; }
+        public string[] Key_image { get; set; }
+        public string[] Key_text { get; set; }
+        public string Key { get; set; }
+        public string KeyCardNFC { get; set; }
+        public string CarManual { get; set; }
+        public string ServiceBook { get; set; }
+        public string CarTools { get; set; }
+        public string[] TracingPaperImage { get; set; }
+        public Nullable<int> countdown_time { get; set; }
+        public string[] FrontImage { get; set; }
+        public string[] FrontLeftImage { get; set; }
+        public string[] FrontRightImage { get; set; }
+        public string[] BackImage { get; set; }
+        public string[] BackLeftImage { get; set; }
+        public string[] BackRightImage { get; set; }
+    }
+
+    public class CarInspectionDataModel
+    {
+        public string DelivererName { get; set; }
+        public string IMATNumber { get; set; }
+        public string PhoneNumber { get; set; }
+        public string SellerName { get; set; }
+        public string ReceiveLocation { get; set; }
+        public string SalesCategory { get; set; }
+        public string Variant { get; set; }
+        public string[] Deliverersign { get; set; }
+        public string ContractNumber { get; set; }
+        public string EngineSizeUnit { get; set; }
+        public string ModelCode { get; set; }
+        public string Make { get; set; }
+        public string Model { get; set; }
+        public string ReceiveType { get; set; }
+        public string BodyType { get; set; }
+        public string EVMotorNumber2 { get; set; }
+        public string[] PlateImage { get; set; }
+        public string ManufacturingYear { get; set; }
+        public string EngineNumber { get; set; }
+        public string Color { get; set; }
+        public string LicensePlateNumber { get; set; }
+        public string EVMotorNumber { get; set; }
+        public string FuelType { get; set; }
+        public string DrivableCondition { get; set; }
+        public string LicensePlateFBCheck { get; set; }
+        public string[] CatalyticConverter_image { get; set; }
+        public string[] CatalyticConverter_text { get; set; }
+        public string CatalyticConverter { get; set; }
+        public string ChassisNumber { get; set; }
+        public string[] FrontDamageImage { get; set; }
+        public string LicenseProvince { get; set; }
+        public string[] Dipstick_image { get; set; }
+        public string[] Dipstick_text { get; set; }
+        public string Dipstick { get; set; }
+        public string FrontBodyCondition_text { get; set; }
+        public string FrontBodyCondition { get; set; }
+        public string EngineSize { get; set; }
+        public Nullable<int> RegistrationYear { get; set; }
+        public string Asset { get; set; }
+        public string[] TracingPaperImage { get; set; }
+        public string[] ChassisNumberCondition_image { get; set; }
+        public string[] ChassisNumberCondition_text { get; set; }
+        public string ChassisNumberCondition { get; set; }
+        public string FrontBodyRemarks { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public string[] OpenDoorFrontRImage { get; set; }
+        public string ABS { get; set; }
+        public string[] EngineNumberCondition_image { get; set; }
+        public string[] EngineNumberCondition_text { get; set; }
+        public string EngineNumberCondition { get; set; }
+        public string[] PlateCondition_image { get; set; }
+        public string[] PlateCondition_text { get; set; }
+        public string PlateCondition { get; set; }
+        public string[] EngineCompartment { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string[] FrontRWheelImage { get; set; }
+        public string RightBodyCondition_text { get; set; }
+        public string RightBodyCondition { get; set; }
+        public string[] OpenDoorBackRImage { get; set; }
+        public string[] BackRWheelImage { get; set; }
+        public string[] Dashboard_image { get; set; }
+        public string[] Dashboard_text { get; set; }
+        public string Dashboard { get; set; }
+        public string WarningLight { get; set; }
+        public string RoofRacks { get; set; }
+        public string FuelAmount { get; set; }
+        public string AirCompressor { get; set; }
+        public string RightBodyRemarks { get; set; }
+        public string[] GearType_image { get; set; }
+        public string GearType { get; set; }
+        public string[] RoofImage { get; set; }
+        public string RoofCondition_text { get; set; }
+        public string RoofCondition { get; set; }
+        public Nullable<int> Mileage { get; set; }
+        public string[] RightDamageImage { get; set; }
+        public string SteeringSystem_text { get; set; }
+        public string SteeringSystem { get; set; }
+        public string Hornworking { get; set; }
+        public string RoofBodyRemarks { get; set; }
+        public string WindowFrontR { get; set; }
+        public string DriveSystem { get; set; }
+        public string Brake_text { get; set; }
+        public string Brake { get; set; }
+        public string Airbag { get; set; }
+        public string Navigator { get; set; }
+        public string SunRoof { get; set; }
+        public string[] BackSeatsImage { get; set; }
+        public string[] ThirdRowSeatsImage { get; set; }
+        public string WaterDamage { get; set; }
+        public string WindowBackR { get; set; }
+        public string InteriorConditionRemarks { get; set; }
+        public string[] ConsoleWideImage { get; set; }
+        public string[] CarRadioMultimediaImage { get; set; }
+        public string Speaker { get; set; }
+        public string GearCondition { get; set; }
+        public string ServiceBook { get; set; }
+        public string CarManual { get; set; }
+        public string WindowBackL { get; set; }
+        public string SteeringSystemRemarks { get; set; }
+        public string InteriorGrade { get; set; }
+        public string[] Key_image { get; set; }
+        public string[] Key_text { get; set; }
+        public string Key { get; set; }
+        public string[] GasInstall_image { get; set; }
+        public string[] GasInstall_text { get; set; }
+        public string GasInstall { get; set; }
+        public string WindowFrontL { get; set; }
+        public string SpareTire { get; set; }
+        public string CarTools { get; set; }
+        public string TaxExpireDate { get; set; }
+        public string V2LEVCable { get; set; }
+        public string PickupTrayType { get; set; }
+        public string KeyCardNFC { get; set; }
+        public string Maxliner { get; set; }
+        public string[] InteriorDamage { get; set; }
+        public string[] TaxSign_image { get; set; }
+        public string TaxSign { get; set; }
+        public string EVCharger { get; set; }
+        public string[] BackLWheelImage { get; set; }
+        public string TailLightsWorking { get; set; }
+        public string[] OpenDoorFrontLImage { get; set; }
+        public string[] BackDamageImage { get; set; }
+        public string[] FrontLWheelImage { get; set; }
+        public string LeftBodyRemarks { get; set; }
+        public string[] LeftDamageImage { get; set; }
+        public string[] TrunkTray { get; set; }
+        public string Turnlights { get; set; }
+        public string[] EngineCondition_image { get; set; }
+        public string EngineCondition { get; set; }
+        public string LeftBodyCondition_text { get; set; }
+        public string LeftBodyCondition { get; set; }
+        public string[] Aircondition_image { get; set; }
+        public string[] Aircondition_text { get; set; }
+        public string Aircondition { get; set; }
+        public string BackBodyRemarks { get; set; }
+        public string HeadlightsWorking { get; set; }
+        public string[] DayTimeRunningLights { get; set; }
+        public string[] OpenDoorBackLImage { get; set; }
+        public string Brakelightsworking { get; set; }
+        public string EngineConditionRemarks { get; set; }
+        public string BackBodyCondition_text { get; set; }
+        public string BackBodyCondition { get; set; }
+        public string ChassisCondition { get; set; }
+        public string StructureAndBodyRemarks { get; set; }
+        public string DriveShaftGear { get; set; }
+        public string DriveShaft { get; set; }
+        public string SuspensionModification { get; set; }
+        public string[] Suspension_image { get; set; }
+        public string[] Suspension_text { get; set; }
+        public string Suspension { get; set; }
+        public string[] ChassisDamageImage { get; set; }
+        public string AirConditionRemarks { get; set; }
+        public string[] FogLights { get; set; }
+        public string[] OtherDamageImage { get; set; }
+        public string[] OtherAccessories { get; set; }
+        public string StructureGrade { get; set; }
+        public string EngineGrade { get; set; }
+        public string OverallGrading { get; set; }
+        public string ContractType { get; set; }
+        public string[] ReceiverSign { get; set; }
+        public string[] RegistrationYearCheck_image { get; set; }
+        public string RegistrationYearCheck { get; set; }
+        public string PickupRideLevel { get; set; }
+        public string PickupCabType { get; set; }
+        public string VehicleBookinRemarks { get; set; }
+        public int countdown_time { get; set; }
+        public string[] FrontImage { get; set; }
+        public string[] FrontLeftImage { get; set; }
+        public string[] FrontRightImage { get; set; }
+        public string[] BackImage { get; set; }
+        public string[] BackLeftImage { get; set; }
+        public string[] BackRightImage { get; set; }
+    }
+
+    public class MBBookInDataModel
+    {
+        public string DelivererName { get; set; }
+        public string Make { get; set; }
+        public string SellerName { get; set; }
+        public string Variant { get; set; }
+        public string BodyType { get; set; }
+        public string[] ReceiverSign { get; set; }
+        public string ModelCode { get; set; }
+        public string ContractNumber { get; set; }
+        public string EngineNumber { get; set; }
+        public string ChassisNumber { get; set; }
+        public string ReceiveLocation { get; set; }
+        public string DrivableCondition { get; set; }
+        public string FuelType { get; set; }
+        public Nullable<int> ManufacturingYear { get; set; }
+        public string EngineSize { get; set; }
+        public string RegistrationYear { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string EVMotorNumber { get; set; }
+        public string[] GearType_image { get; set; }
+        public string GearType { get; set; }
+        public string ManufacturingYearCheck { get; set; }
+        public string EngineSizeUnit { get; set; }
+        public string[] RegistrationYearCheck_image { get; set; }
+        public string RegistrationYearCheck { get; set; }
+        public string LicensePlateCheck { get; set; }
+        public string Model { get; set; }
+        public string Color { get; set; }
+        public string SalesCategory { get; set; }
+        public string[] Dashboard_image { get; set; }
+        public string[] Dashboard_text { get; set; }
+        public string Dashboard { get; set; }
+        public Nullable<DateTime> TaxExpireDate { get; set; }
+        public string FuelAmount { get; set; }
+        public string[] Key_image { get; set; }
+        public string[] Key_text { get; set; }
+        public string Key { get; set; }
+        public string RegistrationNumber { get; set; }
+        public string LicenseProvince { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public string[] TaxSign_image { get; set; }
+        public string TaxSign { get; set; }
+        public string Mileage { get; set; }
+        public string VehicleRemarks { get; set; }
+        public string PhoneNumber { get; set; }
+        public string CarManual { get; set; }
+        public string ServiceBook { get; set; }
+        public string CarTools { get; set; }
+        public string EVCharger { get; set; }
+        public Nullable<int> countdown_time { get; set; }
+    }
 
 
+    public class MBInspectionDataModel
+    {
+        public string DelivererName { get; set; }
+        public string ModelCode { get; set; }
+        public string SellerName { get; set; }
+        public string Model { get; set; }
+        public string ReceiveLocation { get; set; }
+        public string SalesCategory { get; set; }
+        public string FuelType { get; set; }
+        public string IMATNumber { get; set; }
+        public string EngineSize { get; set; }
+        public string Make { get; set; }
+        public string ContractNumber { get; set; }
+        public string Variant { get; set; }
+        public string BodyType { get; set; }
+        public string[] ReceiverSign { get; set; }
+        public string EngineSizeUnit { get; set; }
+        public string RegistrationYearCheck { get; set; }
+        public string EngineNumber { get; set; }
+        public string ChassisNumber { get; set; }
+        public string EVMotorNumber { get; set; }
+        public string Color { get; set; }
+        public string DrivableCondition { get; set; }
+        public string ManufacturingYear { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string RegistrationYear { get; set; }
+        public string[] GearType_image { get; set; }
+        public string GearType { get; set; }
+        public string[] Dashboard_image { get; set; }
+        public string[] Dashboard_text { get; set; }
+        public string Dashboard { get; set; }
+        public string Mileage { get; set; }
+        public string VehicleRemarks { get; set; }
+        public string LicensePlateCheck { get; set; }
+        public string CarManual { get; set; }
+        public string RegistrationNumber { get; set; }
+        public string CarTools { get; set; }
+        public string[] TaxSign_image { get; set; }
+        public string TaxSign { get; set; }
+        public string TaxExpireDate { get; set; }
+        public string FuelAmount { get; set; }
+        public string[] HeadLightRemarks_image { get; set; }
+        public string[] HeadLightRemarks_text { get; set; }
+        public string HeadLightRemarks { get; set; }
+        public string TurnLightFrontL { get; set; }
+        public string TurnLightFrontR_text { get; set; }
+        public string TurnLightFrontR { get; set; }
+        public string DiskBrakeOilCanister_text { get; set; }
+        public string DiskBrakeOilCanister { get; set; }
+        public string EVCharger { get; set; }
+        public string Mask { get; set; }
+        public string HeadLight { get; set; }
+        public string[] Key_image { get; set; }
+        public string[] Key_text { get; set; }
+        public string Key { get; set; }
+        public string PhoneNumber { get; set; }
+        public string ServiceBook { get; set; }
+        public string FrontTire_text { get; set; }
+        public string FrontTire { get; set; }
+        public string FrontBrake_text { get; set; }
+        public string FrontBrake { get; set; }
+        public string HandClutchL_text { get; set; }
+        public string HandClutchL { get; set; }
+        public string ShockAbsorber_text { get; set; }
+        public string ShockAbsorber { get; set; }
+        public string Cub_text { get; set; }
+        public string Cub { get; set; }
+        public string HandBrakeR_text { get; set; }
+        public string HandBrakeR { get; set; }
+        public string[] FrontDamageImage { get; set; }
+        public string LicenseProvince { get; set; }
+        public string HandBrakeL_text { get; set; }
+        public string HandBrakeL { get; set; }
+        public string FrontDiskBrakePump { get; set; }
+        public string FrontRFootRest_text { get; set; }
+        public string FrontRFootRest { get; set; }
+        public string RearRFootRest_text { get; set; }
+        public string RearRFootRest { get; set; }
+        public string FrontFender_text { get; set; }
+        public string FrontFender { get; set; }
+        public string[] FrontWheel_image { get; set; }
+        public string[] FrontWheel_text { get; set; }
+        public string FrontWheel { get; set; }
+        public string SideRight_text { get; set; }
+        public string SideRight { get; set; }
+        public string[] RightDamageImage { get; set; }
+        public string StartPedal { get; set; }
+        public string[] GasTank_image { get; set; }
+        public string[] GasTank_text { get; set; }
+        public string GasTank { get; set; }
+        public string UBox_text { get; set; }
+        public string UBox { get; set; }
+        public string PipeCover_text { get; set; }
+        public string PipeCover { get; set; }
+        public string ExhaustPipe_text { get; set; }
+        public string ExhaustPipe { get; set; }
+        public string WindshieldR_text { get; set; }
+        public string WindshieldR { get; set; }
+        public string UtilityCompartmentR { get; set; }
+        public string[] Seat_image { get; set; }
+        public string[] Seat_text { get; set; }
+        public string Seat { get; set; }
+        public string SideMirrorL_text { get; set; }
+        public string SideMirrorL { get; set; }
+        public string SeatIronFrame_text { get; set; }
+        public string SeatIronFrame { get; set; }
+        public string TailLight_text { get; set; }
+        public string TailLight { get; set; }
+        public string Tools { get; set; }
+        public string Battery { get; set; }
+        public string CDIBox { get; set; }
+        public string DoubleStand { get; set; }
+        public string RearShockAbsorber { get; set; }
+        public string[] MiddleDamageImage { get; set; }
+        public string[] EngineNumberImageAndCondition_image { get; set; }
+        public string EngineNumberImageAndCondition { get; set; }
+        public string[] ChassisNumberImageAndCondition_image { get; set; }
+        public string ChassisNumberImageAndCondition { get; set; }
+        public string RearWheel { get; set; }
+        public string RearBrake { get; set; }
+        public string RearFender_text { get; set; }
+        public string RearFender { get; set; }
+        public string SideLeft { get; set; }
+        public string BackDiskBrakePumpCondition_text { get; set; }
+        public string BackDiskBrakePumpCondition { get; set; }
+        public string SideMirrorR { get; set; }
+        public string TurnLightRearR_text { get; set; }
+        public string TurnLightRearR { get; set; }
+        public string FrontLFootRest { get; set; }
+        public string RearTire_text { get; set; }
+        public string RearTire { get; set; }
+        public string[] BackDamageImage { get; set; }
+        public string RearBrakeCanister_text { get; set; }
+        public string RearBrakeCanister { get; set; }
+        public string ConditionRemarks { get; set; }
+        public string ChainGuard_text { get; set; }
+        public string ChainGuard { get; set; }
+        public string OverallGrading { get; set; }
+        public string ManufacturingYearCheck { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public Nullable<int> countdown_time { get; set; }
+        public string[] FrontImage { get; set; }
+        public string[] FrontLImage { get; set; }
+        public string[] FrontRImage { get; set; }
+        public string[] BackImage { get; set; }
+        public string[] BackLImage { get; set; }
+        public string[] BackRImage { get; set; }
+        public string SingleStand_text { get; set; }
+        public string SingleStand { get; set; }
+        public string WindShieldL { get; set; }
+        public string[] LeftDamageImage { get; set; }
+        public string UtilityCompartmentL_text { get; set; }
+        public string UtilityCompartmentL { get; set; }
+        public string[] OtherDamageImage { get; set; }
+        public string RearLFootRest_text { get; set; }
+        public string RearLFootRest { get; set; }
+        public string TurnLightRearL_text { get; set; }
+        public string TurnLightRearL { get; set; }
+    }
+
+    public class MotorbikeInspectionCatalogModel
+    {
+        public string[] ChassisNumberImageAndCondition_image { get; set; }
+        public string[] EngineNumberImageAndCondition_image { get; set; }
+        public string RearBrake { get; set; }
+        public string FrontBrake { get; set; }
+        public string GasTank { get; set; }
+        public string[] HeadLightRemarks_image { get; set; }
+        public string HandBrakeR { get; set; }
+        public string SideMirrorR { get; set; }
+        public string SideMirrorL { get; set; }
+        public string HandBrakeL { get; set; }
+        public string SingleStand { get; set; }
+        public string Mask { get; set; }
+        public string RearFender { get; set; }
+        public string ExhaustPipe { get; set; }
+        public string ChainGuard { get; set; }
+        public string RearShockAbsorber { get; set; }
+        public string RearBrakeCanister { get; set; }
+        public string DiskBrakeOilCanister { get; set; }
+        public string SeatIronFrame { get; set; }
+        public string WindShieldL { get; set; }
+        public string HandClutchL { get; set; }
+        public string FrontFender { get; set; }
+        public string StartPedal { get; set; }
+        public string ShockAbsorber { get; set; }
+        public string DoubleStand { get; set; }
+        public string PipeCover { get; set; }
+        public string Cub { get; set; }
+        public string WindshieldR { get; set; }
+        public string RearTire { get; set; }
+        public string FrontTire { get; set; }
+        public string TailLight { get; set; }
+        public string UBox { get; set; }
+        public string UtilityCompartmentR { get; set; }
+        public string UtilityCompartmentL { get; set; }
+        public string Color { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string LicensePlateCheck { get; set; }
+        public string EngineNumberImageAndCondition { get; set; }
+        public string ChassisNumberImageAndCondition { get; set; }
+        public string EVCharger { get; set; }
+        public string Mileage { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public string LicensePlateNumber { get; set; }
+        public string Make { get; set; }
+        public string Model { get; set; }
+        public string Variant { get; set; }
+        public string Dashboard { get; set; }
+        public string FrontWheel { get; set; }
+        public string RearWheel { get; set; }
+        public string FrontDiskBrakePump { get; set; }
+        public string FrontDiskBrakePumpCondition { get; set; }
+        public string BackDiskBrakePump { get; set; }
+        public string BackDiskBrakePumpCondition { get; set; }
+        public string TurnLightFrontR { get; set; }
+        public string TurnLightRearL { get; set; }
+        public string TurnLightRearR { get; set; }
+        public string TurnLightFrontL { get; set; }
+        public string RearLFootRest { get; set; }
+        public string RearRFootRest { get; set; }
+        public string FrontLFootRest { get; set; }
+        public string FrontRFootRest { get; set; }
+        public string SideLeft { get; set; }
+        public string SideRight { get; set; }
+        public string GearType { get; set; }
+        public string StartSystem { get; set; }
+        public string Key { get; set; }
+    }
+
+    public class CarInspectionCatalogModel
+    {
+        public string Make { get; set; }
+        public string Model { get; set; }
+        public string Variant { get; set; }
+        public string ChassisNumber { get; set; }
+        public string DrivableCondition { get; set; }
+        public string RegistrationYear { get; set; }
+        public string LicensePlateNumber { get; set; }
+        public string LicensePlateFBCheck { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string Color { get; set; }
+        public string TaxExpireDate { get; set; }
+        public string Mileage { get; set; }
+        public string PlateCondition { get; set; }
+        public string EngineNumberCondition { get; set; }
+        public string Key { get; set; }
+        public string WarningLight { get; set; }
+        public string GearType { get; set; }
+        public string Airbag { get; set; }
+        public string WaterDamage { get; set; }
+        public string ChassisNumberCondition { get; set; }
+        public string GasInstall { get; set; }
+        public string EngineCondition { get; set; }
+        public string EngineConditionRemarks { get; set; }
+        public string ChassisCondition { get; set; }
+        public string VehicleGroup { get; set; }
+        public string StructureGrade { get; set; }
+        public string EngineGrade { get; set; }
+        public string IntreiorGrade { get; set; }
+    }
+
+    public class SalvageInspectionCatalogModel
+    {
+        public string Make { get; set; }
+        public string Model { get; set; }
+        public string Variant { get; set; }
+        public string LicensePlateFBCheck { get; set; }
+        public string LicenePlateMatchWithCar { get; set; }
+        public string TypeofLicensePlate { get; set; }
+        public string TaxExpireDate { get; set; }
+        public string PlateCondition { get; set; }
+        public string EngineNumberCondition { get; set; }
+        public string GearType { get; set; }
+        public string WaterDamage { get; set; }
+        public string ChassisNumberCondition { get; set; }
+        public string GasInstall { get; set; }
+        public string FuelType { get; set; }
+     
+    }
     //#region Schema
     //public class Schema
     //{

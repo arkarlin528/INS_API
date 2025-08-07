@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http.Results;
 using System.Xml.Linq;
 using INS_API_DataFeed.DAO;
 
@@ -338,6 +339,42 @@ namespace INS_API_DataFeed
                     using (var command = context.Database.Connection.CreateCommand())
                     {
                         command.CommandText = INS_Query.get_Seller;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetSellerByCode
+        public DataTable GetSellerByCode(string code)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_SellerByCode;
+
+                        command.Parameters.Add(new SqlParameter("@code", code));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1475,6 +1512,42 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetModelTemplateById
+        public DataTable GetModelTemplateById(int id)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_ModelTemplateById;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region GetMakeByModelCode
         public DataTable GetMakeByModelCode(string code)
         {
@@ -1782,6 +1855,49 @@ namespace INS_API_DataFeed
                         command.CommandText = INS_Query.get_GearByVarID;
 
                         command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetInspecitonCatalog
+        public DataTable GetInspecitonCatalog(string imapNo)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+                    if (long.TryParse(imapNo, out long number))
+                    {
+                        imapNo = number.ToString("D18"); 
+                    }
+                    else
+                    {
+                        imapNo = imapNo.PadLeft(18, '0'); 
+                    }
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_InspecitonCatalog;
+
+                        command.Parameters.Add(new SqlParameter("@imapNo", imapNo));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -3446,6 +3562,64 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region UpdateInspectionCountINNOSYNC
+        public void UpdateInspectionCountINNOSYNC(string vehicleId, int syncId)
+        {
+            try
+            {
+
+                    var context = new INS_WEB_dataFeedContext();
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    int count = 0;
+                    DataTable result = new DataTable();
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_inspectionCountByVehicleId;
+
+                        command.Parameters.Add(new SqlParameter("@vehicleId", vehicleId));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                    if (result.Rows.Count > 0)
+                    {
+                        count = int.Parse(result.Rows[0]["InspectionCount"].ToString());
+                    }
+
+                    #region Parameter
+
+                    var UserParam = new List<SqlParameter> {
+                        new SqlParameter("@syncId",syncId),
+                        new SqlParameter("@count",count),
+                        };
+
+                    #endregion Parameter
+
+                    context.Database.ExecuteSqlCommand(INS_Query.Update_InspectionCountINNOSYNC, UserParam.ToArray());
+
+
+                    if (context.Database.Connection.State == ConnectionState.Open)
+                    {
+                        context.Database.Connection.Close();
+                    }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
         #region UpdateVehicleDocument
         public void UpdateVehicleDocument(string vehicleId, int documentTypeId)
         {
@@ -3889,6 +4063,8 @@ namespace INS_API_DataFeed
 
         public static string get_Seller = "SELECT Customer SellerCode,CompanyName_LO SellerNameTh,CompanyName_BU SellerNameEn FROM IMAP.dbo.Customers WHERE CustomerType = 'S'";
 
+        public static string get_SellerByCode = "SELECT Customer SellerCode,CompanyName_LO SellerNameTh,CompanyName_BU SellerNameEn FROM IMAP.dbo.Customers WHERE CustomerType = 'S' AND Customer=@code";
+
         public static string Save_RiceHarvester = @"INSERT INTO Inspection_RiceHarverster VALUES (@Tracks,@Rollers,@Blade,@ConveyorChain,@IdlerWheel,@ThreshingChamber,
                                                     @GrainStorageTank,@Battery,@Covers,@DriversSeat,@DustExtractionFan,
                                                     @Roof,@WorkerPlatform,@WorkerRearSupport,@Toolbox,@Key,@FuelLevel,
@@ -4008,6 +4184,12 @@ namespace INS_API_DataFeed
                                                     GearBox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
                                                     from  ZILO.IMAP.dbo.ModelTemplates where ModelCode=@code";
 
+        public static string get_ModelTemplateById = @"select ID, 
+                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants ModelDisplay,
+                                                    BuildYear,Model_BU,Model_LO,Variants,Description_BU,Description_LO, EngineCapacity,EngineCapacityUnit, FuelDelivery, FuelType,
+                                                    GearBox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
+                                                    from  ZILO.IMAP.dbo.ModelTemplates where ID=@id";
+
         public static string get_MakeByModelCode = @"SELECT Makes.Make,Desc_BU,Desc_LO
                                                             FROM
                                                             (SELECT DISTINCT Make FROM ZILO.IMAP.dbo.ModelTemplates WHERE ModelCode = @code) MC
@@ -4026,7 +4208,7 @@ namespace INS_API_DataFeed
                                                                 (SELECT DISTINCT ID,FuelDelivery FROM ZILO.IMAP.dbo.ModelTemplates WHERE ID = @id) Data
                                                                 LEFT JOIN ZILO.IMAP.dbo.FuelDeliveries FD ON Data.FuelDelivery = FD.FuelDelivery";
 
-        public static string get_FuelTypeByVarID = @"SELECT Data.ID VarID,FT.Desc_BU Fuel_BU,FT.Desc_LO Fuel_LO
+        public static string get_FuelTypeByVarID = @"SELECT Data.ID VarID,FT.FuelType FuelType,FT.Desc_BU Fuel_BU,FT.Desc_LO Fuel_LO
                                                                 FROM
                                                                 (SELECT DISTINCT ID,FuelType FROM ZILO.IMAP.dbo.ModelTemplates WHERE ID = @id) Data
                                                                 LEFT JOIN ZILO.IMAP.dbo.FuelTypes FT ON Data.FuelType = FT.FuelType";
@@ -4041,12 +4223,14 @@ namespace INS_API_DataFeed
                                                         (SELECT DISTINCT ID,Gears FROM ZILO.IMAP.dbo.ModelTemplates WHERE ID = @id) Data
                                                         LEFT JOIN ZILO.IMAP.dbo.Gears G ON Data.Gears = G.Gears";
 
-        public static string get_BodyByVarID = @"SELECT Data.ID VarID,B.Desc_BU Body_BU,B.Desc_LO Body_LO
+        public static string get_BodyByVarID = @"SELECT Data.ID VarID,B.Body BodyType,B.Desc_BU Body_BU,B.Desc_LO Body_LO
                                                         FROM
                                                         (SELECT DISTINCT ID,Body FROM ZILO.IMAP.dbo.ModelTemplates WHERE ID = @id) Data
                                                         LEFT JOIN ZILO.IMAP.dbo.Bodies B ON Data.Body = B.Body";
 
         public static string get_MatModel = @"select * from  ZILO.IMAP.dbo.View_Mat_Model";
+
+        public static string get_InspecitonCatalog = @"select * from [dbo].[INNO_SYNC] where VehicleId=@imapNo order by InspectionCount desc";
 
         public static string get_CabType = @"SELECT RTRIM(CabTypeID) AS CabTypeID,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.CabType";
 
@@ -4332,16 +4516,21 @@ namespace INS_API_DataFeed
         public static string get_GenerateDataSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
                                                         VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
                                                         (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType,
-                                                        (CASE WHEN SCHEMANAME LIKE  '%Motor%' THEN 'Motorbike' WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' ELSE '' END) SchemaVehicle
+                                                        (CASE WHEN SCHEMANAME LIKE  '%Motor%' THEN 'Motorbike' WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' WHEN SCHEMANAME LIKE  '%salvage%' THEN 'SVG' ELSE '' END) SchemaVehicle
                                                         FROM [dbo].[INNO_SYNC] WHERE RefKey = @RefKey ORDER BY ID DESC";
 
         public static string get_VehicleColoursSet = @"SELECT Cid,Colour_BU,Colour_LO FROM ZILO.IMAP.dbo.VehicleColoursSet ";
 
-        public static string get_INNOSyncByID = @"SELECT ID,RefKey,TxnDate,Schemaname,SchemaInfo,InspectionData,Sendername,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate, " +
-                                                    "(CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType " +
-                                                    "FROM InspectionWeb.dbo.INNO_SYNC where ID=@id";
+        public static string get_INNOSyncByID = @"SELECT ID,RefKey,TxnDate,Schemaname,SchemaInfo,InspectionData,Sendername,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
+                                                    (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType ,
+													(CASE WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' WHEN SCHEMANAME LIKE  '%motorbike%' THEN 'MB' WHEN SCHEMANAME LIKE  '%salvage%' THEN 'SVG' ELSE '' END)  VehicleType
+                                                    FROM InspectionWeb.dbo.INNO_SYNC where ID=@id";
 
         public static string get_BookInNoByVehicleID = $@"select BookInNumber from BookIn where VehicleId=@id";
+
+        public static string Update_InspectionCountINNOSYNC = $@"UPDATE INNO_SYNC SET InspectionCount = @count + 1 WHERE ID=@syncId";
+
+        public static string get_inspectionCountByVehicleId = $@"SELECT COUNT(*) AS InspectionCount FROM INNO_SYNC WHERE VehicleId = @vehicleId AND SchemaName LIKE '%inspection%'";
 
     }
     #endregion

@@ -1955,6 +1955,68 @@ namespace INS_API.Controllers
         }
         #endregion
 
+        #region GetInspecitonCatalog
+        [HttpGet]
+        public ActionResult GetInspecitonCatalog(string imapNo)
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+            try
+            {
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                DataTable dt = objDataFeed.GetInspecitonCatalog(imapNo);
+
+                if (dt == null || dt.Rows.Count == 0)
+                {
+                    return Json(new { message = "There is no vehicle inspection by this imapNo." }, JsonRequestBehavior.AllowGet);
+                }
+
+                // Extract schema and JSON string
+                string schemaName = dt.Rows[0]["schemaName"]?.ToString()?.ToLower() ?? "";
+                string inspectionJson = dt.Rows[0]["InspectionData"]?.ToString() ?? "";
+
+                if (string.IsNullOrEmpty(inspectionJson))
+                {
+                    return Json(new { message = "Inspection data is empty." }, JsonRequestBehavior.AllowGet);
+                }
+
+                object resultObj;
+
+                if (schemaName.Contains("car"))
+                {
+                    var carModel = JsonConvert.DeserializeObject<CarInspectionCatalogModel>(inspectionJson);
+                    resultObj = carModel;
+                }
+                else if (schemaName.Contains("motorbike"))
+                {
+                    var motorbikeModel = JsonConvert.DeserializeObject<MotorbikeInspectionCatalogModel>(inspectionJson);
+                    resultObj = motorbikeModel;
+                }
+                else if (schemaName.Contains("salvage"))
+                {
+                    var salvageModel = JsonConvert.DeserializeObject<SalvageInspectionCatalogModel>(inspectionJson);
+                    resultObj = salvageModel;
+                }
+                else
+                {
+                    return Json(new { message = "Unknown schema type." }, JsonRequestBehavior.AllowGet);
+                }
+
+                return Json(resultObj, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
         #region GetBodyByVarId
         [HttpGet]
         public ActionResult GetBodyByVarId(int id)
@@ -2149,7 +2211,7 @@ namespace INS_API.Controllers
                     BookInDate = bookinType.BookInDate,
                     SenderName = bookinType.SenderName,
                     ReceiverName = bookinType.ReceiverName,
-                    ContractNumber = bookinType.ContractNumber,
+                    ContractNumber = bookinType.ContractNumber ?? String.Empty,
                     MobileNumber = bookinType.MobileNumber,
                     Status = bookinType.Status,
                     SellerCode = bookinType.SellerCode,
@@ -2349,9 +2411,7 @@ namespace INS_API.Controllers
                 DataTable dt = objDataFeed.GetCarInspectionByBookIn(jsonData.BookInNumber);
                 if (dt.Rows.Count > 0)
                 {
-                    //logger.Error("inspection-create : Conflict");
-                    Response.StatusCode = 409;
-                    return Json(new { success = false, message = "Conflict" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = true, message = "Inspection saved successfully.", vehicleId = jsonData.VehicleId.TrimEnd() }, JsonRequestBehavior.AllowGet);
                 }
 
                 CarInspection carInspection = new CarInspection()
@@ -2359,17 +2419,17 @@ namespace INS_API.Controllers
                     //InspectionId = jsonData.InspectionId,
                     BookInNumber = jsonData.BookInNumber,
                     VehicleId = jsonData.VehicleId,
-                    Inspector = jsonData.Inspector,
+                    Inspector = jsonData.Inspector ?? "",
                     InspectionDate = jsonData.InspectionDate,
-                    InspectorName = jsonData.InspectorName,
-                    Chassis = jsonData.Chassis,
-                    Front = jsonData.Front,
-                    Back = jsonData.Back,
-                    RightSide = jsonData.RightSide,
-                    LeftSide = jsonData.LeftSide,
-                    Roof = jsonData.Roof,
+                    InspectorName = jsonData.InspectorName ?? "",
+                    Chassis = jsonData.Chassis ?? "",
+                    Front = jsonData.Front ?? "",
+                    Back = jsonData.Back ?? "",
+                    RightSide = jsonData.RightSide ?? "",
+                    LeftSide = jsonData.LeftSide ?? "",
+                    Roof = jsonData.Roof ?? "",
                     IsFlood = jsonData.IsFlood ?? false,
-                    BodySummary = jsonData.BodySummary,
+                    BodySummary = jsonData.BodySummary ?? "",
                     IsEngineWorks = jsonData.IsEngineWorks ?? false,
                     FuelSystemId = jsonData.FuelSystemId ?? 0,
                     IsLubricatorLow = jsonData.IsLubricatorLow ?? false,
@@ -2382,28 +2442,28 @@ namespace INS_API.Controllers
                     IsMachineLightShow = jsonData.IsMachineLightShow ?? false,
                     IsEngineAbnomal = jsonData.IsEngineAbnomal ?? false,
                     IsNeedRepair = jsonData.IsNeedRepair ?? false,
-                    EngineSummary = jsonData.EngineSummary,
+                    EngineSummary = jsonData.EngineSummary ?? "",
                     DriveShaftConditionId = jsonData.DriveShaftConditionId ?? 0,
-                    DriveShaftConditionNote = jsonData.DriveShaftConditionNote,
+                    DriveShaftConditionNote = jsonData.DriveShaftConditionNote ?? "",
                     SuspensionConditionId = jsonData.SuspensionConditionId ?? 0,
-                    SuspensionConditionNote = jsonData.SuspensionConditionNote,
-                    SuspensionSummary = jsonData.SuspensionSummary,
+                    SuspensionConditionNote = jsonData.SuspensionConditionNote ?? "",
+                    SuspensionSummary = jsonData.SuspensionSummary ?? "",
                     GearSystemId = jsonData.GearSystemId ?? 0,
                     GearConditionId = jsonData.GearConditionId ?? 0,
                     DriveShaftId = jsonData.DriveShaftId ?? 0,
                     Is4WD = jsonData.Is4WD ?? false,
-                    GearSystemSummary = jsonData.GearSystemSummary,
+                    GearSystemSummary = jsonData.GearSystemSummary ?? "",
                     IsUseableSteerWheel = jsonData.IsUseableSteerWheel ?? false,
                     IsPowerSteering = jsonData.IsPowerSteering ?? false,
-                    SteeringSummary = jsonData.SteeringSummary,
+                    SteeringSummary = jsonData.SteeringSummary ?? "",
                     IsUseableBrake = jsonData.IsUseableBrake ?? false,
-                    BreakSystemSumary = jsonData.BreakSystemSumary,
+                    BreakSystemSumary = jsonData.BreakSystemSumary ?? "",
                     IsAirCool = jsonData.IsAirCool ?? false,
                     IsCompressorAir = jsonData.IsCompressorAir ?? false,
-                    AirSystemSummary = jsonData.AirSystemSummary,
+                    AirSystemSummary = jsonData.AirSystemSummary ?? "",
                     IsUseableGuage = jsonData.IsUseableGuage ?? false,
-                    WarningLightNote = jsonData.WarningLightNote,
-                    GaugeSummary = jsonData.GaugeSummary,
+                    WarningLightNote = jsonData.WarningLightNote ?? "",
+                    GaugeSummary = jsonData.GaugeSummary ?? "",
                     IsFrontLightWorking = jsonData.IsFrontLightWorking ?? false,
                     IsTurnLightWorking = jsonData.IsTurnLightWorking ?? false,
                     IsBackLightWorking = jsonData.IsBackLightWorking ?? false,
@@ -2417,8 +2477,8 @@ namespace INS_API.Controllers
                     IsNavigatorSdcard = jsonData.IsNavigatorSdcard ?? false,
                     IsNavigatorNoCD = jsonData.IsNavigatorNoCD ?? false,
                     IsNavigatorNoSdcard = jsonData.IsNavigatorNoSdcard ?? false,
-                    ElectronicNote = jsonData.ElectronicNote,
-                    ElectronicSummary = jsonData.ElectronicSummary,
+                    ElectronicNote = jsonData.ElectronicNote ?? "",
+                    ElectronicSummary = jsonData.ElectronicSummary ?? "",
                     LatestUpdatedDate = jsonData.LatestUpdatedDate ?? DateTime.Now,
                     Regisration = jsonData.Regisration ?? String.Empty,
                     RegistrationProvince = jsonData.RegistrationProvince ?? String.Empty
@@ -2442,6 +2502,41 @@ namespace INS_API.Controllers
                 //logger.Error("inspection-create : Invalid JSON format.");
                 Response.StatusCode = 400;
                 return Json(new { success = false, message = "Invalid JSON format." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
+        #region CheckIMAPNumber
+        [HttpGet]
+        public ActionResult CheckIMAPNumber(string imapNo)
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+            try
+            {
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                string bookInNo = objDataFeed.GetBookInNoByVehicleID(int.Parse(imapNo == null ? "0" : imapNo).ToString("D18"));
+                //var rowDict = dt.Rows[0].Table.Columns.Cast<DataColumn>()
+                // .ToDictionary(col => col.ColumnName, col => dt.Rows[0][col]);
+
+                if (bookInNo == "")
+                {
+                    return Json(new { success = false, message = "Invalid Imap Number." }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return Json(new { success = true, message = "Valid Imap Number." }, JsonRequestBehavior.AllowGet);
+                }
             }
             catch (Exception ex)
             {
@@ -2502,7 +2597,7 @@ namespace INS_API.Controllers
         //            //   && i.ImageName.Equals(model.InspectionImage.ImageName.TrimEnd())
         //            //   && i.IsDeleted == false))
         //            //{
-                       
+
 
         //            //    return BadRequest("Invalid parameter.");
         //            //}

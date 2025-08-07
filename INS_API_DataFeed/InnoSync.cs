@@ -34,7 +34,7 @@ namespace INS_API_DataFeed
 
         public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] " +
                                                "VALUES (@RefKey,@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
-                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate);SELECT SCOPE_IDENTITY();";
+                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate,0,0);SELECT SCOPE_IDENTITY();";
 
         public string Query_UpdateVehicleId = @"UPDATE [dbo].[INNO_SYNC] SET VehicleId = @VehicleId WHERE ID = @ID;";
         public string strSyncError = "";
@@ -81,6 +81,7 @@ namespace INS_API_DataFeed
                 this.MobileNumber = (this.MobileNumber == null ? "" : this.MobileNumber);
                 this.SellerCode = (this.SellerCode == null ? "" : this.SellerCode);
                 this.Inspector = (this.Inspector == null ? "" : this.Inspector);
+                this.InspectorID = (this.InspectorID == null ? "" : this.InspectorID);
                 this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
                 this.ChasisNumber = (this.ChasisNumber == null ? "" : this.ChasisNumber);
                 this.VIN = (this.VIN == null ? "" : this.VIN);
