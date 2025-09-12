@@ -4733,18 +4733,23 @@ namespace INS_API_DataFeed
                                                     "FROM InspectionWeb.dbo.INNO_SYNC";
 
 
-        public static string get_InspectionDataListV2 = @" SELECT BookIn.RefKey BookInRefKey,BookIn.VehicleId,BookIn.RegistrationNumber,
-                                                             BookIn.SenderName,BookIn.ReceiverName,BookIn.MobileNumber,BookIn.Inspector BookInInspector,BookIn.TxnDate BookInDate,BookIn.SchemaName BISchemaName,
-                                                             Inspection.SchemaName InsSchemaName,Inspection.Inspector Inspector,Inspection.TxnDate InspectionDate,BookIn.ID BookInSyncID,Inspection.ID InspectSyncID
-                                                             FROM
-                                                             (SELECT ID,RefKey,TxnDate,SchemaName,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
-                                                            FROM InspectionWeb.dbo.INNO_SYNC
-                                                            WHERE ISNULL(VehicleId,'') <> '' AND SCHEMANAME LIKE  '%bookin%')BookIn
-                                                            LEFT JOIN
-                                                            (SELECT ID,RefKey,TxnDate,SchemaName,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
-                                                            FROM InspectionWeb.dbo.INNO_SYNC
-                                                            WHERE ISNULL(VehicleId,'') <> '' AND SCHEMANAME LIKE  '%inspection%') Inspection
-                                                            ON BookIn.VehicleId = Inspection.VehicleId";
+        public static string get_InspectionDataListV2 = @" SELECT BookIn.RefKey BookInRefKey,Inspection.RefKey InspectionRefKey,BookIn.VehicleId,BookIn.RegistrationNumber,BookIn.SellerCode,
+                                                BookIn.SenderName,BookIn.ReceiverName,BookIn.MobileNumber,BookIn.Inspector BookInInspector,BookIn.TxnDate BookInDate,BookIn.SchemaName BISchemaName,
+                                                Inspection.SchemaName InsSchemaName,Inspection.Inspector Inspector,Inspection.TxnDate InspectionDate,BookIn.ID BookInSyncID,Inspection.ID InspectSyncID
+                                                FROM
+                                                (SELECT ID,RefKey,TxnDate,SchemaName,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                FROM InspectionWeb.dbo.INNO_SYNC
+                                                WHERE ISNULL(VehicleId,'') <> '' AND SCHEMANAME LIKE  '%bookin%')BookIn
+                                                LEFT JOIN
+                                                (SELECT * FROM
+                                                (SELECT ID,RefKey,TxnDate,SchemaName,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
+                                                ROW_NUMBER() OVER(PARTITION BY VehicleID ORDER BY TxnDate,ID DESC) TxnOrder
+                                                FROM InspectionWeb.dbo.INNO_SYNC
+                                                WHERE ISNULL(VehicleId,'') <> '' AND SCHEMANAME LIKE  '%inspection%') TMP
+                                                WHERE TxnOrder = 1) Inspection
+                                                ON BookIn.VehicleId = Inspection.VehicleId
+                                                WHERE ISNULL(BookIn.VehicleId,'') <> ''
+                                                ORDER BY BookInDate";
 
         public static string get_GenerateDataSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
                                                         VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
