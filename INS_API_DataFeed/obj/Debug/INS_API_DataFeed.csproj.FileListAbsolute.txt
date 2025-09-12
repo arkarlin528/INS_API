@@ -148,3 +148,6 @@ D:\motto\Inspection App - Innorithm\API_DEV\INS_API_DataFeed\obj\Debug\INS_API_D
 D:\motto\Inspection App - Innorithm\API_DEV\INS_API_DataFeed\obj\Debug\INS_API_DataFeed.csproj.CopyComplete
 D:\motto\Inspection App - Innorithm\API_DEV\INS_API_DataFeed\obj\Debug\INS_API_DataFeed.dll
 D:\motto\Inspection App - Innorithm\API_DEV\INS_API_DataFeed\obj\Debug\INS_API_DataFeed.pdb
+C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API_DataFeed\bin\Debug\QRCoder.dll
+C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API_DataFeed\bin\Debug\System.Text.Encoding.CodePages.dll
+C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API_DataFeed\bin\Debug\System.Text.Encoding.CodePages.xml

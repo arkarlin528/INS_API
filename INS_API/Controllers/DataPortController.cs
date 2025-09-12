@@ -54,7 +54,7 @@ namespace INS_API.Controllers
                 innoSync.ID = 0;
                 innoSync.RefKey = RefKey;
                 innoSync.TxnDate = DateTime.Now;
-                innoSync.SchemaName = doc.RootElement.GetProperty("schema").GetProperty("key").GetString();
+                innoSync.SchemaName = doc.RootElement.GetProperty("schema").GetProperty("key").ToString();
                 //Schema
                 if (doc.RootElement.GetProperty("schema").TryGetProperty("key", out JsonElement SchemaKey))
                 {
@@ -66,7 +66,7 @@ namespace INS_API.Controllers
                     }
                     else
                     {
-                        innoSync.SchemaName = doc.RootElement.GetProperty("schema").GetProperty("key").GetString();
+                        innoSync.SchemaName = doc.RootElement.GetProperty("schema").GetProperty("key").ToString();
                     }
                 }
                 else
@@ -84,7 +84,7 @@ namespace INS_API.Controllers
                     }
                     else
                     {
-                        innoSync.SenderName = doc.RootElement.GetProperty("data").GetProperty("DelivererName").GetString();
+                        innoSync.SenderName = doc.RootElement.GetProperty("data").GetProperty("DelivererName").ToString();
                     }
                 }
 
@@ -115,8 +115,8 @@ namespace INS_API.Controllers
                     }
                     else
                     {
-                        innoSync.Inspector = doc.RootElement.GetProperty("inspector_user_email").GetString();
-                        innoSync.CreatedBy = doc.RootElement.GetProperty("inspector_user_email").GetString().ToString();
+                        innoSync.Inspector = doc.RootElement.GetProperty("inspector_user_email").ToString();
+                        innoSync.CreatedBy = doc.RootElement.GetProperty("inspector_user_email").ToString();
                     }
                 }
                 else
@@ -127,7 +127,7 @@ namespace INS_API.Controllers
                 innoSync.SchemaInfo = doc.RootElement.GetProperty("schema").GetRawText();
                 innoSync.InspectionData = doc.RootElement.GetProperty("data").GetRawText();
                 //ContractNumber
-                if (doc.RootElement.GetProperty("data").TryGetProperty("ContractNumber", out JsonElement contact))
+                if (doc.RootElement.GetProperty("data").TryGetProperty("PhoneNumber", out JsonElement contact))
                 {
                     // Check if the property is null or has a value
                     if (contact.ValueKind == JsonValueKind.Null)
@@ -136,10 +136,10 @@ namespace INS_API.Controllers
                     }
                     else
                     {
-                        innoSync.MobileNumber = doc.RootElement.GetProperty("data").GetProperty("ContractNumber").GetString();
+                        innoSync.MobileNumber = doc.RootElement.GetProperty("data").GetProperty("PhoneNumber").ToString();
                     }
                 }
-                innoSync.SellerCode = doc.RootElement.GetProperty("data").GetProperty("SellerName").GetString();               
+                innoSync.SellerCode = doc.RootElement.GetProperty("data").GetProperty("SellerName").ToString();               
                 
                 innoSync.VehicleId = "";
                 if (doc.RootElement.GetProperty("data").TryGetProperty("ChassisNumber", out JsonElement chasis))
@@ -151,11 +151,11 @@ namespace INS_API.Controllers
                     }
                     else
                     {
-                        innoSync.ChasisNumber = doc.RootElement.GetProperty("data").GetProperty("ChassisNumber").GetString();
+                        innoSync.ChasisNumber = doc.RootElement.GetProperty("data").GetProperty("ChassisNumber").ToString();
                     }
                 }
                 innoSync.VIN = "";
-                if (doc.RootElement.TryGetProperty("LicensePlateNumber", out JsonElement regNumber))
+                if (doc.RootElement.GetProperty("data").TryGetProperty("LicensePlateNumber", out JsonElement regNumber))
                 {
                     // Check if the property is null or has a value
                     if (regNumber.ValueKind == JsonValueKind.Null)
@@ -164,7 +164,7 @@ namespace INS_API.Controllers
                     }
                     else
                     {
-                        innoSync.RegistrationNumber = doc.RootElement.GetProperty("data").GetProperty("LicensePlateNumber").GetString();
+                        innoSync.RegistrationNumber = doc.RootElement.GetProperty("data").GetProperty("LicensePlateNumber").ToString();
                     }
                 }                
                 innoSync.CreatedDate = DateTime.Now;
@@ -197,16 +197,39 @@ namespace INS_API.Controllers
                     if (blRtn)
                     {
                         string vehicleId= SyncOnIMAP(innoSync.ID);
-                        if (vehicleId != "")
+                        if (vehicleId.Contains("failed"))
+                        {
+                            Response.StatusCode = 200;
+                            return Json(new { success = false, message = "Inspection Saved Successfully But Sync failed to IMAP.", refKey = innoSync.ID.ToString(), errorFromImap = vehicleId }, JsonRequestBehavior.AllowGet);
+                        }
+                        else
                         {
                             innoSync.VehicleId = vehicleId;
                             innoSync.UpdateVehicleID();
+                            //using (var client = new HttpClient())
+                            //{
+                            //    client.DefaultRequestHeaders.Add("apiKey", apiKey);
+                            //    var response = client.GetAsync($"https://localhost:44327/Sheet/GenerateDataSheet?RefNumber={RefKey}").Result;
+
+                            //    if (!response.IsSuccessStatusCode)
+                            //    {
+                            //    }
+                            //    else
+                            //    {
+                            //        var responseContent = response.Content.ReadAsStringAsync().Result;
+                            //        var sheetResponse = JsonConvert.DeserializeObject<SheetResponse[]>(responseContent);
+                            //        ReportImageGenerator reportImageGenerator = new ReportImageGenerator();
+                            //        byte[] imageBytes = reportImageGenerator.GenerateImage(sheetResponse[0]);
+                            //        string filePath = Path.Combine(@"C:\Users\arkarl\Documents\Motto\INS_Report_INNO\", "CarBookIn.png");
+                            //        System.IO.File.WriteAllBytes(filePath, imageBytes);
+                            //    }
+                            //}
+                            return Json(new { success = true, message = "Inspection Saved Successfully.", refKey = innoSync.ID.ToString(), imapNo = vehicleId }, JsonRequestBehavior.AllowGet);
                         }
-                        return Json(new { success = true, message = " Inspection Saved Successfully.", refKey= innoSync.ID.ToString(), imapNo = vehicleId }, JsonRequestBehavior.AllowGet);
                     }
                     else
                     {
-                        Response.StatusCode = 409;
+                        Response.StatusCode = 200;
                         return Json(new { success = false, message = innoSync.strSyncError }, JsonRequestBehavior.AllowGet);
                     }
                 }
@@ -220,7 +243,8 @@ namespace INS_API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+                Response.StatusCode = 500;
+                return Json(new { success = false, message = "An error occurred while processing the request :" + ex.Message }, JsonRequestBehavior.AllowGet);
             }
             
         }
@@ -418,6 +442,11 @@ namespace INS_API.Controllers
                                 objDataFeed.UpdateInspectionCountINNOSYNC(vehicleId, id);
                                 }
                             }
+                            else if (jsonResponse["success"]?.Value<bool>() == false)
+                            {
+                                vehicleId = jsonResponse["message"]?.ToString();  
+                                objDataFeed.UpdateErrorINNOSYNC(vehicleId, id);
+                            }
                         }
                     }
                 }
@@ -473,7 +502,9 @@ namespace INS_API.Controllers
                     ModifiedBy = "",
                     ModifiedDate = null,
                     ContractTypeCode = "",//no field in inno
-                    StickVin = ""//no field in inno
+                    StickVin = "",//no field in inno,
+                    TenantName= (inspectionData.HirePurchaserName == null ? "" : inspectionData.HirePurchaserName),
+                    TimeStartApp = row.Field<DateTime?>("CreatedDate"),
                 },
                 VehicleType = new Vehicle
                 {

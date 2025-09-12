@@ -1063,6 +1063,8 @@ namespace INS_API_DataFeed.DAO
         public Nullable<System.DateTime> ModifiedDate { get; set; }
         public string ContractTypeCode { get; set; }
         public string StickVin { get; set; }
+        public string TenantName { get; set; }
+        public Nullable<System.DateTime> TimeStartApp { get; set; }
 
     }
     public class Vehicle
@@ -1261,6 +1263,8 @@ namespace INS_API_DataFeed.DAO
         public Nullable<System.DateTime> ModifiedDate { get; set; }
         public string ContractTypeCode { get; set; }
         public byte[] StickVin { get; set; }
+        public string TenantName { get; set; }
+        public Nullable<System.DateTime> TimeStartApp { get; set; }
     }
 
     public partial class CarInspection
@@ -1676,6 +1680,7 @@ namespace INS_API_DataFeed.DAO
         public string Model { get; set; }
         public string EVMotorNumber { get; set; }
         public string EVMotorNumber2 { get; set; }
+        public string HirePurchaserName  { get; set; }
         public string TypeofLicensePlate { get; set; }
         public string LicenePlateMatchWithCar { get; set; }
         public string[] RegistrationYearCheck_image { get; set; }
@@ -2127,7 +2132,7 @@ namespace INS_API_DataFeed.DAO
         public string RearBrake { get; set; }
         public string FrontBrake { get; set; }
         public string GasTank { get; set; }
-        public string[] HeadLightRemarks_image { get; set; }
+        public string HeadLightRemarks { get; set; }
         public string HandBrakeR { get; set; }
         public string SideMirrorR { get; set; }
         public string SideMirrorL { get; set; }
@@ -2188,6 +2193,8 @@ namespace INS_API_DataFeed.DAO
         public string GearType { get; set; }
         public string StartSystem { get; set; }
         public string Key { get; set; }
+        public string VehicleGroup { get; set; }
+        public string StructureGrade { get; set; }
     }
 
     public class CarInspectionCatalogModel
@@ -2220,7 +2227,7 @@ namespace INS_API_DataFeed.DAO
         public string VehicleGroup { get; set; }
         public string StructureGrade { get; set; }
         public string EngineGrade { get; set; }
-        public string IntreiorGrade { get; set; }
+        public string InteriorGrade { get; set; }
     }
 
     public class SalvageInspectionCatalogModel
@@ -2332,4 +2339,28 @@ namespace INS_API_DataFeed.DAO
     //    public SchemaSnapshot schemaSnapshot { get; set; }
     //}
     //#endregion
+
+    public class SheetResponse
+    {
+        public int ID { get; set; }
+        public string RefKey { get; set; }
+        public string TxnDate { get; set; }  // Can be DateTime if you parse it
+        public string SchemaName { get; set; }
+        public string SchemaInfo { get; set; }  // JsonString in TS → string in C#
+        public string InspectionData { get; set; }  // JsonString → string
+        public string SenderName { get; set; }
+        public string Receivername { get; set; }
+        public string MobileNumber { get; set; }
+        public string SellerCode { get; set; }
+        public int InspectorID { get; set; }
+        public string Inspector { get; set; }
+        public string VehicleId { get; set; }
+        public string ChasisNumber { get; set; }
+        public string VIN { get; set; }
+        public string RegistrationNumber { get; set; }
+        public string CreatedBy { get; set; }
+        public string CreatedDate { get; set; }  // Can be DateTime if needed
+        public string SchemaType { get; set; }
+        public string SchemaVehicle { get; set; }
+    }
 }

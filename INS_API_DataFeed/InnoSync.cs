@@ -34,9 +34,11 @@ namespace INS_API_DataFeed
 
         public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] " +
                                                "VALUES (@RefKey,@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
-                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate,0,0);SELECT SCOPE_IDENTITY();";
+                                                "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate,0,0,@ErrorMsg);SELECT SCOPE_IDENTITY();";
 
         public string Query_UpdateVehicleId = @"UPDATE [dbo].[INNO_SYNC] SET VehicleId = @VehicleId WHERE ID = @ID;";
+
+        public string Query_CheckDuplicateCarBookIn = @"SELECT * FROM [dbo].[INNO_SYNC] WHERE SellerCode = @SellerCode AND RegistrationNumber = @Reg And SchemaName like '%bookin%';";
         public string strSyncError = "";
 
         public InnoSync()
@@ -86,8 +88,32 @@ namespace INS_API_DataFeed
                 this.ChasisNumber = (this.ChasisNumber == null ? "" : this.ChasisNumber);
                 this.VIN = (this.VIN == null ? "" : this.VIN);
                 this.RegistrationNumber = (this.RegistrationNumber == null ? "" : this.RegistrationNumber);
-                this.CreatedBy = (this.CreatedBy == null ? "" : this.CreatedBy);              
+                this.CreatedBy = (this.CreatedBy == null ? "" : this.CreatedBy);
 
+                DataTable chkDuplicate = new DataTable();
+                if (this.SchemaName.Contains("bookin"))
+                {
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Query_CheckDuplicateCarBookIn;
+
+                        #region Parameters
+
+                        command.Parameters.Add(new SqlParameter("@SellerCode", this.SellerCode));
+                        command.Parameters.Add(new SqlParameter("@Reg", this.RegistrationNumber));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            chkDuplicate.Load(reader);
+                        }
+                    }
+                    if (chkDuplicate.Rows.Count > 0)
+                    {
+
+                        strSyncError = "Duplicate Car BookIn Record";
+                    }
+                }
                 #endregion Parameter
                 using (SqlCommand command = new SqlCommand(Query_CreateInspection, (SqlConnection)context.Database.Connection))
                 {
@@ -108,6 +134,7 @@ namespace INS_API_DataFeed
                     command.Parameters.AddWithValue("@Reg", this.RegistrationNumber);
                     command.Parameters.AddWithValue("@CreatedBy", this.CreatedBy);
                     command.Parameters.AddWithValue("@CreatedDate", DateTime.Today);
+                    command.Parameters.AddWithValue("@ErrorMsg", strSyncError);
                     object result = command.ExecuteScalar();
 
                     this.ID = Convert.ToInt32(result);
@@ -116,7 +143,12 @@ namespace INS_API_DataFeed
                 {
                     context.Database.Connection.Close();
                 }
-                blRtn = true;
+              
+                if (chkDuplicate.Rows.Count == 0)
+                {
+                    blRtn = true;
+                }
+            
             }
             catch (Exception ex)
             {

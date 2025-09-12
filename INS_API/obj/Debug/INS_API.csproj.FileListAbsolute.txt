@@ -442,3 +442,4 @@ C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API\bin\NLog.Targets.Elastic
 C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API\bin\NLog.Web.xml
 C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API\bin\NLog.Web.AspNetCore.xml
 C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API\bin\System.Diagnostics.DiagnosticSource.xml
+C:\Users\arkarl\Documents\Motto\INS_API\INS_API\INS_API\bin\QRCoder.dll

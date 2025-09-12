@@ -1872,8 +1872,8 @@ namespace INS_API_DataFeed
         }
         #endregion
 
-        #region GetInspecitonCatalog
-        public DataTable GetInspecitonCatalog(string imapNo)
+        #region GetInspectionCatalog
+        public DataTable GetInspectionCatalog(string imapNo)
         {
             DataTable result = new DataTable();
             try
@@ -1895,7 +1895,7 @@ namespace INS_API_DataFeed
                     }
                     using (var command = context.Database.Connection.CreateCommand())
                     {
-                        command.CommandText = INS_Query.get_InspecitonCatalog;
+                        command.CommandText = INS_Query.get_InspectionCatalog;
 
                         command.Parameters.Add(new SqlParameter("@imapNo", imapNo));
 
@@ -1912,6 +1912,41 @@ namespace INS_API_DataFeed
                 Console.WriteLine(ex.Message);
             }
             return result;
+        }
+        #endregion
+
+        #region SaveInspectionCatlog_Log
+        public string SaveInspectionCatlog_Log(string message, string imapNo)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+
+                    var param = new List<SqlParameter>
+            {
+                new SqlParameter("@ResponseMessage", message),
+                new SqlParameter("@ImapNo", imapNo),
+                new SqlParameter("@LogDateTime", DateTime.Now),
+            };
+
+                  context.Database.ExecuteSqlCommand(INS_Query.Save_InspectionCatlog_Log, param.ToArray());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
         }
         #endregion
 
@@ -2864,8 +2899,9 @@ namespace INS_API_DataFeed
         #endregion
 
         #region UpdateVehicleOnCreate
-        public void UpdateVehicleOnCreate(string bookinNo, string vehicleId)
+        public string UpdateVehicleOnCreate(string bookinNo, string vehicleId)
         {
+            string errorMessage = "";
             try
             {
                 using (var context = new Inspection_dataFeedContext())
@@ -2903,13 +2939,16 @@ namespace INS_API_DataFeed
             {
                 Console.WriteLine("===================================================================");
                 Console.WriteLine(ex.Message);
+                errorMessage= ex.Message;
             }
+            return errorMessage;
         }
         #endregion
 
         #region UpdateVehicleOnUpdate
-        public void UpdateVehicleOnUpdate(string bookinNo, string vehicleId)
+        public string UpdateVehicleOnUpdate(string bookinNo, string vehicleId)
         {
+            string errorMessage = "";
             try
             {
                 using (var context = new Inspection_dataFeedContext())
@@ -2948,7 +2987,9 @@ namespace INS_API_DataFeed
             {
                 Console.WriteLine("===================================================================");
                 Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
             }
+            return errorMessage;
         }
         #endregion
 
@@ -2985,7 +3026,10 @@ namespace INS_API_DataFeed
                 new SqlParameter("@CreateBy", bookIn.CreateBy),
                 new SqlParameter("@CreateDate", bookIn.CreateDate),
                 new SqlParameter("@ContractTypeCode", bookIn.ContractTypeCode),
-                new SqlParameter("@StickVin", bookIn.StickVin)
+                new SqlParameter("@StickVin", bookIn.StickVin),
+                new SqlParameter("@TenantName", bookIn.TenantName),
+                new SqlParameter("@TimeStartApp", bookIn.TimeStartApp)
+                , 
             };
 
                     int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_BookIn, param.ToArray()).SingleOrDefault();
@@ -3620,6 +3664,46 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region UpdateErrorINNOSYNC
+        public void UpdateErrorINNOSYNC(string error,int syncId)
+        {
+            try
+            {
+
+                var context = new INS_WEB_dataFeedContext();
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                #region Parameter
+
+                var UserParam = new List<SqlParameter> {
+                        new SqlParameter("@syncId",syncId),
+                        new SqlParameter("@error",error),
+                        };
+
+                #endregion Parameter
+
+                context.Database.ExecuteSqlCommand(INS_Query.Update_ErrorINNOSYNC, UserParam.ToArray());
+
+
+                if (context.Database.Connection.State == ConnectionState.Open)
+                {
+                    context.Database.Connection.Close();
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+        }
+        #endregion
+
         #region UpdateVehicleDocument
         public void UpdateVehicleDocument(string vehicleId, int documentTypeId)
         {
@@ -4031,15 +4115,15 @@ namespace INS_API_DataFeed
     #region INS_Query
     public class INS_Query
     {
-        public static string get_Body = "select Body,Desc_BU,Desc_LO from IMAP_Bodies";
+        public static string get_Body = "select Body,Desc_BU,Desc_LO from ZILO.IMAP.dbo.Bodies";
 
-        public static string get_BodyByCode = "select Body,Desc_BU,Desc_LO from IMAP_Bodies where Body=@code";
+        public static string get_BodyByCode = "select Body,Desc_BU,Desc_LO from ZILO.IMAP.dbo.Bodies where Body=@code";
 
-        public static string get_ContractType = "SELECT * FROM IMAP_ContractType";
+        public static string get_ContractType = "SELECT Id,CAST(ContractTypeCode AS NVARCHAR(50)) AS ContractTypeCode,CAST(DescEn AS NVARCHAR(100)) AS DescEn,CAST(DescTh AS NVARCHAR(100)) AS DescTh FROM ZILO.IMAP.dbo.ContractType";
 
-        public static string get_SellingCategory = "select * from IMAP_SellingCategories";
+        public static string get_SellingCategory = "select REPLACE(CONVERT(varchar(10),SellingCategory),' ','') SellingCategory,Desc_BU,Desc_LO,BodyRef from ZILO.IMAP.dbo.SellingCategories";
 
-        public static string get_SellingCategoryByCode = "select * from IMAP_SellingCategories where SellingCategory=@code";
+        public static string get_SellingCategoryByCode = "select REPLACE(CONVERT(varchar(10),SellingCategory),' ','') SellingCategory,Desc_BU,Desc_LO,BodyRef from ZILO.IMAP.dbo.SellingCategories where SellingCategory=@code";
 
         public static string get_Drive = "select * from ZILO.IMAP.dbo.Drives";
 
@@ -4053,13 +4137,13 @@ namespace INS_API_DataFeed
 
         public static string get_FuelTypeByCode = "select * from ZILO.IMAP.dbo.FuelTypes where FuelType=@code";
 
-        public static string get_Make = "select * from IMAP_Makes";
+        public static string get_Make = "select * from ZILO.IMAP.dbo.Makes";
 
-        public static string get_MakeByCode = "select * from IMAP_Makes where Make=@code";
+        public static string get_MakeByCode = "select * from ZILO.IMAP.dbo.Makes where Make=@code";
 
-        public static string get_MatVariant = "SELECT * FROM IMAP_View_Mat_Variant";
+        public static string get_MatVariant = "SELECT Id,Model_BU,Variants,BuildYear,Make,Make_BU,Make_LO FROM ZILO.IMAP.dbo.View_Mat_Variant";
 
-        public static string get_MatVariant_ByModel = "SELECT * FROM IMAP_View_Mat_Variant where Model_BU=@Model";
+        public static string get_MatVariant_ByModel = "SELECT Id,Model_BU,Variants,BuildYear,Make,Make_BU,Make_LO FROM ZILO.IMAP.dbo.View_Mat_Variant where Lower(Model_BU)=Lower(@Model)";
 
         public static string get_Seller = "SELECT Customer SellerCode,CompanyName_LO SellerNameTh,CompanyName_BU SellerNameEn FROM IMAP.dbo.Customers WHERE CustomerType = 'S'";
 
@@ -4230,7 +4314,9 @@ namespace INS_API_DataFeed
 
         public static string get_MatModel = @"select * from  ZILO.IMAP.dbo.View_Mat_Model";
 
-        public static string get_InspecitonCatalog = @"select * from [dbo].[INNO_SYNC] where VehicleId=@imapNo order by InspectionCount desc";
+        public static string get_InspectionCatalog = @"select * from [dbo].[INNO_SYNC] where VehicleId=@imapNo order by InspectionCount desc";
+
+        public static string Save_InspectionCatlog_Log = @"insert into GetCatalogAPI_Log (ImapNo,ResponseMessage,LogDateTime) Values (@ImapNo,@ResponseMessage,@LogDateTime);";
 
         public static string get_CabType = @"SELECT RTRIM(CabTypeID) AS CabTypeID,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.CabType";
 
@@ -4240,13 +4326,13 @@ namespace INS_API_DataFeed
                                         BookInNumber, BookInDate, SenderName, ReceiverName, ContractNumber,
                                         MobileNumber, Status, SellerCode, Inspector, VehicleId,
                                         SenderSignature, ReceiverSignature, LatestUpdatedDate, BookinType,
-                                        CreateBy, CreateDate, ContractTypeCode, StickVin
+                                        CreateBy, CreateDate, ContractTypeCode, StickVin, TenantName, TimeStartApp
                                     )
                                     VALUES (
                                         @BookInNumber, @BookInDate, @SenderName, @ReceiverName, @ContractNumber,
                                         @MobileNumber, @Status, @SellerCode, @Inspector, @VehicleId,
                                         @SenderSignature, @ReceiverSignature, @LatestUpdatedDate, @BookinType,
-                                        @CreateBy, @CreateDate, @ContractTypeCode, @StickVin
+                                        @CreateBy, @CreateDate, @ContractTypeCode, @StickVin , @TenantName, @TimeStartApp
                                     );
                                     SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
@@ -4527,6 +4613,8 @@ namespace INS_API_DataFeed
                                                     FROM InspectionWeb.dbo.INNO_SYNC where ID=@id";
 
         public static string get_BookInNoByVehicleID = $@"select BookInNumber from BookIn where VehicleId=@id";
+
+        public static string Update_ErrorINNOSYNC=$@"UPDATE INNO_SYNC SET ErrorMsg = @error WHERE ID=@syncId";
 
         public static string Update_InspectionCountINNOSYNC = $@"UPDATE INNO_SYNC SET InspectionCount = @count + 1 WHERE ID=@syncId";
 

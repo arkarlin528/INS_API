@@ -16,6 +16,7 @@ using WebGrease;
 using Elasticsearch.Net;
 using Nest;
 using INS_API.Handler;
+using System.Text.RegularExpressions;
 
 namespace INS_API.Controllers
 {
@@ -1955,9 +1956,9 @@ namespace INS_API.Controllers
         }
         #endregion
 
-        #region GetInspecitonCatalog
+        #region GetInspectionCatalog
         [HttpGet]
-        public ActionResult GetInspecitonCatalog(string imapNo)
+        public ActionResult GetInspectionCatalog(string imapNo)
         {
             string apiKey = Request.Headers["apiKey"];
             const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
@@ -1969,11 +1970,13 @@ namespace INS_API.Controllers
             try
             {
                 INS_DataFeed objDataFeed = new INS_DataFeed();
-                DataTable dt = objDataFeed.GetInspecitonCatalog(imapNo);
+                DataTable dt = objDataFeed.GetInspectionCatalog(imapNo);
 
                 if (dt == null || dt.Rows.Count == 0)
                 {
+                    objDataFeed.SaveInspectionCatlog_Log("There is no vehicle inspection by this imapNo.", imapNo);
                     return Json(new { message = "There is no vehicle inspection by this imapNo." }, JsonRequestBehavior.AllowGet);
+              
                 }
 
                 // Extract schema and JSON string
@@ -1982,6 +1985,7 @@ namespace INS_API.Controllers
 
                 if (string.IsNullOrEmpty(inspectionJson))
                 {
+                    objDataFeed.SaveInspectionCatlog_Log("Inspection data is empty.", imapNo);
                     return Json(new { message = "Inspection data is empty." }, JsonRequestBehavior.AllowGet);
                 }
 
@@ -1990,23 +1994,26 @@ namespace INS_API.Controllers
                 if (schemaName.Contains("car"))
                 {
                     var carModel = JsonConvert.DeserializeObject<CarInspectionCatalogModel>(inspectionJson);
-                    resultObj = carModel;
+                    resultObj = ConvertCarCatalogDescJson(carModel);
                 }
                 else if (schemaName.Contains("motorbike"))
                 {
                     var motorbikeModel = JsonConvert.DeserializeObject<MotorbikeInspectionCatalogModel>(inspectionJson);
-                    resultObj = motorbikeModel;
+                    resultObj = ConvertMotorbikeCatalogDescJson(motorbikeModel);
                 }
                 else if (schemaName.Contains("salvage"))
                 {
                     var salvageModel = JsonConvert.DeserializeObject<SalvageInspectionCatalogModel>(inspectionJson);
-                    resultObj = salvageModel;
+                    resultObj = salvageModel;//ConvertSalvageCatalogDescJson(salvageModel);
                 }
                 else
                 {
+
+                    objDataFeed.SaveInspectionCatlog_Log("Unknown schema type.", imapNo);
                     return Json(new { message = "Unknown schema type." }, JsonRequestBehavior.AllowGet);
                 }
 
+                objDataFeed.SaveInspectionCatlog_Log(resultObj.ToString(), imapNo);
                 return Json(resultObj, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
@@ -2015,6 +2022,420 @@ namespace INS_API.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
             }
         }
+
+        private object ConvertCarCatalogDescJson(CarInspectionCatalogModel carModel)
+        {
+            string th = "";
+            string en= "";
+            if (carModel.VehicleGroup != null)
+            {
+                th = "กลุ่มรถ : " + carModel.VehicleGroup;
+                en = "VehicleGroup : " + carModel.VehicleGroup;
+            }
+            if (carModel.StructureGrade != null)
+            {
+                th += ", เกรดโครงสร้าง : " + carModel.StructureGrade;
+                en += ", StructureGrade : " + carModel.StructureGrade;
+            }
+            if (carModel.EngineGrade != null)
+            {
+                th += ", เกรดเครื่องยนตร์ : " + carModel.EngineGrade;
+                en += ", EngineGrade : " + carModel.EngineGrade;
+            }
+            if (carModel.InteriorGrade != null)
+            {
+                th += ", เกรดภายใน : " + carModel.InteriorGrade;
+                en += ", InteriorGrade : " + carModel.InteriorGrade;
+            }
+            if (carModel.PlateCondition != null && (carModel.PlateCondition== "มี เสียหาย/เสื่อมสภาพ" || carModel.PlateCondition == "มี ติดตั้งใหม่" || carModel.PlateCondition == "ไม่มี" || carModel.PlateCondition == "ตรวจสอบไม่ได้") )
+            {
+                th += ", สภาพแผ่นเพลท : " + carModel.PlateCondition;
+                en += ", PlateCondition : " + carModel.PlateCondition;
+            }
+            if (carModel.EngineNumberCondition != null && (carModel.EngineNumberCondition == "ตรวจสอบไม่ได้" || carModel.EngineNumberCondition == "ตอกใหม่" || carModel.EngineNumberCondition == "ครูด/บุบ/เสียหาย" || carModel.EngineNumberCondition == "เป็นสนิม"))
+            {
+                th += ", สภาพเลขเครื่อง : " + carModel.EngineNumberCondition;
+                en += ", EngineNumberCondition : " + carModel.EngineNumberCondition;
+            }
+            if (carModel.ChassisNumberCondition != null && (carModel.ChassisNumberCondition == "ตรวจสอบไม่ได้" || carModel.ChassisNumberCondition == "ตอกใหม่" || carModel.ChassisNumberCondition == "ครูด/บุบ/เสียหาย" || carModel.ChassisNumberCondition == "เป็นสนิม" || carModel.ChassisNumberCondition == "พบรอยซ่อม"))
+            {
+                th += ", สภาพเลขแชสซี : " + carModel.ChassisNumberCondition;
+                en += ", ChassisNumberCondition : " + carModel.ChassisNumberCondition;
+            }
+            if (carModel.EngineCondition != null && carModel.EngineCondition == "ไม่ทำงาน")
+            {
+                th += ", สภาพเครื่องยนต์ : " + carModel.EngineCondition;
+                en += ", EngineCondition : " + carModel.EngineCondition;
+            }
+            if (carModel.EngineConditionRemarks != null)
+            {
+                th += ", หมายเหตุสภาพเครื่องยนต์ : " + Regex.Replace(carModel.EngineConditionRemarks ?? "", "<.*?>", string.Empty);
+                en += ", EngineConditionRemarks : " + Regex.Replace(carModel.EngineConditionRemarks ?? "", "<.*?>", string.Empty);
+
+            }
+            if (carModel.ChassisCondition != null && (carModel.ChassisCondition == "ตัดต่อ" || carModel.ChassisCondition == "ซ่อมมาเล็กน้อย" || carModel.ChassisCondition == "ซ่อมมาปานกลาง" || carModel.ChassisCondition == "ซ่อมมาหนัก" || carModel.ChassisCondition == "ผุ"))
+            {
+                th += ", สภาพแชสซี : " + carModel.ChassisCondition;
+                en += ", ChassisCondition : " + carModel.ChassisCondition;
+            }
+            if (carModel.GasInstall != null && (carModel.GasInstall == "ติด LPG" || carModel.GasInstall == "ติด CNG" || carModel.GasInstall == "เคยติดตั้ง"))
+            {
+                th += ", ติดแก๊สหรือไม่ : " + carModel.GasInstall;
+                en += ", GasInstall : " + carModel.GasInstall;
+            }
+            if (carModel.WarningLight != null && carModel.WarningLight == "มี")
+            {
+                th += ", ไฟโชว์เตือน : " + carModel.WarningLight;
+                en += ", WarningLight : " + carModel.WarningLight;
+            }
+            if (carModel.Key != null)
+            {
+                th += ", กุญแจ : " + carModel.Key;
+                en += ", Key : " + carModel.Key;
+            }
+            if (carModel.WaterDamage != null && (carModel.WaterDamage == "ระดับพรหม" || carModel.WaterDamage == "ระดับที่นั่งเบาะ" || carModel.WaterDamage == "ระดับที่นั่งเบาะถึงคอนโซล" || carModel.WaterDamage == "สูงกว่าคอนโซล"))
+            {
+                th += ", ความเสียหายจากน้ำ : " + carModel.WaterDamage;
+                en += ", WaterDamage : " + carModel.WaterDamage;
+            }
+            if (carModel.LicensePlateFBCheck != null && (carModel.LicensePlateFBCheck == "ไม่มีป้ายหน้า" || carModel.LicensePlateFBCheck == "ไม่มีป้ายหลัง" || carModel.LicensePlateFBCheck == "ไม่มีป้าย"))
+            {
+                th += ", แผ่นป้ายทะเบียนครบหรือไม่ : " + carModel.LicensePlateFBCheck;
+                en += ", LicensePlateFBCheck : " + carModel.LicensePlateFBCheck;
+            }
+            if (carModel.LicenePlateMatchWithCar != null && carModel.LicenePlateMatchWithCar == "ไม่ตรง (ตรวจจากเอกสาร)")
+            {
+                th += ", ป้ายตรงกับตัวรถหรือไม่ : " + carModel.LicenePlateMatchWithCar;
+                en += ", LicenePlateMatchWithCar : " + carModel.LicenePlateMatchWithCar;
+            }
+            if (carModel.TypeofLicensePlate != null)
+            {
+                th += ", ประเภทป้ายทะเบียน : " + carModel.TypeofLicensePlate;
+                en += ", TypeofLicensePlate : " + carModel.TypeofLicensePlate;
+            }
+            return new
+            {
+                th,
+                en,
+            };
+        }
+
+        private object ConvertMotorbikeCatalogDescJson(MotorbikeInspectionCatalogModel motobikeModel)
+        {
+            string th = "";
+            string en = "";
+            if (motobikeModel.VehicleGroup != null)
+            {
+                th = "กลุ่มรถ : " + motobikeModel.VehicleGroup;
+                en = "VehicleGroup : " + motobikeModel.VehicleGroup;
+            }
+            if (motobikeModel.StructureGrade != null)
+            {
+                th += ", เกรดโครงสร้าง : " + motobikeModel.StructureGrade;
+                en += ", StructureGrade : " + motobikeModel.StructureGrade;
+            }
+            if (motobikeModel.RearBrake != null || motobikeModel.RearBrake != "null")
+            {
+                th += ", ประเภทเบรคหลัง : " + motobikeModel.RearBrake;
+                en += ", RearBrake : " + motobikeModel.RearBrake;
+            }
+            if (motobikeModel.FrontBrake != null || motobikeModel.FrontBrake != "null")
+            {
+                th += ", ประเภทเบรคหน้า : " + motobikeModel.FrontBrake;
+                en += ", FrontBrake : " + motobikeModel.FrontBrake;
+            }
+            if (motobikeModel.GasTank != null || motobikeModel.GasTank != "null")
+            {
+                th += ", ถังน้ำมัน : " + motobikeModel.GasTank;
+                en += ", GasTank : " + motobikeModel.GasTank;
+            }
+            if (motobikeModel.HeadLightRemarks != null || motobikeModel.HeadLightRemarks != "null" )
+            {
+                th += ", หมายเหตุไฟหน้า : " + motobikeModel.HeadLightRemarks;
+                en += ", HeadLightCondition : " + motobikeModel.HeadLightRemarks;
+            }
+            if (motobikeModel.HandBrakeR != null && motobikeModel.HandBrakeR == "ไม่ทำงาน")
+            {
+                th += ", เบรคมือขวา : " + motobikeModel.HandBrakeR;
+                en += ", HandBrakeRight : " + motobikeModel.HandBrakeR;
+            }
+            if (motobikeModel.SideMirrorR != null || motobikeModel.SideMirrorR != "null" )
+            {
+                th += ", กระจกข้างขวา : " + motobikeModel.SideMirrorR;
+                en += ", SideMirrorRight : " + motobikeModel.SideMirrorR;
+            }
+            if (motobikeModel.SideMirrorL != null || motobikeModel.SideMirrorL != "null")
+            {
+                th += ", กระจกข้างซ้าย : " + motobikeModel.SideMirrorL;
+                en += ", SideMirrorLeft : " + motobikeModel.SideMirrorL;
+            }
+            if (motobikeModel.HandBrakeL != null || motobikeModel.HandBrakeL != "null")
+            {
+                th += ", เบรคมือซ้าย : " + motobikeModel.HandBrakeL;
+                en += ", HandBrakeLeft : " + motobikeModel.HandBrakeL;
+            }
+            if (motobikeModel.SingleStand != null || motobikeModel.SingleStand != "null")
+            {
+                th += ", ขาตั้งเดี่ยว : " + motobikeModel.SingleStand;
+                en += ", SingleStand : " + motobikeModel.SingleStand;
+            }
+            if (motobikeModel.Mask != null || motobikeModel.Mask != "null" )
+            {
+                th += ", หน้ากาก : " + motobikeModel.Mask;
+                en += ", Mask : " + motobikeModel.Mask;
+            }
+            if (motobikeModel.RearFender != null || motobikeModel.RearFender != "null")
+            {
+                th += ", บังโคลนท้าย : " + motobikeModel.RearFender;
+                en += ", RearFender : " + motobikeModel.RearFender;
+            }
+            if (motobikeModel.ExhaustPipe != null || motobikeModel.ExhaustPipe != "null")
+            {
+                th += ", ท่อไอเสีย : " + motobikeModel.ExhaustPipe;
+                en += ", ExhaustPipe : " + motobikeModel.ExhaustPipe;
+            }
+            if (motobikeModel.ChainGuard != null || motobikeModel.ChainGuard != "null")
+            {
+                th += ", บังโซ่ : " + motobikeModel.ChainGuard;
+                en += ", ChainGuard : " + motobikeModel.ChainGuard;
+            }
+            if (motobikeModel.RearShockAbsorber != null || motobikeModel.RearShockAbsorber != "null" )
+            {
+                th += ", โชคหลัง : " + motobikeModel.RearShockAbsorber;
+                en += ", RearShockAbsorber : " + motobikeModel.RearShockAbsorber;
+            }
+            if (motobikeModel.RearBrakeCanister != null && motobikeModel.RearBrakeCanister == "ไม่ทำงาน")
+            {
+                th += ", กระปุกน้ำมันเบรคหลัง : " + motobikeModel.RearBrakeCanister;
+                en += ", RearBrakeCanister : " + motobikeModel.RearBrakeCanister;
+            }
+            if (motobikeModel.DiskBrakeOilCanister != null && motobikeModel.DiskBrakeOilCanister == "ไม่ทำงาน")
+            {
+                th += ", กระปุกน้ำมันดิสแบรค : " + motobikeModel.DiskBrakeOilCanister;
+                en += ", DiskBrakeOilCanister : " + motobikeModel.DiskBrakeOilCanister;
+            }
+            if (motobikeModel.SeatIronFrame != null || motobikeModel.SeatIronFrame != "null")
+            {
+                th += ", โครงเหล็กท้ายเบาะ : " + motobikeModel.SeatIronFrame;
+                en += ", SeatIronFrame : " + motobikeModel.SeatIronFrame;
+            }
+            if (motobikeModel.WindShieldL != null || motobikeModel.WindShieldL != "null")
+            {
+                th += ", บังลมซ้าย : " + motobikeModel.WindShieldL;
+                en += ", WindShieldLeft : " + motobikeModel.WindShieldL;
+            }
+            if (motobikeModel.HandClutchL != null || motobikeModel.HandClutchL != "null")
+            {
+                th += ", คลัชมือซ้าย : " + motobikeModel.HandClutchL;
+                en += ", HandClutchLeft : " + motobikeModel.HandClutchL;
+            }
+            if (motobikeModel.FrontFender != null || motobikeModel.FrontFender != "null" )
+            {
+                th += ", บังโคลนหน้า : " + motobikeModel.FrontFender;
+                en += ", FrontFender : " + motobikeModel.FrontFender;
+            }
+            if (motobikeModel.StartPedal != null || motobikeModel.StartPedal != "null" )
+            {
+                th += ", คันสตาร์ท : " + motobikeModel.StartPedal;
+                en += ", StartPedal : " + motobikeModel.StartPedal;
+            }
+            if (motobikeModel.ShockAbsorber != null || motobikeModel.ShockAbsorber != "null" )
+            {
+                th += ", โชคหน้า : " + motobikeModel.ShockAbsorber;
+                en += ", ShockAbsorber : " + motobikeModel.ShockAbsorber;
+            }
+            if (motobikeModel.DoubleStand != null || motobikeModel.DoubleStand != "null" )
+            {
+                th += ", ขาตั้งคู่ : " + motobikeModel.DoubleStand;
+                en += ", DoubleStand : " + motobikeModel.DoubleStand;
+            }
+            if (motobikeModel.PipeCover != null || motobikeModel.PipeCover != "null" )
+            {
+                th += ", ครอบท่อ : " + motobikeModel.PipeCover;
+                en += ", PipeCover : " + motobikeModel.PipeCover;
+            }
+            if (motobikeModel.Cub != null || motobikeModel.Cub != "null")
+            {
+                th += ", แผงคอ : " + motobikeModel.Cub;
+                en += ", Cub : " + motobikeModel.Cub;
+            }
+            if (motobikeModel.WindshieldR != null || motobikeModel.WindshieldR != "null" )
+            {
+                th += ", บังลมขวา : " + motobikeModel.WindshieldR;
+                en += ", WindshieldRight : " + motobikeModel.WindshieldR;
+            }
+            if (motobikeModel.RearTire != null || motobikeModel.RearTire != "null" )
+            {
+                th += ", ยางหลัง : " + motobikeModel.RearTire;
+                en += ", RearTire : " + motobikeModel.RearTire;
+            }
+            if (motobikeModel.FrontTire != null || motobikeModel.FrontTire != "null" )
+            {
+                th += ", ยางหน้า : " + motobikeModel.FrontTire;
+                en += ", FrontTire : " + motobikeModel.FrontTire;
+            }
+            if (motobikeModel.TailLight != null || motobikeModel.TailLight != "null")
+            {
+                th += ", ไฟท้าย : " + motobikeModel.TailLight;
+                en += ", TailLight : " + motobikeModel.TailLight;
+            }
+            if (motobikeModel.UBox != null || motobikeModel.UBox != "null" )
+            {
+                th += ", UBox : " + motobikeModel.UBox;
+                en += ", UBox : " + motobikeModel.UBox;
+            }
+            if (motobikeModel.UtilityCompartmentR != null || motobikeModel.UtilityCompartmentR != "null" )
+            {
+                th += ", ช่องอเนกประสงค์ : " + motobikeModel.UtilityCompartmentR;
+                en += ", UtilityCompartmentRight : " + motobikeModel.UtilityCompartmentR;
+            }
+            if (motobikeModel.UtilityCompartmentL != null || motobikeModel.UtilityCompartmentL != "null" )
+            {
+                th += ", ช่องอเนกประสงค์ซ้าย : " + motobikeModel.UtilityCompartmentL;
+                en += ", UtilityCompartmentLeft : " + motobikeModel.UtilityCompartmentL;
+            }
+            if (motobikeModel.Color != null || motobikeModel.Color != "null")
+            {
+                th += ", สีรถ : " + motobikeModel.Color;
+                en += ", Color : " + motobikeModel.Color;
+            }
+            if (motobikeModel.TypeofLicensePlate != null || motobikeModel.TypeofLicensePlate != "null")
+            {
+                th += ", ประเภทป้ายทะเบียน : " + motobikeModel.TypeofLicensePlate;
+                en += ", TypeofLicensePlate : " + motobikeModel.TypeofLicensePlate;
+            }
+            if (motobikeModel.LicensePlateCheck != null || motobikeModel.LicensePlateCheck != "null")
+            {
+                th += ", แผ่นป้ายทะเบียนครบหรือไม่ : " + motobikeModel.LicensePlateCheck;
+                en += ", LicensePlateCheck : " + motobikeModel.LicensePlateCheck;
+            }
+            if (motobikeModel.EngineNumberImageAndCondition != null || motobikeModel.EngineNumberImageAndCondition != "null")
+            {
+                th += ", รูปและสภาพเลขเครื่องยนต์ : " + motobikeModel.EngineNumberImageAndCondition;
+                en += ", EngineNumberCondition : " + motobikeModel.EngineNumberImageAndCondition;
+            }
+            if (motobikeModel.ChassisNumberImageAndCondition != null || motobikeModel.ChassisNumberImageAndCondition != "null")
+            {
+                th += ", รูปและสภาพเลขตัวถัง : " + motobikeModel.ChassisNumberImageAndCondition;
+                en += ", ChassisNumberCondition : " + motobikeModel.ChassisNumberImageAndCondition;
+            }
+            if (motobikeModel.Dashboard != null || motobikeModel.Dashboard != "null")
+            {
+                th += ", แผงหน้าปัด : " + motobikeModel.Dashboard;
+                en += ", Dashboard : " + motobikeModel.Dashboard;
+            }
+            if (motobikeModel.FrontWheel != null || motobikeModel.FrontWheel != "null")
+            {
+                th += ", ล้อหน้า : " + motobikeModel.FrontWheel;
+                en += ", FrontWheel : " + motobikeModel.FrontWheel;
+            }
+            if (motobikeModel.RearWheel != null || motobikeModel.RearWheel != "null")
+            {
+                th += ", ล้อหลัง : " + motobikeModel.RearWheel;
+                en += ", RearWheel : " + motobikeModel.RearWheel;
+            }
+            if (motobikeModel.FrontDiskBrakePump != null || motobikeModel.FrontDiskBrakePump != "null")
+            {
+                th += ", ปั๊มดิสเบรคหน้า : " + motobikeModel.FrontDiskBrakePump;
+                en += ", FrontDiskBrakePump : " + motobikeModel.FrontDiskBrakePump;
+            }
+            if (motobikeModel.FrontDiskBrakePumpCondition != null || motobikeModel.FrontDiskBrakePumpCondition != "null")
+            {
+                th += ", สภาพปั๊มดิสเบรคหน้า : " + motobikeModel.FrontDiskBrakePumpCondition;
+                en += ", FrontDiskBrakePumpCondition : " + motobikeModel.FrontDiskBrakePumpCondition;
+            }
+            if (motobikeModel.BackDiskBrakePump != null || motobikeModel.BackDiskBrakePump != "null")
+            {
+                th += ", ปั๊มดิสแบรคหลัง : " + motobikeModel.BackDiskBrakePump;
+                en += ", BackDiskBrakePump : " + motobikeModel.BackDiskBrakePump;
+            }
+            if (motobikeModel.BackDiskBrakePumpCondition != null || motobikeModel.BackDiskBrakePumpCondition != "null")
+            {
+                th += ", สภาพปั๊มดิสเบรคหลัง : " + motobikeModel.BackDiskBrakePumpCondition;
+                en += ", BackDiskBrakePumpCondition : " + motobikeModel.BackDiskBrakePumpCondition;
+            }
+            if (motobikeModel.TurnLightFrontR != null || motobikeModel.TurnLightFrontR != "null" )
+            {
+                th += ", ไฟเลี้ยวขวาหน้า : " + motobikeModel.TurnLightFrontR;
+                en += ", TurnLightFrontRight : " + motobikeModel.TurnLightFrontR;
+            }
+            if (motobikeModel.TurnLightRearL != null || motobikeModel.TurnLightRearL != "null" )
+            {
+                th += ", ไฟเลี้ยวหลังซ้าย : " + motobikeModel.TurnLightRearL;
+                en += ", TurnLightRearLeft : " + motobikeModel.TurnLightRearL;
+            }
+            if (motobikeModel.TurnLightRearR != null || motobikeModel.TurnLightRearR != "null")
+            {
+                th += ", ไฟเลี้ยวหลังขวา : " + motobikeModel.TurnLightRearR;
+                en += ", TurnLightRearRight : " + motobikeModel.TurnLightRearR;
+            }
+            if (motobikeModel.TurnLightFrontL != null || motobikeModel.TurnLightFrontL != "null")
+            {
+                th += ", ไฟเลี้ยวซ้ายหน้า : " + motobikeModel.TurnLightFrontL;
+                en += ", TurnLightFrontLeft : " + motobikeModel.TurnLightFrontL;
+            }
+            if (motobikeModel.RearLFootRest != null || motobikeModel.RearLFootRest != "null")
+            {
+                th += ", พักเท้าหลังซ้าย : " + motobikeModel.RearLFootRest;
+                en += ", RearLeftFootRest : " + motobikeModel.RearLFootRest;
+            }
+            if (motobikeModel.RearRFootRest != null || motobikeModel.RearRFootRest != "null")
+            {
+                th += ", พักเท้าหลังขวา : " + motobikeModel.RearRFootRest;
+                en += ", RearRightFootRest : " + motobikeModel.RearRFootRest;
+            }
+            if (motobikeModel.FrontLFootRest != null || motobikeModel.FrontLFootRest != "null")
+            {
+                th += ", พักเท้าหน้าซ้าย : " + motobikeModel.FrontLFootRest;
+                en += ", FrontLeftFootRest : " + motobikeModel.FrontLFootRest;
+            }
+            if (motobikeModel.FrontRFootRest != null || motobikeModel.FrontRFootRest != "null")
+            {
+                th += ", พักเท้าหน้าขวา : " + motobikeModel.FrontRFootRest;
+                en += ", FrontRightFootRest : " + motobikeModel.FrontRFootRest;
+            }
+            if (motobikeModel.SideLeft != null || motobikeModel.SideLeft != "null")
+            {
+                th += ", กาบข้างซ้าย : " + motobikeModel.SideLeft;
+                en += ", SideLeft : " + motobikeModel.SideLeft;
+            }
+            if (motobikeModel.SideRight != null || motobikeModel.SideRight != "null")
+            {
+                th += ", กาบข้างขวา : " + motobikeModel.SideRight;
+                en += ", SideRight : " + motobikeModel.SideRight;
+            }
+            if (motobikeModel.GearType != null || motobikeModel.GearType != "null")
+            {
+                th += ", ประเภทเกียร์ : " + motobikeModel.GearType;
+                en += ", GearType : " + motobikeModel.GearType;
+            }
+            if (motobikeModel.StartSystem != null || motobikeModel.StartSystem != "null" )
+            {
+                th += ", ระบบสตาร์ท : " + motobikeModel.StartSystem;
+                en += ", StartSystem : " + motobikeModel.StartSystem;
+            }
+            if (motobikeModel.Key != null)
+            {
+                th += ", กุญแจ : " + motobikeModel.Key;
+                en += ", Key : " + motobikeModel.Key;
+            }
+            return new
+            {
+                th,
+                en,
+            };
+        }
+
+        //private object ConvertSalvageCatalogDescJson(SalvageInspectionCatalogModel salvageModel)
+        //{
+        //    string th = "";
+        //    string en = "";
+        //    return new
+        //    {
+        //        th,
+        //        en,
+        //    };
+        //}
         #endregion
 
         #region GetBodyByVarId
@@ -2224,8 +2645,9 @@ namespace INS_API.Controllers
                     CreateBy = bookinType.ReceiverName,
                     CreateDate = DateTime.Now,
                     ContractTypeCode = bookinType.ContractTypeCode,
-                    StickVin = stickVin
-
+                    StickVin = stickVin,
+                    TenantName = bookinType.TenantName,
+                    TimeStartApp = bookinType.TimeStartApp,
                 };
                 string error = objDataFeed.AddBookIn(bookIn);
                 if (!string.IsNullOrWhiteSpace(error)) {
@@ -2365,7 +2787,11 @@ namespace INS_API.Controllers
                 string vehicleId = objDataFeed.GetNextVehicleNumber();
 
                 //flLog.Info("vehicle-UpdateVehicleOnCreate: bookInNumber={0} | vehicleId={1}", bookinNumber, vehicleId);
-                objDataFeed.UpdateVehicleOnCreate(bookinNumber.TrimEnd(), vehicleId);
+                error = objDataFeed.UpdateVehicleOnCreate(bookinNumber.TrimEnd(), vehicleId);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    return Json(new { success = false, message = $"UpdateVehicleOnCreate failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
                 #endregion
 
                 return Json(new { success = true, message = "BookIn saved successfully.", vehicleId }, JsonRequestBehavior.AllowGet);
@@ -2493,7 +2919,11 @@ namespace INS_API.Controllers
                 #region updateVehicle
 
                 //flLog.Info("vehicle-UpdateVehicleOnUpdate: bookInNumber={0} | vehicleId={vehicleId}", jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
-                objDataFeed.UpdateVehicleOnUpdate(jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
+                error=objDataFeed.UpdateVehicleOnUpdate(jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    return Json(new { success = false, message = $"UpdateVehicleOnUpdate failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
                 #endregion
                 return Json(new { success = true, message = "Inspection saved successfully.", vehicleId = jsonData.VehicleId.TrimEnd() }, JsonRequestBehavior.AllowGet);
             }
