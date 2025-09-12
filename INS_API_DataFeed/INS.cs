@@ -4027,6 +4027,40 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetInspectionDataListV2
+        public DataTable GetInspectionDataListV2()
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new INS_WEB_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_InspectionDataListV2;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region GetVehicleColoursSet
         public DataTable GetVehicleColoursSet()
         {
@@ -4697,6 +4731,21 @@ namespace INS_API_DataFeed
         public static string get_InspectionDataList = "SELECT ID,RefKey,TxnDate,Schemaname,Sendername,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate, " +
                                                     "(CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType " +
                                                     "FROM InspectionWeb.dbo.INNO_SYNC";
+
+
+        public static string get_InspectionDataListV2 = @" SELECT BookIn.RefKey BookInRefKey,BookIn.VehicleId,BookIn.RegistrationNumber,
+                                                             BookIn.SenderName,BookIn.ReceiverName,BookIn.MobileNumber,BookIn.Inspector BookInInspector,BookIn.TxnDate BookInDate,BookIn.SchemaName BISchemaName,
+                                                             Inspection.SchemaName InsSchemaName,Inspection.Inspector Inspector,Inspection.TxnDate InspectionDate,BookIn.ID BookInSyncID,Inspection.ID InspectSyncID
+                                                             FROM
+                                                             (SELECT ID,RefKey,TxnDate,SchemaName,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                            FROM InspectionWeb.dbo.INNO_SYNC
+                                                            WHERE ISNULL(VehicleId,'') <> '' AND SCHEMANAME LIKE  '%bookin%')BookIn
+                                                            LEFT JOIN
+                                                            (SELECT ID,RefKey,TxnDate,SchemaName,SenderName,ReceiverName,MobileNumber,SellerCode,Inspector,VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate
+                                                            FROM InspectionWeb.dbo.INNO_SYNC
+                                                            WHERE ISNULL(VehicleId,'') <> '' AND SCHEMANAME LIKE  '%inspection%') Inspection
+                                                            ON BookIn.VehicleId = Inspection.VehicleId";
+
         public static string get_GenerateDataSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
                                                         VehicleId,ChasisNumber,VIN,RegistrationNumber,CreatedBy,CreatedDate,
                                                         (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType,
