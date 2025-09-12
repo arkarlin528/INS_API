@@ -148,13 +148,15 @@ namespace INS_API.Controllers
                     if (chasis.ValueKind == JsonValueKind.Null)
                     {
                         innoSync.ChasisNumber = "";
+                        innoSync.VIN = "";
                     }
                     else
                     {
                         innoSync.ChasisNumber = doc.RootElement.GetProperty("data").GetProperty("ChassisNumber").ToString();
+                        innoSync.VIN = doc.RootElement.GetProperty("data").GetProperty("ChassisNumber").ToString();
                     }
                 }
-                innoSync.VIN = "";
+            
                 if (doc.RootElement.GetProperty("data").TryGetProperty("LicensePlateNumber", out JsonElement regNumber))
                 {
                     // Check if the property is null or has a value
@@ -479,6 +481,18 @@ namespace INS_API.Controllers
             }
             #endregion
 
+            #region Plant
+            DataTable dtPlant = objDataFeed.GetPlantByStorageLocation(inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation);
+            string plant = "";
+            if (dtPlant != null && dtPlant.Rows.Count > 0)
+            {
+                plant = dtPlant.Rows[0]["Plant"].ToString();
+            }
+            #endregion
+
+            DataTable dtModelTemplate_DESC = objDataFeed.GetModelTemplateForDataEntryByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            DataTable dtModelTemplate = objDataFeed.GetModelTemplateById(variantId == "null" ? 0 : int.Parse(variantId));
+
             return new BookinModel
             {
                 BookInType = new BookinReceiver
@@ -501,7 +515,7 @@ namespace INS_API.Controllers
                     CreateDate = row.Field<DateTime?>("CreatedDate"),
                     ModifiedBy = "",
                     ModifiedDate = null,
-                    ContractTypeCode = "",//no field in inno
+                    ContractTypeCode = GetContractTypeCode(inspectionData.ContractType == null ? "" : inspectionData.ContractType),//no field in inno
                     StickVin = "",//no field in inno,
                     TenantName= (inspectionData.HirePurchaserName == null ? "" : inspectionData.HirePurchaserName),
                     TimeStartApp = row.Field<DateTime?>("CreatedDate"),
@@ -516,31 +530,31 @@ namespace INS_API.Controllers
                     LogisticsStatus = "",//no field in inno
                     InspectionDate = DateTime.Now,
                     SalesStatus = "",
-                    Plant = "",//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
-                    StorageLocation = "",//(inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
+                    Plant = plant,//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
+                    StorageLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     ReceiverLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     BookedDate = DateTime.Now,
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
-                    Make_BU = "",
-                    Make_LO = "",
+                    Make_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_ENG"].ToString() : "",
+                    Make_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_TH"].ToString() : "",
                     ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
-                    ModelCodeId = 0,
-                    Model_BU = "",
-                    Model_LO = "",
+                    ModelCodeId = variantId == "null" ? 0 : int.Parse(variantId),
+                    Model_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_BU"].ToString() : "",
+                    Model_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_LO"].ToString() : "",
                     Body = bodyType,//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
-                    BodyDesc_BU = "",
-                    BodyDesc_LO = "",
-                    Variants = (inspectionData.Variant == null ? "" : inspectionData.Variant),//not sure
+                    BodyDesc_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Body_ENG"].ToString() : "",
+                    BodyDesc_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Body_TH"].ToString() : "",
+                    Variants = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Variants"].ToString() : "",//not sure
                     BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear),//not sure
                     VIN = row["VIN"]?.ToString(),
                     ChasisNumber = row["ChasisNumber"]?.ToString(),
                     Colour = "",
                     ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
-                    FuelDelivery = "",
+                    FuelDelivery = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["FuelDelivery"].ToString() : "",
                     FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
-                    Gears = "",
-                    Drive = "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
+                    Gearbox = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gearbox"].ToString() : "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gears = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gears"].ToString() : "",
+                    Drive = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Drive"].ToString() : "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
@@ -785,6 +799,18 @@ namespace INS_API.Controllers
             }
             #endregion
 
+            #region Plant
+            DataTable dtPlant = objDataFeed.GetPlantByStorageLocation(inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation);
+            string plant = "";
+            if (dtPlant != null && dtPlant.Rows.Count > 0)
+            {
+                plant = dtPlant.Rows[0]["Plant"].ToString();
+            }
+            #endregion
+
+            DataTable dtModelTemplate_DESC = objDataFeed.GetModelTemplateForDataEntryByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            DataTable dtModelTemplate = objDataFeed.GetModelTemplateById(variantId == "null" ? 0 : int.Parse(variantId));
+
             return new BookinModel
             {
                 BookInType = new BookinReceiver
@@ -820,31 +846,31 @@ namespace INS_API.Controllers
                     LogisticsStatus = "",//no field in inno
                     InspectionDate = DateTime.Now,
                     SalesStatus = "",
-                    Plant = "",//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
-                    StorageLocation = "",//(inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
+                    Plant = plant,//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
+                    StorageLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     ReceiverLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     BookedDate = DateTime.Now,
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
-                    Make_BU = "",
-                    Make_LO = "",
+                    Make_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_ENG"].ToString() : "",
+                    Make_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_TH"].ToString() : "",
                     ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
-                    ModelCodeId = 0,
-                    Model_BU = "",
-                    Model_LO = "",
+                    ModelCodeId = variantId == "null" ? 0 : int.Parse(variantId),
+                    Model_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_BU"].ToString() : "",
+                    Model_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_LO"].ToString() : "",
                     Body = bodyType,//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
-                    BodyDesc_BU = "",
-                    BodyDesc_LO = "",
-                    Variants = (inspectionData.Variant == null ? "" : inspectionData.Variant),//not sure
+                    BodyDesc_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Body_ENG"].ToString() : "",
+                    BodyDesc_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Body_TH"].ToString() : "",
+                    Variants = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Variants"].ToString() : "",//not sure
                     BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear.ToString()),//not sure
                     VIN = row["VIN"]?.ToString(),
                     ChasisNumber = row["ChasisNumber"]?.ToString(),
                     Colour = "",
                     ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
-                    FuelDelivery = "",
+                    FuelDelivery = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["FuelDelivery"].ToString() : "",
                     FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
-                    Gears = "",
-                    Drive = "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
+                    Gearbox = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gearbox"].ToString() : "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gears = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gears"].ToString() : "",
+                    Drive = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Drive"].ToString() : "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
@@ -1089,6 +1115,18 @@ namespace INS_API.Controllers
             }
             #endregion
 
+            #region Plant
+            DataTable dtPlant = objDataFeed.GetPlantByStorageLocation(inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation);
+            string plant = "";
+            if (dtPlant != null && dtPlant.Rows.Count > 0)
+            {
+                plant = dtPlant.Rows[0]["Plant"].ToString();
+            }
+            #endregion
+
+            DataTable dtModelTemplate_DESC = objDataFeed.GetModelTemplateForDataEntryByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+            DataTable dtModelTemplate = objDataFeed.GetModelTemplateById(variantId == "null" ? 0 : int.Parse(variantId));
+
             return new BookinModel
             {
                 BookInType = new BookinReceiver
@@ -1111,7 +1149,7 @@ namespace INS_API.Controllers
                     CreateDate = row.Field<DateTime?>("CreatedDate"),
                     ModifiedBy = "",
                     ModifiedDate = null,
-                    ContractTypeCode = "",//no field in inno
+                    ContractTypeCode = GetContractTypeCode(inspectionData.ContractType == null ? "" : inspectionData.ContractType),//no field in inno
                     StickVin = ""//no field in inno
                 },
                 VehicleType = new Vehicle
@@ -1124,31 +1162,31 @@ namespace INS_API.Controllers
                     LogisticsStatus = "",//no field in inno
                     InspectionDate = DateTime.Now,
                     SalesStatus = "",
-                    Plant = "",//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
-                    StorageLocation = (inspectionData.StorageLocation == null ? "" : inspectionData.StorageLocation),
+                    Plant = plant,//(inspectionData.PlantLocation == null ? "" : inspectionData.PlantLocation),
+                    StorageLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     ReceiverLocation = (inspectionData.ReceiveLocation == null ? "" : inspectionData.ReceiveLocation),
                     BookedDate = DateTime.Now,
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
-                    Make_BU = "",
-                    Make_LO = "",
+                    Make_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_ENG"].ToString() : "",
+                    Make_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_TH"].ToString() : "",
                     ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
-                    ModelCodeId = 0,
-                    Model_BU = "",
-                    Model_LO = "",
+                    ModelCodeId = variantId == "null" ? 0 : int.Parse(variantId),
+                    Model_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_BU"].ToString() : "",
+                    Model_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_LO"].ToString() : "",
                     Body = bodyType,//(inspectionData.BodyType == null ? "" : inspectionData.BodyType),//not sure
-                    BodyDesc_BU = "",
-                    BodyDesc_LO = "",
-                    Variants = (inspectionData.Variant == null ? "" : inspectionData.Variant),//not sure
-                    BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear),//not sure
+                    BodyDesc_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Body_ENG"].ToString() : "",
+                    BodyDesc_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Body_TH"].ToString() : "",
+                    Variants = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Variants"].ToString() : "",//not sure
+                    BuildYear = (inspectionData.ManufacturingYear == null ? "" : inspectionData.ManufacturingYear.ToString()),//not sure
                     VIN = row["VIN"]?.ToString(),
                     ChasisNumber = row["ChasisNumber"]?.ToString(),
                     Colour = "",
                     ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
-                    FuelDelivery = "",
+                    FuelDelivery = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["FuelDelivery"].ToString() : "",
                     FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
-                    Gears = "",
-                    Drive = "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
+                    Gearbox = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gearbox"].ToString() : "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gears = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gears"].ToString() : "",
+                    Drive = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Drive"].ToString() : "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
@@ -1368,6 +1406,19 @@ namespace INS_API.Controllers
                 isSideMirror_4_Working = null
             };
         }
+
+        #region GetContractTypeCode
+        public string GetContractTypeCode(string contractType)
+        {
+            if (contractType == "อื่นๆ เช่น รถเช่า รถฟลีท")
+                return "OT";
+            else if (contractType == "รถยึด")
+                return "RE";
+            else if (contractType == "รถคืน")
+                return "VO";
+            else return "OT";
+        }
+        #endregion
 
 
         #region JsonToDt

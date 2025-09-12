@@ -1413,6 +1413,8 @@ namespace INS_API_DataFeed.DAO
         public string ContractNumber { get; set; }
         public string PhoneNumber { get; set; }
         public string SellerName { get; set; }
+
+        public string ContractType { get; set; }
         public string[] PlateImage { get; set; }
         public string DelivererName { get; set; }
         public string StorageLocation { get; set; }

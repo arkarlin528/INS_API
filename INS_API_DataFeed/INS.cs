@@ -1088,6 +1088,42 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetPlantByStorageLocation
+        public DataTable GetPlantByStorageLocation(string location)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_PlantByStorageLocation;
+
+                        command.Parameters.Add(new SqlParameter("@Location", location));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region GetSellingCategoryByCode
         public DataTable GetSellingCategoryByCode(string code)
         {
@@ -1529,6 +1565,42 @@ namespace INS_API_DataFeed
                     using (var command = context.Database.Connection.CreateCommand())
                     {
                         command.CommandText = INS_Query.get_ModelTemplateById;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetModelTemplateForDataEntryByVarId
+        public DataTable GetModelTemplateForDataEntryByVarId(int id)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_ModelTemplate_ForDataEntry_ByVarId;
 
                         command.Parameters.Add(new SqlParameter("@id", id));
 
@@ -4242,6 +4314,8 @@ namespace INS_API_DataFeed
 
         public static string get_Plant = @"SELECT Plant,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO,msrepl_tran_version FROM ZILO.IMAP.dbo.Plants";
 
+        public static string get_PlantByStorageLocation = @"SELECT Plant FROM ZILO.IMAP.dbo.StorageLocation where Location=@Location";
+
         public static string get_PlantByCode = @"SELECT Plant,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO,msrepl_tran_version FROM ZILO.IMAP.dbo.Plants where Plant=@code";
 
         public static string get_EngineCapacityUnit = @"SELECT EngineCapacityUnit,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.EngineCapacityUnits";
@@ -4273,6 +4347,30 @@ namespace INS_API_DataFeed
                                                     BuildYear,Model_BU,Model_LO,Variants,Description_BU,Description_LO, EngineCapacity,EngineCapacityUnit, FuelDelivery, FuelType,
                                                     GearBox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
                                                     from  ZILO.IMAP.dbo.ModelTemplates where ID=@id";
+
+        public static string get_ModelTemplate_ForDataEntry_ByVarId = @"SELECT MT.ID,MT.Description_BU,MT.ModelCode,MT.ModelDisplay,
+                                                    MK.Desc_BU Make_ENG,MK.Desc_LO Make_TH,Model_BU,Model_LO,
+                                                    GB.Desc_BU GearBox_ENG,GB.Desc_LO GearBox_TH,
+                                                    FD.Desc_BU FuelDelivery_ENG,FD.Desc_LO FuelDelivery_TH,
+                                                    FT.Desc_BU FuelType_ENG,FT.Desc_LO FuelType_TH,
+                                                    DV.Desc_BU Drive_ENG,DV.Desc_LO Drive_TH,
+                                                    BD.Desc_BU Body_ENG,BD.Desc_LO Body_TH,Gears
+                                                    FROM
+                                                    (SELECT *
+                                                    FROM ZILO.IMAP.dbo.ModelTemplates
+                                                    WHERE ID = @id)MT
+                                                    LEFT JOIN ZILO.IMAP.dbo.Makes MK
+                                                    ON MK.Make = MT.Make
+                                                    LEFT JOIN ZILO.IMAP.dbo.FuelDeliveries FD
+                                                    ON FD.FuelDelivery = MT.FuelDelivery
+                                                    LEFT JOIN ZILO.IMAP.dbo.FuelTypes FT
+                                                    ON FT.FuelType = MT.FuelType
+                                                    LEFT JOIN ZILO.IMAP.dbo.GearBoxes GB
+                                                    ON GB.GearBox = MT.Gearbox
+                                                    LEFT JOIN ZILO.IMAP.dbo.Drives DV
+                                                    ON DV.Drive = MT.Drive
+                                                    LEFT JOIN ZILO.IMAP.dbo.Bodies BD
+                                                    ON BD.Body = MT.Body";
 
         public static string get_MakeByModelCode = @"SELECT Makes.Make,Desc_BU,Desc_LO
                                                             FROM
