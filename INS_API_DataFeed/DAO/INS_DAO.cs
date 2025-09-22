@@ -1340,8 +1340,21 @@ namespace INS_API_DataFeed.DAO
         public Nullable<bool> isSideMirror_2_Working { get; set; }
         public Nullable<bool> isSideMirror_3_Working { get; set; }
         public Nullable<bool> isSideMirror_4_Working { get; set; }
+        public string Grading { get; set; }
+        public string GroupOfCar { get; set; }
+        public string GradeEngine { get; set; }
+        public string GradeCabin { get; set; }
     }
 
+    public partial class CarGrade
+    {
+        public string BookInNumber { get; set; }
+        public string VehicleId { get; set; }
+        public string Grading { get; set; }
+        public string GroupOfCar { get; set; }
+        public string GradeEngine { get; set; }
+        public string GradeCabin { get; set; }
+    }
     public class VehicleModel
     {
         public string BookInNumber { get; set; }
@@ -1656,6 +1669,7 @@ namespace INS_API_DataFeed.DAO
         public string[] BackImage { get; set; }
         public string[] BackLeftImage { get; set; }
         public string[] BackRightImage { get; set; }
+
     }
 
     public class CarBookInDataModel
@@ -1704,7 +1718,7 @@ namespace INS_API_DataFeed.DAO
         public string VehicleBookinRemarks { get; set; }
         public string[] Dashboard_image { get; set; }
         public string[] Dashboard_text { get; set; }
-        public string Dashboard { get; set; }
+        public string[] Dashboard { get; set; }
         public string FuelAmount { get; set; }
         public string Mileage { get; set; }
         public string V2LEVCable { get; set; }
@@ -1790,7 +1804,7 @@ namespace INS_API_DataFeed.DAO
         public string[] EngineNumberCondition_text { get; set; }
         public string EngineNumberCondition { get; set; }
         public string[] PlateCondition_image { get; set; }
-        public string[] PlateCondition_text { get; set; }
+        public string PlateCondition_text { get; set; }
         public string PlateCondition { get; set; }
         public string[] EngineCompartment { get; set; }
         public string TypeofLicensePlate { get; set; }
@@ -1831,7 +1845,7 @@ namespace INS_API_DataFeed.DAO
         public string WindowBackR { get; set; }
         public string InteriorConditionRemarks { get; set; }
         public string[] ConsoleWideImage { get; set; }
-        public string[] CarRadioMultimediaImage { get; set; }
+        public string CarRadioMultimediaImage { get; set; }
         public string Speaker { get; set; }
         public string GearCondition { get; set; }
         public string ServiceBook { get; set; }
@@ -1875,7 +1889,7 @@ namespace INS_API_DataFeed.DAO
         public string Aircondition { get; set; }
         public string BackBodyRemarks { get; set; }
         public string HeadlightsWorking { get; set; }
-        public string[] DayTimeRunningLights { get; set; }
+        public string DayTimeRunningLights { get; set; }
         public string[] OpenDoorBackLImage { get; set; }
         public string Brakelightsworking { get; set; }
         public string EngineConditionRemarks { get; set; }
@@ -1891,7 +1905,7 @@ namespace INS_API_DataFeed.DAO
         public string Suspension { get; set; }
         public string[] ChassisDamageImage { get; set; }
         public string AirConditionRemarks { get; set; }
-        public string[] FogLights { get; set; }
+        public string FogLights { get; set; }
         public string[] OtherDamageImage { get; set; }
         public string[] OtherAccessories { get; set; }
         public string StructureGrade { get; set; }
@@ -1911,6 +1925,7 @@ namespace INS_API_DataFeed.DAO
         public string[] BackImage { get; set; }
         public string[] BackLeftImage { get; set; }
         public string[] BackRightImage { get; set; }
+        public string VehicleGroup { get; set; }
     }
 
     public class MBBookInDataModel

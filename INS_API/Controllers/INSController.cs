@@ -1695,6 +1695,35 @@ namespace INS_API.Controllers
         }
         #endregion
 
+        #region GetModelTemplateByVarId
+        [HttpGet]
+        public ActionResult GetModelTemplateByVarId(int id)
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+            try
+            {
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                DataTable dt = objDataFeed.GetModelTemplateById(id);
+                //var rowDict = dt.Rows[0].Table.Columns.Cast<DataColumn>()
+                // .ToDictionary(col => col.ColumnName, col => dt.Rows[0][col]);
+
+                string jsString = JsonConvert.SerializeObject(dt);
+                return Content(jsString, "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
         #region GetMakeByModelCode
         [HttpGet]
         public ActionResult GetMakeByModelCode(string code)
@@ -1710,6 +1739,35 @@ namespace INS_API.Controllers
             {
                 INS_DataFeed objDataFeed = new INS_DataFeed();
                 DataTable dt = objDataFeed.GetMakeByModelCode(code);
+                //var rowDict = dt.Rows[0].Table.Columns.Cast<DataColumn>()
+                // .ToDictionary(col => col.ColumnName, col => dt.Rows[0][col]);
+
+                string jsString = JsonConvert.SerializeObject(dt);
+                return Content(jsString, "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
+        #region GetMakeByVarId
+        [HttpGet]
+        public ActionResult GetMakeByVarId(int id)
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+            try
+            {
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                DataTable dt = objDataFeed.GetMakeByVarId(id);
                 //var rowDict = dt.Rows[0].Table.Columns.Cast<DataColumn>()
                 // .ToDictionary(col => col.ColumnName, col => dt.Rows[0][col]);
 
@@ -1768,6 +1826,35 @@ namespace INS_API.Controllers
             {
                 INS_DataFeed objDataFeed = new INS_DataFeed();
                 DataTable dt = objDataFeed.GetVariantByModelCode(code);
+                //var rowDict = dt.Rows[0].Table.Columns.Cast<DataColumn>()
+                // .ToDictionary(col => col.ColumnName, col => dt.Rows[0][col]);
+
+                string jsString = JsonConvert.SerializeObject(dt);
+                return Content(jsString, "application/json");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
+        #region GetVariantByVarId
+        [HttpGet]
+        public ActionResult GetVariantByVarId(int id)
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+            try
+            {
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                DataTable dt = objDataFeed.GetVariantByVarId(id);
                 //var rowDict = dt.Rows[0].Table.Columns.Cast<DataColumn>()
                 // .ToDictionary(col => col.ColumnName, col => dt.Rows[0][col]);
 
@@ -2916,10 +3003,27 @@ namespace INS_API.Controllers
                     return Json(new { success = false, message = $"AddInspection failed: {error}" }, JsonRequestBehavior.AllowGet);
                 }
 
+                CarGrade carGrade = new CarGrade()
+                {
+                    //InspectionId = jsonData.InspectionId,
+                    BookInNumber = jsonData.BookInNumber,
+                    VehicleId = jsonData.VehicleId,
+                    Grading = jsonData.Grading ?? "",
+                    GroupOfCar = jsonData.GroupOfCar,
+                    GradeEngine = jsonData.GradeEngine ?? "",
+                    GradeCabin = jsonData.GradeCabin ?? ""
+                };
+                error = objDataFeed.AddCarGrade(carGrade);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //logger.Error("inspection-create :", error);
+                    return Json(new { success = false, message = $"AddGrade failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
                 #region updateVehicle
 
                 //flLog.Info("vehicle-UpdateVehicleOnUpdate: bookInNumber={0} | vehicleId={vehicleId}", jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
-                error=objDataFeed.UpdateVehicleOnUpdate(jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
+                error =objDataFeed.UpdateVehicleOnUpdate(jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
                 if (!string.IsNullOrWhiteSpace(error))
                 {
                     return Json(new { success = false, message = $"UpdateVehicleOnUpdate failed: {error}" }, JsonRequestBehavior.AllowGet);

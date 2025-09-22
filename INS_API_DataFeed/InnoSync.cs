@@ -1,12 +1,13 @@
-﻿using System;
+﻿using INS_API_DataFeed.DAO;
+using Newtonsoft.Json;
+using OfficeOpenXml;
+using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OfficeOpenXml;
-using Newtonsoft.Json;
 using System.Web.UI.WebControls.WebParts;
 
 namespace INS_API_DataFeed
@@ -37,6 +38,8 @@ namespace INS_API_DataFeed
                                                 "@ChasisNumber,@VIN,@Reg,@CreatedBy,@CreatedDate,0,0,@ErrorMsg);SELECT SCOPE_IDENTITY();";
 
         public string Query_UpdateVehicleId = @"UPDATE [dbo].[INNO_SYNC] SET VehicleId = @VehicleId WHERE ID = @ID;";
+
+        public string Query_InsertInnoSyncOBSImage = @"INSERT INTO [dbo].[INNO_SYNC_OBSImages] VALUES (@INNO_SYNC_ID,@RefKey,@SchemaName,@VehicleId,@OBSImagePath,@ImageType,@CreateURLDate);";
 
         public string Query_CheckDuplicateCarBookIn = @"SELECT * FROM [dbo].[INNO_SYNC] WHERE SellerCode = @SellerCode AND RegistrationNumber = @Reg And SchemaName like '%bookin%';";
         public string strSyncError = "";
@@ -143,12 +146,12 @@ namespace INS_API_DataFeed
                 {
                     context.Database.Connection.Close();
                 }
-              
+
                 if (chkDuplicate.Rows.Count == 0)
                 {
                     blRtn = true;
                 }
-            
+
             }
             catch (Exception ex)
             {
@@ -189,6 +192,169 @@ namespace INS_API_DataFeed
             catch (Exception ex)
             {
                 strSyncError = ex.ToString();
+            }
+        }
+        #endregion
+
+        #region InsertInnoSyncOBSImage
+        public void InsertInnoSyncOBSImage(string tempUrl,string imageType)
+        {
+            try
+            {
+                var context = new INS_WEB_dataFeedContext();
+                context.Database.CommandTimeout = 300000;
+                if (context.Database.Connection.State == ConnectionState.Closed)
+                {
+                    context.Database.Connection.Open();
+                }
+
+                #region Parameter
+
+                this.RefKey = (this.RefKey == null ? "" : this.RefKey);
+                this.SchemaName = (this.SchemaName == null ? "" : this.SchemaName);
+                this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
+
+                #endregion Parameter
+                using (SqlCommand command = new SqlCommand(Query_InsertInnoSyncOBSImage, (SqlConnection)context.Database.Connection))
+                {
+                    command.Parameters.AddWithValue("@INNO_SYNC_ID", this.ID);
+                    command.Parameters.AddWithValue("@RefKey", this.RefKey);
+                    command.Parameters.AddWithValue("@SchemaName", this.SchemaName);
+                    command.Parameters.AddWithValue("@VehicleId", this.VehicleId);
+                    command.Parameters.AddWithValue("@OBSImagePath", tempUrl);
+                    command.Parameters.AddWithValue("@ImageType", imageType);
+                    command.Parameters.AddWithValue("@CreateURLDate", DateTime.Now);
+                    object result = command.ExecuteScalar();
+                }
+                if (context.Database.Connection.State == ConnectionState.Open)
+                {
+                    context.Database.Connection.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                strSyncError = ex.ToString();
+            }
+        }
+        #endregion
+
+        #region SyncOnIMAPInspectionDocument
+        public void SyncOnIMAPInspectionDocument(string tempUrl, string imageType)
+        {
+            try
+            {
+                #region Parameter
+
+                this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
+
+                #endregion Parameter
+
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "dbo.CreateVehicleDocument_INNO";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // Add parameters
+                        var param1 = command.CreateParameter();
+                        param1.ParameterName = "@vehicleId";
+                        param1.DbType = DbType.String;
+                        param1.Size = 18;
+                        param1.Value = this.VehicleId;
+                        command.Parameters.Add(param1);
+
+                        var param2 = command.CreateParameter();
+                        param2.ParameterName = "@documentDescription_BU";
+                        param2.DbType = DbType.String;
+                        param2.Size = 100;
+                        param2.Value = imageType;
+                        command.Parameters.Add(param2);
+
+                        var param3 = command.CreateParameter();
+                        param3.ParameterName = "@documentDescription_LO";
+                        param3.DbType = DbType.String;
+                        param3.Size = 100;
+                        param3.Value = imageType;
+                        command.Parameters.Add(param3);
+
+                        var param4 = command.CreateParameter();
+                        param4.ParameterName = "@documentTypeID";
+                        param4.DbType = DbType.Int16;
+                        param4.Value = 2;
+                        command.Parameters.Add(param4);
+
+
+                        var param5 = command.CreateParameter();
+                        param5.ParameterName = "@documentPath";
+                        param5.DbType = DbType.String;
+                        param5.Size = 400;
+                        param5.Value = tempUrl;
+                        command.Parameters.Add(param5);
+
+                        //var param6 = command.CreateParameter();
+                        //param6.ParameterName = "@document";
+                        //param6.DbType = DbType.Byte;
+                        //param6.Size = 400;
+                        //param6.Value = null;
+                        //command.Parameters.Add(param6);
+
+                        command.ExecuteNonQuery(); // Execute the stored procedure
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                strSyncError = ex.ToString();
+            }
+        }
+        #endregion
+
+        #region UpdateVehicleDocument
+        public void UpdateVehicleDocument()
+        {
+            try
+            {
+                this.VehicleId = (this.VehicleId == null ? "" : this.VehicleId);
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    var connection = context.Database.Connection;
+
+                    if (connection.State == ConnectionState.Closed)
+                        connection.Open();
+
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "dbo.UpdateVehicleDocumentDeleted_INNO";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // Add parameters
+                        var param1 = command.CreateParameter();
+                        param1.ParameterName = "@vehicleId";
+                        param1.DbType = DbType.String;
+                        param1.Size = 18;
+                        param1.Value = this.VehicleId;
+                        command.Parameters.Add(param1);
+
+                        var param2 = command.CreateParameter();
+                        param2.ParameterName = "@documentTypeID";
+                        param2.DbType = DbType.Int16;
+                        param2.Value = 2;
+                        command.Parameters.Add(param2);
+
+                        command.ExecuteNonQuery(); // Execute the stored procedure
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
             }
         }
         #endregion

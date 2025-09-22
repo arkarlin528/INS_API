@@ -1,22 +1,24 @@
 ﻿using INS_API_DataFeed;
 using INS_API_DataFeed.DAO;
+using Nest;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Policy;
+using System.Text;
+using System.Text.Json;
 using System.Web;
 using System.Web.Mvc;
-using System.Text;
 using static INS_API_DataFeed.InnoSync;
-using System.Text.Json;
-using System.Net.Http.Headers;
-using System.Net.Http;
-using OfficeOpenXml.Export.HtmlExport.StyleCollectors.StyleContracts;
-using Nest;
-using Newtonsoft.Json.Linq;
 
 namespace INS_API.Controllers
 {
@@ -208,6 +210,38 @@ namespace INS_API.Controllers
                         {
                             innoSync.VehicleId = vehicleId;
                             innoSync.UpdateVehicleID();
+
+                            List<string> tempurls = GetOBSTemporaryImages(innoSync.RefKey);
+
+                            innoSync.UpdateVehicleDocument();
+
+                            foreach (string tempurl in tempurls)
+                            {
+                                string filename = tempurl.Split(new[] { "photos/" }, StringSplitOptions.None)[1].Split('?')[0];
+                                var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(innoSync.InspectionData);
+                                string matchedKey = "";
+
+                                foreach (var kvp in dict)
+                                {
+                                    if (kvp.Value is Newtonsoft.Json.Linq.JArray arr)
+                                    {
+                                        for (int i = 0; i < arr.Count; i++)
+                                        {
+                                            if (arr[i].ToString() == filename)
+                                            {
+                                                matchedKey = $"{kvp.Key}{i + 1}";
+                                                break;
+                                            }
+                                        }
+
+                                    }
+                                }
+                                if(matchedKey != "")
+                                {
+                                    innoSync.InsertInnoSyncOBSImage(tempurl, matchedKey);
+                                    innoSync.SyncOnIMAPInspectionDocument(tempurl, matchedKey.Replace("Image","").Replace("_image",""));
+                                }
+                            }
                             //using (var client = new HttpClient())
                             //{
                             //    client.DefaultRequestHeaders.Add("apiKey", apiKey);
@@ -347,6 +381,41 @@ namespace INS_API.Controllers
             //}
 
             return Json(new { success = true, message = "Sync Inspection Data completed successfully.", id = 0 });
+        }
+
+        public List<string> GetOBSTemporaryImages(string refkey)
+        {
+            List<string> urls = new List<string>();
+            string apiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+            string apiUrl = $@"https://mediadata.mottoauction.com/IMATImage/GetOBSTemporaryImages?refKey={refkey}";
+
+
+            if (!string.IsNullOrEmpty(apiUrl) )
+            {
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("apiKey", apiKey);
+
+                    var response = client.GetAsync(apiUrl).Result;
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new Exception($"API call failed: {response.StatusCode} - {response.ReasonPhrase}");
+                    }
+                    else
+                    {
+                        var responseContent = response.Content.ReadAsStringAsync().Result;
+
+                        var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
+                        if (jsonResponse["urls"] != null)
+                        {
+                            urls = jsonResponse["urls"].ToObject<List<string>>();
+                        }
+                    }
+                }
+            }
+
+            return urls;
         }
 
         public string SyncOnIMAP(int id)
@@ -552,15 +621,15 @@ namespace INS_API.Controllers
                     ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
                     FuelDelivery = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["FuelDelivery"].ToString() : "",
                     FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gearbox"].ToString() : "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gearbox = GetGearBox(inspectionData.GearType == null ? "" : inspectionData.GearType),//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
                     Gears = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gears"].ToString() : "",
                     Drive = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Drive"].ToString() : "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
                     Regisration = (inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
-                    RegistrationYear = (inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
-                    RegistrationProvince = "",//(inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
+                    RegistrationYear = string.IsNullOrEmpty(inspectionData.RegistrationYear) ? "" : inspectionData.RegistrationYear.Substring(0, 4),
+                    RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),
                     RegistrationPlate = "",//(inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
                     RegistrationNote = "",//(inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
                     IsRegistrationMismatch = false,//inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
@@ -598,8 +667,8 @@ namespace INS_API.Controllers
                     CataLogIPAD_TH = "",
                     CataLogIPAD_EN = "",
                     CatalyticOption = 0,//inspectionData.CatalyticConverter == "มี" ? 1 : 0,//not sure
-                    CabTypeID ="",// (inspectionData.PickupTrayType == null ? "" : inspectionData.PickupTrayType),//not sure
-                    LevelCabID = ""
+                    CabTypeID = GetCabType(inspectionData.PickupCabType == null ? "" : inspectionData.PickupCabType),
+                    LevelCabID = GetRideLevel(inspectionData.PickupRideLevel == null ? "" : inspectionData.PickupRideLevel),
                 },
                 ExternalType = new External//no fields in inno
                 {
@@ -614,7 +683,7 @@ namespace INS_API.Controllers
                     DamageDesc = "",
                     BookinNumber = "",
                     TyreBrand = "",
-                    RoofTypeId = null
+                    RoofTypeId = GetTrayType(inspectionData.PickupTrayType == null ? "" : inspectionData.PickupTrayType),
                 },
                 SpareType = new Spare
                 {
@@ -648,7 +717,7 @@ namespace INS_API.Controllers
                     IsManual = null,
                     IsCigaretteLiter = null,
                     IsTaxPlate = null,
-                    IsPlateExpireDate = "",
+                    IsPlateExpireDate = inspectionData.TaxExpireDate == null ? "" : inspectionData.TaxExpireDate.Value.ToString("dd MMM yyyy", new CultureInfo("th-TH")),
                     IsNavigator = null,
                     IsNavigatorBuiltin = null,
                     IsNavigatorCD = null,
@@ -766,12 +835,16 @@ namespace INS_API.Controllers
                 ElectronicSummary = "",
                 LatestUpdatedDate = null,
                 Regisration = row["RegistrationNumber"]?.ToString(),
-                RegistrationProvince = "",
+                RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),
                 IsSunroof = null,
                 isSideMirror_1_Working = null,
                 isSideMirror_2_Working = null,
                 isSideMirror_3_Working = null,
-                isSideMirror_4_Working = null
+                isSideMirror_4_Working = null,
+                GradeEngine = inspectionData.EngineGrade,
+                GradeCabin = inspectionData.InteriorGrade,
+                Grading = inspectionData.StructureGrade,
+                GroupOfCar = inspectionData.VehicleGroup,
             };
         }
 
@@ -868,15 +941,15 @@ namespace INS_API.Controllers
                     ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
                     FuelDelivery = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["FuelDelivery"].ToString() : "",
                     FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gearbox"].ToString() : "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gearbox = GetGearBox(inspectionData.GearType == null ? "" : inspectionData.GearType),//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
                     Gears = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gears"].ToString() : "",
                     Drive = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Drive"].ToString() : "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
                     Regisration = (inspectionData.RegistrationNumber == null ? "" : inspectionData.RegistrationNumber),//not sure
-                    RegistrationYear = (inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
-                    RegistrationProvince = "",//(inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
+                    RegistrationYear = string.IsNullOrEmpty(inspectionData.RegistrationYear)? "" : inspectionData.RegistrationYear.Substring(0, 4),//not sure
+                    RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),
                     RegistrationPlate = "",//(inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
                     RegistrationNote = "",//(inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
                     IsRegistrationMismatch = false,//inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
@@ -964,7 +1037,7 @@ namespace INS_API.Controllers
                     IsManual = null,
                     IsCigaretteLiter = null,
                     IsTaxPlate = null,
-                    IsPlateExpireDate = "",
+                    IsPlateExpireDate = inspectionData.TaxExpireDate == null ? "" : inspectionData.TaxExpireDate.Value.ToString("dd MMM yyyy", new CultureInfo("th-TH")),
                     IsNavigator = null,
                     IsNavigatorBuiltin = null,
                     IsNavigatorCD = null,
@@ -1082,12 +1155,12 @@ namespace INS_API.Controllers
                 ElectronicSummary = "",
                 LatestUpdatedDate = null,
                 Regisration = "",//row["LicensePlateNumber"]?.ToString(),
-                RegistrationProvince = "",
+                RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),
                 IsSunroof = null,
                 isSideMirror_1_Working = null,
                 isSideMirror_2_Working = null,
                 isSideMirror_3_Working = null,
-                isSideMirror_4_Working = null
+                isSideMirror_4_Working = null,
             };
         }
 
@@ -1184,15 +1257,15 @@ namespace INS_API.Controllers
                     ColourDesc = (inspectionData.Color == null || inspectionData.Color == "null" ? "" : inspectionData.Color),
                     FuelDelivery = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["FuelDelivery"].ToString() : "",
                     FuelType = fuelType,//(inspectionData.FuelType == null ? "" : inspectionData.FuelType),
-                    Gearbox = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gearbox"].ToString() : "",//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
+                    Gearbox = GetGearBox(inspectionData.GearType == null ? "" : inspectionData.GearType),//(inspectionData.GearType == null ? "" : inspectionData.GearType),//not sure
                     Gears = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Gears"].ToString() : "",
                     Drive = dtModelTemplate.Rows.Count > 0 ? dtModelTemplate.Rows[0]["Drive"].ToString() : "",//(inspectionData.DriveSystem == null ? "" : inspectionData.DriveSystem),//not sure
                     EngineNumber = (inspectionData.EngineNumber == null ? "" : inspectionData.EngineNumber),
                     EngineCapacity = decimal.TryParse(inspectionData.EngineSize, out var cap) ? cap : (decimal?)null,
                     EngineCapacityUnit = (inspectionData.EngineSizeUnit == null ? "" : inspectionData.EngineSizeUnit),//not sure
                     Regisration = (inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
-                    RegistrationYear = (inspectionData.RegistrationYear == null ? "" : inspectionData.RegistrationYear),//not sure
-                    RegistrationProvince = "",//(inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),//not sure
+                    RegistrationYear = string.IsNullOrEmpty(inspectionData.RegistrationYear) ? "" : inspectionData.RegistrationYear.Substring(0, 4),//not sure
+                    RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),
                     RegistrationPlate = "",//(inspectionData.LicensePlateNumber == null ? "" : inspectionData.LicensePlateNumber),//not sure
                     RegistrationNote = "",//(inspectionData.TypeofLicensePlate == null ? "" : inspectionData.TypeofLicensePlate),//not sure
                     IsRegistrationMismatch = false,//inspectionData.LicenePlateMatchWithCar?.Contains("ไม่ตรง") == true,//not sure
@@ -1280,7 +1353,7 @@ namespace INS_API.Controllers
                     IsManual = null,
                     IsCigaretteLiter = null,
                     IsTaxPlate = null,
-                    IsPlateExpireDate = "",
+                    IsPlateExpireDate = inspectionData.TaxExpireDate == null ? "" : inspectionData.TaxExpireDate.Value.ToString("dd MMM yyyy", new CultureInfo("th-TH")),
                     IsNavigator = null,
                     IsNavigatorBuiltin = null,
                     IsNavigatorCD = null,
@@ -1398,7 +1471,7 @@ namespace INS_API.Controllers
                 ElectronicSummary = "",
                 LatestUpdatedDate = null,
                 Regisration = row["RegistrationNumber"]?.ToString(),
-                RegistrationProvince = "",
+                RegistrationProvince = (inspectionData.LicenseProvince == null ? "" : inspectionData.LicenseProvince),
                 IsSunroof = null,
                 isSideMirror_1_Working = null,
                 isSideMirror_2_Working = null,
@@ -1417,6 +1490,67 @@ namespace INS_API.Controllers
             else if (contractType == "รถคืน")
                 return "VO";
             else return "OT";
+        }
+        #endregion
+
+        #region GetGearBox
+        public string GetGearBox(string gearType)
+        {
+            if (gearType == "Automatic")
+                return "A";
+            else if (gearType == "N/A")
+                return "1";
+            else if (gearType == "Manual")
+                return "M";
+            else return "";
+        }
+        #endregion
+
+        #region GetCabType
+        public string GetCabType(string cabType)
+        {
+            if (cabType == "Single cab")
+                return "SC";
+            else if (cabType == "Extended cab")
+                return "EC";
+            else if (cabType == "Double cab")
+                return "DC";
+            else return "";
+        }
+        #endregion
+
+        #region GetRideLevel
+        public string GetRideLevel(string rideLevel)
+        {
+            if (rideLevel == "ยกสูง")
+                return "Hi";
+            else if (rideLevel == "ทั่วไป")
+                return "Nm";
+            else return "";
+        }
+        #endregion
+
+        #region GetTrayType
+        public int GetTrayType(string trayType)
+        {
+            if (trayType == "ไม่ได้ติด")
+                return 1;
+            else if (trayType == "คอก")
+                return 2;
+            else if (trayType == "หลังคาสูง")
+                return 3;
+            else if (trayType == "ตู้ทึบ")
+                return 4;
+            else if (trayType == "ทรงแครี่บอยสูง")
+                return 5;
+            else if (trayType == "แครี่บอยเสมอเก๋ง")
+                return 6;
+            else if (trayType == "คอกสูง")
+                return 7;
+            else if (trayType == "ตู้แช่")
+                return 8;
+            else
+                return 0;
         }
         #endregion
 

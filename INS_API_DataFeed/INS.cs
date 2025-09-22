@@ -1656,6 +1656,42 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetMakeByVarId
+        public DataTable GetMakeByVarId(int id)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_MakeByVarID;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region GetModelTemplateByMake
         public DataTable GetModelTemplateByMake(string code)
         {
@@ -1711,6 +1747,42 @@ namespace INS_API_DataFeed
                         command.CommandText = INS_Query.get_VariantByModelCode;
 
                         command.Parameters.Add(new SqlParameter("@code", code));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
+        #region GetVariantByVarId
+        public DataTable GetVariantByVarId(int id)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_VariantByVarID;
+
+                        command.Parameters.Add(new SqlParameter("@id", id));
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -3546,6 +3618,44 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region AddCarGrade
+        public string AddCarGrade(CarGrade carGrade)
+        {
+            string errorMessage = "";
+
+            try
+            {
+                using (var context = new Inspection_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                        context.Database.Connection.Open();
+                    var param = new List<SqlParameter>
+            {
+                //new SqlParameter("@InspectionId",carInspection.InspectionId),
+                new SqlParameter("@BookInNumber", carGrade.BookInNumber),
+                new SqlParameter("@VehicleId",carGrade.VehicleId),
+                new SqlParameter("@GradeSummary", ""),
+                new SqlParameter("@GradeEngine",carGrade.GradeEngine),
+                new SqlParameter("@GradeCabin", carGrade.GradeCabin),
+                new SqlParameter("@Grading", carGrade.Grading),
+                new SqlParameter("@GroupOfCar", carGrade.GroupOfCar)
+            };
+
+                    int insertedId = context.Database.SqlQuery<int>(INS_Query.Add_CarGrade, param.ToArray()).SingleOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+                errorMessage = ex.Message;
+            }
+
+            return errorMessage;
+        }
+        #endregion
+
         //#region AddCarInspectionImage
         //public string AddCarInspectionImage(CarInspectionImage carInspectionImage)
         //{
@@ -4131,6 +4241,43 @@ namespace INS_API_DataFeed
         }
         #endregion
 
+        #region GetOBSImageByKey
+        public DataTable GetOBSImageByKey(string oriImageName,string refKey)
+        {
+            DataTable result = new DataTable();
+            try
+            {
+                using (var context = new MAMS_dataFeedContext())
+                {
+                    context.Database.CommandTimeout = 300000;
+                    if (context.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        context.Database.Connection.Open();
+                    }
+
+                    using (var command = context.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = INS_Query.get_OBSImageByKey;
+
+                        command.Parameters.Add(new SqlParameter("@oriImageName", $"%{oriImageName}%"));
+                        command.Parameters.Add(new SqlParameter("@refKey", refKey));
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            result.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("===================================================================");
+                Console.WriteLine(ex.Message);
+            }
+            return result;
+        }
+        #endregion
+
         #region GetBookInNoByVehicleID
         public string GetBookInNoByVehicleID(string id)
         {
@@ -4342,7 +4489,7 @@ namespace INS_API_DataFeed
 
         public static string get_StateByCode = @"SELECT State,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.States where State=@code";
 
-        public static string get_Storage = @"SELECT * FROM ZILO.IMAP.dbo.StorageLocation";
+        public static string get_Storage = @"SELECT * FROM ZILO.IMAP.dbo.StorageLocation WHERE IsActived = 1 AND ISNULL(Lat,'') <> '' AND ISNULL(Lon,'') <> ''";
 
         public static string get_StorageById = @"SELECT * FROM ZILO.IMAP.dbo.StorageLocation where LocationId=@id";
 
@@ -4365,21 +4512,21 @@ namespace INS_API_DataFeed
         public static string get_GearByCode = @"SELECT Gears,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.Gears where Gears=@code";
 
         public static string get_ModelTemplate = @"select ID, 
-                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants ModelDisplay,
+                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants + ISNULL('(' + ChassisPreCode + ')','') ModelDisplay,
                                                     BuildYear,Model_BU,Model_LO,Variants,Description_BU,Description_LO, EngineCapacity,EngineCapacityUnit, FuelDelivery, FuelType,
-                                                    GearBox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
+                                                    Gearbox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
                                                     from  ZILO.IMAP.dbo.ModelTemplates";
 
         public static string get_ModelTemplateByCode = @"select ID, 
-                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants ModelDisplay,
+                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants + ISNULL('(' + ChassisPreCode + ')','') ModelDisplay,
                                                     BuildYear,Model_BU,Model_LO,Variants,Description_BU,Description_LO, EngineCapacity,EngineCapacityUnit, FuelDelivery, FuelType,
-                                                    GearBox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
+                                                    Gearbox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
                                                     from  ZILO.IMAP.dbo.ModelTemplates where ModelCode=@code";
 
         public static string get_ModelTemplateById = @"select ID, 
-                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants ModelDisplay,
+                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants + ISNULL('(' + ChassisPreCode + ')','') ModelDisplay,
                                                     BuildYear,Model_BU,Model_LO,Variants,Description_BU,Description_LO, EngineCapacity,EngineCapacityUnit, FuelDelivery, FuelType,
-                                                    GearBox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
+                                                    Gearbox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
                                                     from  ZILO.IMAP.dbo.ModelTemplates where ID=@id";
 
         public static string get_ModelTemplate_ForDataEntry_ByVarId = @"SELECT MT.ID,MT.Description_BU,MT.ModelCode,MT.ModelDisplay,
@@ -4411,9 +4558,17 @@ namespace INS_API_DataFeed
                                                             (SELECT DISTINCT Make FROM ZILO.IMAP.dbo.ModelTemplates WHERE ModelCode = @code) MC
                                                             LEFT JOIN ZILO.IMAP.dbo.Makes ON Makes.Make = MC.Make";
 
+        public static string get_MakeByVarID = @"SELECT Makes.Make,Desc_BU,Desc_LO
+                                                            FROM
+                                                            (SELECT DISTINCT Make FROM ZILO.IMAP.dbo.ModelTemplates WHERE ID = @id) MC
+                                                            LEFT JOIN ZILO.IMAP.dbo.Makes ON Makes.Make = MC.Make";
+
         public static string get_ModelTemplateByMake = @"SELECT DISTINCT ModelCode,Model_BU,Model_LO FROM ZILO.IMAP.dbo.ModelTemplates where Make=@code";
 
         public static string get_VariantByModelCode = @"select DISTINCT ID VarID,Variants from  ZILO.IMAP.dbo.ModelTemplates where ModelCode=@code";
+
+
+        public static string get_VariantByVarID = @"select DISTINCT ID VarID,Variants from  ZILO.IMAP.dbo.ModelTemplates where ID = @id";
 
         public static string get_EngineCapacityUnitByVarID = @"select DISTINCT ID VarID,EngineCapacity,EngineCapacityUnit from  ZILO.IMAP.dbo.ModelTemplates where ID=@id";
 
@@ -4718,6 +4873,17 @@ namespace INS_API_DataFeed
                                     );
                                     SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
+        public static string Add_CarGrade = @"INSERT INTO Grade VALUES (@BookInNumber,@VehicleId,@GradeSummary,0,0,0,0,0,
+                                               0,0,0,0,
+                                               0,0,0,0,
+                                               0,0,0,0,0,0,0,0,0,0,0,
+                                               0,0,0,0,0,0,0,0,0,
+                                               0,0,
+                                               0,0,0,0,0,
+                                               0,0,0,0,0,
+                                               @GradeEngine,@GradeCabin,@Grading,@GroupOfCar);
+                                    SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
         public static string get_CarInspectionByBookIn = @"SELECT * FROM CarInspection WHERE BookInNumber = @bookinNo";
 
         public static string get_BookInSheet = @"SELECT TOP 1 ID,RefKey,TxnDate,SchemaName,SchemaInfo,InspectionData,SenderName,Receivername,MobileNumber,SellerCode,InspectorID,Inspector, 
@@ -4763,6 +4929,10 @@ namespace INS_API_DataFeed
                                                     (CASE WHEN SCHEMANAME LIKE  '%inspection%' THEN 'Inspection' WHEN SCHEMANAME LIKE  '%bookin%' THEN 'Book In' ELSE '' END) SchemaType ,
 													(CASE WHEN SCHEMANAME LIKE  '%car%' THEN 'Car' WHEN SCHEMANAME LIKE  '%motorbike%' THEN 'MB' WHEN SCHEMANAME LIKE  '%salvage%' THEN 'SVG' ELSE '' END)  VehicleType
                                                     FROM InspectionWeb.dbo.INNO_SYNC where ID=@id";
+
+
+        public static string get_OBSImageByKey = @"select top 1 * from InspectionWeb.dbo.INNO_SYNC_OBSImages 
+                                                    where OBSImagePath like @oriImageName and RefKey = @refKey order by CreateURLDate desc";
 
         public static string get_BookInNoByVehicleID = $@"select BookInNumber from BookIn where VehicleId=@id";
 

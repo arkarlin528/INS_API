@@ -1,5 +1,6 @@
 ﻿using INS_API_DataFeed;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -128,6 +129,24 @@ namespace INS_API.Controllers
                         string sellerCode = inspectionDict.ContainsKey("SellerName") ? inspectionDict["SellerName"]?.ToString() : "null";
                         string makeCode = inspectionDict.ContainsKey("Make") ? inspectionDict["Make"]?.ToString() : "null";
                         string variantId = inspectionDict.ContainsKey("Variant") ? inspectionDict["Variant"]?.ToString() : "null";
+                        string receiverSign = inspectionDict.ContainsKey("ReceiverSign") &&
+                                                 inspectionDict["ReceiverSign"] is JArray receiverArray &&
+                                                 receiverArray.Count > 0
+                                               ? receiverArray[0]?.ToString() ?? ""
+                                               : "";
+
+                        string delivererSign = inspectionDict.ContainsKey("Deliverersign") &&
+                                               inspectionDict["Deliverersign"] is JArray delivererArray &&
+                                               delivererArray.Count > 0
+                                                ? delivererArray[0]?.ToString() ?? ""
+                                                : "";
+
+                        string tracingPaperImage = inspectionDict.ContainsKey("TracingPaperImage") &&
+                                                   inspectionDict["TracingPaperImage"] is JArray tracingArray &&
+                                                   tracingArray.Count > 0
+                                                ? tracingArray[0]?.ToString() ?? ""
+                                                : "";
+
 
                         DataTable dtseller = objDataFeed.GetSellerByCode(sellerCode);
                         string sellerName = "";
@@ -157,6 +176,27 @@ namespace INS_API.Controllers
                             makeName = dtmake.Rows[0]["Desc_BU"].ToString();
                         }
 
+                        DataTable dtreceiverSign = objDataFeed.GetOBSImageByKey(receiverSign, RefNumber);
+                        string receiver_Sign = "";
+                        if (dtreceiverSign != null && dtreceiverSign.Rows.Count > 0)
+                        {
+                            receiver_Sign = dtreceiverSign.Rows[0]["OBSImagePath"].ToString();
+                        }
+
+                        DataTable dtdelivererSign = objDataFeed.GetOBSImageByKey(delivererSign, RefNumber);
+                        string deliverer_Sign = "";
+                        if (dtdelivererSign != null && dtdelivererSign.Rows.Count > 0)
+                        {
+                            deliverer_Sign = dtdelivererSign.Rows[0]["OBSImagePath"].ToString();
+                        }
+
+                        DataTable dtTracingPaperImage = objDataFeed.GetOBSImageByKey(tracingPaperImage, RefNumber);
+                        string tracingPaper_Image = "";
+                        if (dtTracingPaperImage != null && dtTracingPaperImage.Rows.Count > 0)
+                        {
+                            tracingPaper_Image = dtTracingPaperImage.Rows[0]["OBSImagePath"].ToString();
+                        }
+
                         DataTable dtvariant = objDataFeed.GetModelTemplateById(variantId=="null"? 0 : int.Parse(variantId));
                         string variantName = "";
                         if (dtvariant != null && dtvariant.Rows.Count > 0)
@@ -169,6 +209,9 @@ namespace INS_API.Controllers
                         if (!string.IsNullOrEmpty(sellerName)) inspectionDict["SellerName"] = sellerName;
                         if (!string.IsNullOrEmpty(makeName)) inspectionDict["Make"] = makeName;
                         if (!string.IsNullOrEmpty(variantName)) inspectionDict["Variant"] = variantName;
+                        if (!string.IsNullOrEmpty(deliverer_Sign)) inspectionDict["Deliverersign"] = new[] { deliverer_Sign };
+                        if (!string.IsNullOrEmpty(receiver_Sign)) inspectionDict["ReceiverSign"] = new[] { receiver_Sign };
+                        if (!string.IsNullOrEmpty(tracingPaper_Image)) inspectionDict["TracingPaperImage"] = new[] { tracingPaper_Image };
 
                         row["InspectionData"] = JsonConvert.SerializeObject(inspectionDict);
                     }
