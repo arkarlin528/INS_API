@@ -4512,7 +4512,7 @@ namespace INS_API_DataFeed
         public static string get_GearByCode = @"SELECT Gears,RTRIM(Desc_BU) AS Desc_BU,RTRIM(Desc_LO) AS Desc_LO FROM ZILO.IMAP.dbo.Gears where Gears=@code";
 
         public static string get_ModelTemplate = @"select ID, 
-                                                    ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants + ISNULL('(' + ChassisPreCode + ')','') ModelDisplay,
+                                                    ModelCode + '-' + ModelDisplay + '-' + Variants + ISNULL('(' + ChassisPreCode + ')','') ModelCode, ModelCode + '-' + ModelDisplay + '-' + Variants + ISNULL('(' + ChassisPreCode + ')','') ModelDisplay,
                                                     BuildYear,Model_BU,Model_LO,Variants,Description_BU,Description_LO, EngineCapacity,EngineCapacityUnit, FuelDelivery, FuelType,
                                                     Gearbox,Gears,Drive,Make,Body,ChassisPreCode,CreateDate,CreateUser,CabTypeID,LevelCabID
                                                     from  ZILO.IMAP.dbo.ModelTemplates";
