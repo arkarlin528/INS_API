@@ -1147,6 +1147,7 @@ namespace INS_API_DataFeed.DAO
         public int CatalyticOption { get; set; }
         public string CabTypeID { get; set; }
         public string LevelCabID { get; set; }
+        public string TenantName { get; set; }
     }
     public class External
     {
@@ -1344,6 +1345,12 @@ namespace INS_API_DataFeed.DAO
         public string GroupOfCar { get; set; }
         public string GradeEngine { get; set; }
         public string GradeCabin { get; set; }
+        public string FloodSummary { get; set; }
+        public string EngineCondition { get; set; }
+        public string VinCondition { get; set; }
+        public Nullable<bool> IsAxle { get; set; }
+        public Nullable<bool> IsleafSpring { get; set; }
+        public Nullable<bool> IsUnderNM { get; set; }
     }
 
     public partial class CarGrade
@@ -1718,7 +1725,7 @@ namespace INS_API_DataFeed.DAO
         public string VehicleBookinRemarks { get; set; }
         public string[] Dashboard_image { get; set; }
         public string[] Dashboard_text { get; set; }
-        public string[] Dashboard { get; set; }
+        public string Dashboard { get; set; }
         public string FuelAmount { get; set; }
         public string Mileage { get; set; }
         public string V2LEVCable { get; set; }
@@ -1900,6 +1907,7 @@ namespace INS_API_DataFeed.DAO
         public string DriveShaftGear { get; set; }
         public string DriveShaft { get; set; }
         public string SuspensionModification { get; set; }
+        public string SuspensionModification_text { get; set; }
         public string[] Suspension_image { get; set; }
         public string[] Suspension_text { get; set; }
         public string Suspension { get; set; }
@@ -2225,22 +2233,35 @@ namespace INS_API_DataFeed.DAO
         public string LicensePlateNumber { get; set; }
         public string LicensePlateFBCheck { get; set; }
         public string LicenePlateMatchWithCar { get; set; }
+        public string LicenePlateMatchWithCar_text { get; set; }
         public string TypeofLicensePlate { get; set; }
         public string Color { get; set; }
         public string TaxExpireDate { get; set; }
         public string Mileage { get; set; }
         public string PlateCondition { get; set; }
+        public string PlateCondition_text { get; set; }
         public string EngineNumberCondition { get; set; }
+        public string[] EngineNumberCondition_text { get; set; }
         public string Key { get; set; }
+        public string[] Key_text { get; set; }
         public string WarningLight { get; set; }
         public string GearType { get; set; }
         public string Airbag { get; set; }
         public string WaterDamage { get; set; }
         public string ChassisNumberCondition { get; set; }
+        public string[] ChassisNumberCondition_text { get; set; }
         public string GasInstall { get; set; }
         public string EngineCondition { get; set; }
+        public string[] EngineCondition_text { get; set; }
+        public string Dashboard { get; set; }
+        public string[] Dashboard_text { get; set; }
+        public string DashboardLight { get; set; }
+        public string DashboardLight_text { get; set; }
+        public string GearCondition { get; set; }
+        public string GearCondition_text { get; set; }
         public string EngineConditionRemarks { get; set; }
         public string ChassisCondition { get; set; }
+        public string ChassisCondition_text { get; set; }
         public string VehicleGroup { get; set; }
         public string StructureGrade { get; set; }
         public string EngineGrade { get; set; }

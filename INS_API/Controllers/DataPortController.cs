@@ -141,6 +141,18 @@ namespace INS_API.Controllers
                         innoSync.MobileNumber = doc.RootElement.GetProperty("data").GetProperty("PhoneNumber").ToString();
                     }
                 }
+                if (doc.RootElement.GetProperty("data").TryGetProperty("LicenseProvince", out JsonElement province))
+                {
+                    // Check if the property is null or has a value
+                    if (province.ValueKind == JsonValueKind.Null)
+                    {
+                        innoSync.LicenseProvince = "";
+                    }
+                    else
+                    {
+                        innoSync.LicenseProvince = doc.RootElement.GetProperty("data").GetProperty("LicenseProvince").ToString();
+                    }
+                }
                 innoSync.SellerCode = doc.RootElement.GetProperty("data").GetProperty("SellerName").ToString();               
                 
                 innoSync.VehicleId = "";
@@ -238,8 +250,8 @@ namespace INS_API.Controllers
                                 }
                                 if(matchedKey != "")
                                 {
-                                    innoSync.InsertInnoSyncOBSImage(tempurl, matchedKey);
-                                    innoSync.SyncOnIMAPInspectionDocument(tempurl, matchedKey.Replace("Image","").Replace("_image",""));
+                                    string errorMessage= innoSync.SyncOnIMAPInspectionDocument(tempurl, matchedKey.Replace("Image","").Replace("_image",""));
+                                    innoSync.InsertInnoSyncOBSImage(tempurl, matchedKey, errorMessage);
                                 }
                             }
                             //using (var client = new HttpClient())
@@ -265,8 +277,60 @@ namespace INS_API.Controllers
                     }
                     else
                     {
+                        if (innoSync.strSyncError.Contains("Duplicate Car BookIn Record"))
+                        {
+                            string imapNo = innoSync.strSyncError.Length >= 18
+                                           ? innoSync.strSyncError.Substring(innoSync.strSyncError.Length - 18)
+                                           : innoSync.strSyncError;
+                            string vehicleId = SyncUpdateBookInOnIMAP(innoSync.ID, imapNo);
+                            if (vehicleId.Contains("failed"))
+                            {
+                                Response.StatusCode = 200;
+                                return Json(new { success = false, message = "Inspection Saved Successfully But Sync failed to IMAP.", refKey = innoSync.ID.ToString(), errorFromImap = vehicleId }, JsonRequestBehavior.AllowGet);
+                            }
+                            else
+                            {
+                                innoSync.VehicleId = vehicleId;
+                                innoSync.UpdateVehicleID();
+                                //We dont consider for Image now // 26/9; by KZYW
+                                //List<string> tempurls = GetOBSTemporaryImages(innoSync.RefKey);
+
+                                //innoSync.UpdateVehicleDocument();
+
+                                //foreach (string tempurl in tempurls)
+                                //{
+                                //    string filename = tempurl.Split(new[] { "photos/" }, StringSplitOptions.None)[1].Split('?')[0];
+                                //    var dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(innoSync.InspectionData);
+                                //    string matchedKey = "";
+
+                                //    foreach (var kvp in dict)
+                                //    {
+                                //        if (kvp.Value is Newtonsoft.Json.Linq.JArray arr)
+                                //        {
+                                //            for (int i = 0; i < arr.Count; i++)
+                                //            {
+                                //                if (arr[i].ToString() == filename)
+                                //                {
+                                //                    matchedKey = $"{kvp.Key}{i + 1}";
+                                //                    break;
+                                //                }
+                                //            }
+
+                                //        }
+                                //    }
+                                //    if (matchedKey != "")
+                                //    {
+                                //        string errorMessage = innoSync.SyncOnIMAPInspectionDocument(tempurl, matchedKey.Replace("Image", "").Replace("_image", ""));
+                                //        innoSync.InsertInnoSyncOBSImage(tempurl, matchedKey, errorMessage);
+                                //    }
+                                //}
+                                return Json(new { success = true, message = "Inspection Saved Successfully.", refKey = innoSync.ID.ToString(), imapNo = vehicleId }, JsonRequestBehavior.AllowGet);
+                            }
+                        }
+                        else { 
                         Response.StatusCode = 200;
                         return Json(new { success = false, message = innoSync.strSyncError }, JsonRequestBehavior.AllowGet);
+                        }
                     }
                 }
                 
@@ -606,7 +670,7 @@ namespace INS_API.Controllers
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
                     Make_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_ENG"].ToString() : "",
                     Make_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_TH"].ToString() : "",
-                    ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
+                    ModelCode = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["ModelCode"].ToString() : "",
                     ModelCodeId = variantId == "null" ? 0 : int.Parse(variantId),
                     Model_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_BU"].ToString() : "",
                     Model_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_LO"].ToString() : "",
@@ -669,6 +733,7 @@ namespace INS_API.Controllers
                     CatalyticOption = 0,//inspectionData.CatalyticConverter == "มี" ? 1 : 0,//not sure
                     CabTypeID = GetCabType(inspectionData.PickupCabType == null ? "" : inspectionData.PickupCabType),
                     LevelCabID = GetRideLevel(inspectionData.PickupRideLevel == null ? "" : inspectionData.PickupRideLevel),
+                    TenantName = (inspectionData.HirePurchaserName == null ? "" : inspectionData.HirePurchaserName),
                 },
                 ExternalType = new External//no fields in inno
                 {
@@ -776,7 +841,7 @@ namespace INS_API.Controllers
                 Inspector = row["Inspector"]?.ToString(),
                 InspectionDate = DateTime.Now,
                 InspectorName = row["Sendername"]?.ToString(),// not sure
-                Chassis = row["ChasisNumber"]?.ToString(),
+                Chassis = inspectionData.ChassisCondition,
                 Front = inspectionData.FrontBodyCondition,
                 Back = inspectionData.BackBodyCondition,
                 RightSide = inspectionData.RightBodyCondition,
@@ -845,6 +910,12 @@ namespace INS_API.Controllers
                 GradeCabin = inspectionData.InteriorGrade,
                 Grading = inspectionData.StructureGrade,
                 GroupOfCar = inspectionData.VehicleGroup,
+                FloodSummary = inspectionData.WaterDamage,
+                EngineCondition = inspectionData.EngineCondition,
+                VinCondition = inspectionData.ChassisNumberCondition,
+                IsAxle = inspectionData.SuspensionModification == "ปกติ",
+                IsleafSpring = inspectionData.SuspensionModification_text == "เสริมแหนบ" ,
+                IsUnderNM = inspectionData.SuspensionModification_text == "ติดตั้งเพลาลอย" ,
             };
         }
 
@@ -926,7 +997,7 @@ namespace INS_API.Controllers
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
                     Make_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_ENG"].ToString() : "",
                     Make_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_TH"].ToString() : "",
-                    ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
+                    ModelCode = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["ModelCode"].ToString() : "",
                     ModelCodeId = variantId == "null" ? 0 : int.Parse(variantId),
                     Model_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_BU"].ToString() : "",
                     Model_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_LO"].ToString() : "",
@@ -1242,7 +1313,7 @@ namespace INS_API.Controllers
                     Make = (inspectionData.Make == null ? "" : inspectionData.Make),
                     Make_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_ENG"].ToString() : "",
                     Make_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Make_TH"].ToString() : "",
-                    ModelCode = (inspectionData.ModelCode == null ? "" : inspectionData.ModelCode),
+                    ModelCode = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["ModelCode"].ToString() : "",
                     ModelCodeId = variantId == "null" ? 0 : int.Parse(variantId),
                     Model_BU = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_BU"].ToString() : "",
                     Model_LO = dtModelTemplate_DESC.Rows.Count > 0 ? dtModelTemplate_DESC.Rows[0]["Model_LO"].ToString() : "",
@@ -1478,6 +1549,85 @@ namespace INS_API.Controllers
                 isSideMirror_3_Working = null,
                 isSideMirror_4_Working = null
             };
+        }
+
+        public string SyncUpdateBookInOnIMAP(int id, string imapNo)
+        {
+            string vehicleId = "";
+            INS_DataFeed objDataFeed = new INS_DataFeed();
+            DataTable dt = objDataFeed.GetINNOSyncByID(id);
+
+            if (dt.Rows.Count > 0)
+            {
+                string vehicleType = dt.Rows[0]["VehicleType"]?.ToString();
+                string apiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+                string apiUrl = "";
+                object requestBody = null;
+
+                if ( vehicleType == "Car")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/BookInUpdate";
+                    //apiUrl = "https://localhost:44327/INS/BookInUpdate";
+                    // Map data from DataTable to BookinModel
+                    BookinModel bookinModel = MapToBookinCarModel(dt.Rows[0]);
+                    bookinModel.VehicleType.VehicleId = imapNo;
+                    requestBody = bookinModel;
+                }
+                else if ( vehicleType == "MB")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/BookInUpdate";
+                    //apiUrl = "https://localhost:44327/INS/BookInUpdate";
+                    // Map data from DataTable to BookinModel
+                    BookinModel bookinModel = MapToBookinMBModel(dt.Rows[0]);
+                    bookinModel.VehicleType.VehicleId = imapNo;
+                    requestBody = bookinModel;
+                }
+                else if ( vehicleType == "SVG")
+                {
+                    apiUrl = "https://ins.mottoauction.com/INS/BookInUpdate";
+                    //apiUrl = "https://localhost:44327/INS/BookInUpdate";
+                    // Map data from DataTable to BookinModel
+                    BookinModel bookinModel = MapToSVGBookin(dt.Rows[0]);
+                    bookinModel.VehicleType.VehicleId = imapNo;
+                    requestBody = bookinModel;
+                }
+
+
+                if (!string.IsNullOrEmpty(apiUrl) && requestBody != null)
+                {
+                    using (var client = new HttpClient())
+                    {
+                        client.DefaultRequestHeaders.Add("apiKey", apiKey);
+
+                        var json = JsonConvert.SerializeObject(requestBody);
+                        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                        var response = client.PostAsync(apiUrl, content).Result;
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            throw new Exception($"API call failed: {response.StatusCode} - {response.ReasonPhrase}");
+                        }
+                        else
+                        {
+                            var responseContent = response.Content.ReadAsStringAsync().Result;
+
+                            var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
+                            if (jsonResponse["vehicleId"] != null)
+                            {
+                                vehicleId = jsonResponse["vehicleId"].ToString();
+                            }
+                            else if (jsonResponse["success"]?.Value<bool>() == false)
+                            {
+                                vehicleId = jsonResponse["message"]?.ToString();
+                                objDataFeed.UpdateErrorINNOSYNC(vehicleId, id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return vehicleId;
         }
 
         #region GetContractTypeCode

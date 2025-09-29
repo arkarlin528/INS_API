@@ -204,11 +204,19 @@ namespace INS_API.Controllers
                             variantName = dtvariant.Rows[0]["Variants"].ToString();
                         }
 
+                        DataTable dtModelTemplate_DESC = objDataFeed.GetModelTemplateForDataEntryByVarId(variantId == "null" ? 0 : int.Parse(variantId));
+                        string modelCode = "";
+                        if (dtModelTemplate_DESC != null && dtModelTemplate_DESC.Rows.Count > 0)
+                        {
+                            modelCode = dtModelTemplate_DESC.Rows[0]["ModelCode"].ToString();
+                        }
+
                         if (!string.IsNullOrEmpty(bodyType)) inspectionDict["BodyType"] = bodyType;
                         if (!string.IsNullOrEmpty(fuelType)) inspectionDict["FuelType"] = fuelType;
                         if (!string.IsNullOrEmpty(sellerName)) inspectionDict["SellerName"] = sellerName;
                         if (!string.IsNullOrEmpty(makeName)) inspectionDict["Make"] = makeName;
                         if (!string.IsNullOrEmpty(variantName)) inspectionDict["Variant"] = variantName;
+                        if (!string.IsNullOrEmpty(modelCode)) inspectionDict["ModelCode"] = modelCode;
                         if (!string.IsNullOrEmpty(deliverer_Sign)) inspectionDict["Deliverersign"] = new[] { deliverer_Sign };
                         if (!string.IsNullOrEmpty(receiver_Sign)) inspectionDict["ReceiverSign"] = new[] { receiver_Sign };
                         if (!string.IsNullOrEmpty(tracingPaper_Image)) inspectionDict["TracingPaperImage"] = new[] { tracingPaper_Image };

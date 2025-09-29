@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.UI.WebControls.WebParts;
 
 namespace INS_API_DataFeed
@@ -32,6 +33,7 @@ namespace INS_API_DataFeed
         public string RegistrationNumber { get; set; }
         public string CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string LicenseProvince { get; set; }
 
         public string Query_CreateInspection = @"INSERT INTO [dbo].[INNO_SYNC] " +
                                                "VALUES (@RefKey,@TxnDate,@SchemaName,@SchemaInfo,@InspectionData,@SenderName,@ReceiverName,@MobileNumber,@SellerCode,@InspectorID,@Inspector,@VehicleId," +
@@ -39,9 +41,23 @@ namespace INS_API_DataFeed
 
         public string Query_UpdateVehicleId = @"UPDATE [dbo].[INNO_SYNC] SET VehicleId = @VehicleId WHERE ID = @ID;";
 
-        public string Query_InsertInnoSyncOBSImage = @"INSERT INTO [dbo].[INNO_SYNC_OBSImages] VALUES (@INNO_SYNC_ID,@RefKey,@SchemaName,@VehicleId,@OBSImagePath,@ImageType,@CreateURLDate);";
+        public string Query_InsertInnoSyncOBSImage = @"INSERT INTO [dbo].[INNO_SYNC_OBSImages] VALUES (@INNO_SYNC_ID,@RefKey,@SchemaName,@VehicleId,@OBSImagePath,@ImageType,@CreateURLDate,@ErrorMsg);";
 
-        public string Query_CheckDuplicateCarBookIn = @"SELECT * FROM [dbo].[INNO_SYNC] WHERE SellerCode = @SellerCode AND RegistrationNumber = @Reg And SchemaName like '%bookin%';";
+        public string Query_CheckDuplicateCarBookIn = @"SELECT *
+                                                            FROM [dbo].[INNO_SYNC] 
+                                                            WHERE  RegistrationNumber = @Reg 
+                                                            AND  ISNULL(JSON_VALUE([InspectionData], '$.LicenseProvince'),'') = @LicenseProvince
+                                                            AND ChasisNumber = @Chassis
+                                                            And SchemaName like '%bookin%';";
+
+        public string Query_CheckDuplicateCarIMAT = @"SELECT *
+                                                            FROM IMAP.dbo.Vehicles V
+                                                            LEFT JOIN IMAP.dbo.States ST
+                                                            ON V.State = ST.State
+                                                            WHERE Registration = @Reg AND ST.Desc_LO = @LicenseProvince
+                                                            AND ChasisNumber = @Chassis
+                                                            AND LogisticsStatus = 'BI'";
+
         public string strSyncError = "";
 
         public InnoSync()
@@ -64,6 +80,7 @@ namespace INS_API_DataFeed
             this.RegistrationNumber = "";
             this.CreatedBy = "";
             this.CreatedDate = new DateTime();
+            this.LicenseProvince = "";
         }
 
         #region CreateInnoSyncRecord
@@ -94,6 +111,7 @@ namespace INS_API_DataFeed
                 this.CreatedBy = (this.CreatedBy == null ? "" : this.CreatedBy);
 
                 DataTable chkDuplicate = new DataTable();
+                DataTable chkDuplicateIMAT = new DataTable();
                 if (this.SchemaName.Contains("bookin"))
                 {
                     using (var command = context.Database.Connection.CreateCommand())
@@ -102,8 +120,9 @@ namespace INS_API_DataFeed
 
                         #region Parameters
 
-                        command.Parameters.Add(new SqlParameter("@SellerCode", this.SellerCode));
+                        command.Parameters.Add(new SqlParameter("@Chassis", this.ChasisNumber));
                         command.Parameters.Add(new SqlParameter("@Reg", this.RegistrationNumber));
+                        command.Parameters.Add(new SqlParameter("@LicenseProvince", this.LicenseProvince));
                         #endregion Parameters
 
                         using (var reader = command.ExecuteReader())
@@ -111,10 +130,28 @@ namespace INS_API_DataFeed
                             chkDuplicate.Load(reader);
                         }
                     }
-                    if (chkDuplicate.Rows.Count > 0)
-                    {
 
-                        strSyncError = "Duplicate Car BookIn Record";
+                    var contextIMAT = new Inspection_dataFeedContext();
+                    contextIMAT.Database.CommandTimeout = 300000;
+                    if (contextIMAT.Database.Connection.State == ConnectionState.Closed)
+                    {
+                        contextIMAT.Database.Connection.Open();
+                    }
+                    using (var command = contextIMAT.Database.Connection.CreateCommand())
+                    {
+                        command.CommandText = Query_CheckDuplicateCarIMAT;
+
+                        #region Parameters
+
+                        command.Parameters.Add(new SqlParameter("@Chassis", this.ChasisNumber));
+                        command.Parameters.Add(new SqlParameter("@Reg", this.RegistrationNumber));
+                        command.Parameters.Add(new SqlParameter("@LicenseProvince", this.LicenseProvince));
+                        #endregion Parameters
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            chkDuplicateIMAT.Load(reader);
+                        }
                     }
                 }
                 #endregion Parameter
@@ -147,9 +184,13 @@ namespace INS_API_DataFeed
                     context.Database.Connection.Close();
                 }
 
-                if (chkDuplicate.Rows.Count == 0)
+                if (chkDuplicate.Rows.Count == 0 || chkDuplicateIMAT.Rows.Count == 0)
                 {
                     blRtn = true;
+                }
+                if (chkDuplicate.Rows.Count > 0 && chkDuplicateIMAT.Rows.Count > 0)
+                {
+                    strSyncError = "Duplicate Car BookIn Record " + chkDuplicateIMAT.Rows[0]["Vehicle"].ToString();
                 }
 
             }
@@ -197,7 +238,7 @@ namespace INS_API_DataFeed
         #endregion
 
         #region InsertInnoSyncOBSImage
-        public void InsertInnoSyncOBSImage(string tempUrl,string imageType)
+        public void InsertInnoSyncOBSImage(string tempUrl,string imageType,string errorMessage)
         {
             try
             {
@@ -224,6 +265,7 @@ namespace INS_API_DataFeed
                     command.Parameters.AddWithValue("@OBSImagePath", tempUrl);
                     command.Parameters.AddWithValue("@ImageType", imageType);
                     command.Parameters.AddWithValue("@CreateURLDate", DateTime.Now);
+                    command.Parameters.AddWithValue("@ErrorMsg", errorMessage);
                     object result = command.ExecuteScalar();
                 }
                 if (context.Database.Connection.State == ConnectionState.Open)
@@ -239,8 +281,9 @@ namespace INS_API_DataFeed
         #endregion
 
         #region SyncOnIMAPInspectionDocument
-        public void SyncOnIMAPInspectionDocument(string tempUrl, string imageType)
+        public string SyncOnIMAPInspectionDocument(string tempUrl, string imageType)
         {
+            string errorMessage = "";
             try
             {
                 #region Parameter
@@ -312,6 +355,7 @@ namespace INS_API_DataFeed
             {
                 strSyncError = ex.ToString();
             }
+            return errorMessage;
         }
         #endregion
 

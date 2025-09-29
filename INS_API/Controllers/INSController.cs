@@ -2118,6 +2118,10 @@ namespace INS_API.Controllers
             {
                 th = "กลุ่มรถ : " + carModel.VehicleGroup;
                 en = "VehicleGroup : " + carModel.VehicleGroup;
+                if (carModel.VehicleGroup == "U") {
+                    th += "|รถขับเคลื่อนไม่ได้";
+                    en += "|รถขับเคลื่อนไม่ได้";
+                }
             }
             if (carModel.StructureGrade != null)
             {
@@ -2134,56 +2138,126 @@ namespace INS_API.Controllers
                 th += ", เกรดภายใน : " + carModel.InteriorGrade;
                 en += ", InteriorGrade : " + carModel.InteriorGrade;
             }
-            if (carModel.PlateCondition != null && (carModel.PlateCondition== "มี เสียหาย/เสื่อมสภาพ" || carModel.PlateCondition == "มี ติดตั้งใหม่" || carModel.PlateCondition == "ไม่มี" || carModel.PlateCondition == "ตรวจสอบไม่ได้") )
+            if (carModel.ChassisCondition != null && (carModel.ChassisCondition == "ตัดต่อ" || carModel.ChassisCondition == "ซ่อมมาเล็กน้อย" || carModel.ChassisCondition == "ซ่อมมาปานกลาง" || carModel.ChassisCondition == "ซ่อมมาหนัก" || carModel.ChassisCondition == "ผุ"))
             {
-                th += ", สภาพแผ่นเพลท : " + carModel.PlateCondition;
-                en += ", PlateCondition : " + carModel.PlateCondition;
-            }
-            if (carModel.EngineNumberCondition != null && (carModel.EngineNumberCondition == "ตรวจสอบไม่ได้" || carModel.EngineNumberCondition == "ตอกใหม่" || carModel.EngineNumberCondition == "ครูด/บุบ/เสียหาย" || carModel.EngineNumberCondition == "เป็นสนิม"))
-            {
-                th += ", สภาพเลขเครื่อง : " + carModel.EngineNumberCondition;
-                en += ", EngineNumberCondition : " + carModel.EngineNumberCondition;
+                th += ", สภาพแชสซี : " + carModel.ChassisCondition;
+                en += ", ChassisCondition : " + carModel.ChassisCondition;
+                if (carModel.ChassisCondition_text != null)
+                {
+                    th += "|" + carModel.ChassisCondition_text;
+                    en += "|" + carModel.ChassisCondition_text;
+                }
             }
             if (carModel.ChassisNumberCondition != null && (carModel.ChassisNumberCondition == "ตรวจสอบไม่ได้" || carModel.ChassisNumberCondition == "ตอกใหม่" || carModel.ChassisNumberCondition == "ครูด/บุบ/เสียหาย" || carModel.ChassisNumberCondition == "เป็นสนิม" || carModel.ChassisNumberCondition == "พบรอยซ่อม"))
             {
                 th += ", สภาพเลขแชสซี : " + carModel.ChassisNumberCondition;
                 en += ", ChassisNumberCondition : " + carModel.ChassisNumberCondition;
+                if (carModel.ChassisNumberCondition_text != null)
+                {
+                    foreach (var text in carModel.ChassisNumberCondition_text) { 
+                    th += "|" + text;
+                    en += "|" + text;
+                    }
+                }
             }
-            if (carModel.EngineCondition != null && carModel.EngineCondition == "ไม่ทำงาน")
+            if (carModel.PlateCondition != null && (carModel.PlateCondition== "มี เสียหาย/เสื่อมสภาพ" || carModel.PlateCondition == "มี ติดตั้งใหม่" || carModel.PlateCondition == "ไม่มี" || carModel.PlateCondition == "ตรวจสอบไม่ได้") )
+            {
+                th += ", สภาพแผ่นเพลท : " + carModel.PlateCondition;
+                en += ", PlateCondition : " + carModel.PlateCondition;
+                if (carModel.PlateCondition_text != null)
+                {
+                    th += "|" + carModel.PlateCondition_text;
+                    en += "|" + carModel.PlateCondition_text;
+                }
+            }
+            if (carModel.EngineNumberCondition != null && (carModel.EngineNumberCondition == "ตรวจสอบไม่ได้" || carModel.EngineNumberCondition == "ตอกใหม่" || carModel.EngineNumberCondition == "ครูด/บุบ/เสียหาย" || carModel.EngineNumberCondition == "เป็นสนิม"))
+            {
+                th += ", สภาพเลขเครื่อง : " + carModel.EngineNumberCondition;
+                en += ", EngineNumberCondition : " + carModel.EngineNumberCondition;
+                if (carModel.EngineNumberCondition_text != null)
+                {
+                    foreach (var text in carModel.EngineNumberCondition_text)
+                    {
+                        th += "|" + text;
+                        en += "|" + text;
+                    }
+                }
+            }
+        
+            if (carModel.EngineCondition != null && (carModel.EngineCondition == "ทำงาน" || carModel.EngineCondition == "ไม่ทำงาน"))
             {
                 th += ", สภาพเครื่องยนต์ : " + carModel.EngineCondition;
                 en += ", EngineCondition : " + carModel.EngineCondition;
+                if (carModel.EngineCondition_text != null)
+                {
+                    foreach (var text in carModel.EngineCondition_text)
+                    {
+                        th += "|" + text;
+                        en += "|" + text;
+                    }
+                }
             }
-            if (carModel.EngineConditionRemarks != null)
+            if (carModel.Dashboard != null && (carModel.Dashboard == "ไม่ทำงาน" || carModel.Dashboard == "ตรวจสอบไม่ได้" || (carModel.Dashboard_text != null && carModel.Dashboard_text[0] != "|")))
             {
-                th += ", หมายเหตุสภาพเครื่องยนต์ : " + Regex.Replace(carModel.EngineConditionRemarks ?? "", "<.*?>", string.Empty);
-                en += ", EngineConditionRemarks : " + Regex.Replace(carModel.EngineConditionRemarks ?? "", "<.*?>", string.Empty);
-
+                th += ", หมายเหตุสภาพเครื่องยนต์ : " + carModel.Dashboard;
+                en += ", Dashboard : " + carModel.Dashboard;
+                if (carModel.Dashboard_text != null)
+                {
+                    foreach (var text in carModel.Dashboard_text)
+                    {
+                        if(text != "|")
+                        {
+                            th += "|" + text;
+                            en += "|" + text;
+                        }
+                    }
+                }
             }
-            if (carModel.ChassisCondition != null && (carModel.ChassisCondition == "ตัดต่อ" || carModel.ChassisCondition == "ซ่อมมาเล็กน้อย" || carModel.ChassisCondition == "ซ่อมมาปานกลาง" || carModel.ChassisCondition == "ซ่อมมาหนัก" || carModel.ChassisCondition == "ผุ"))
+            if (carModel.DashboardLight != null && carModel.DashboardLight == "มี")
             {
-                th += ", สภาพแชสซี : " + carModel.ChassisCondition;
-                en += ", ChassisCondition : " + carModel.ChassisCondition;
+                th += ", ไฟโชว์เตือน : " + carModel.DashboardLight;
+                en += ", DashboardLight : " + carModel.DashboardLight;
+                if (carModel.DashboardLight_text != null)
+                {
+                    th += "|" + carModel.DashboardLight_text;
+                    en += "|" + carModel.DashboardLight_text;
+                }
+            }
+            if (carModel.WaterDamage != null && (carModel.WaterDamage == "ระดับพรหม" || carModel.WaterDamage == "ระดับที่นั่งเบาะ" || carModel.WaterDamage == "ระดับที่นั่งเบาะถึงคอนโซล" || carModel.WaterDamage == "สูงกว่าคอนโซล"))
+            {
+                th += ", ความเสียหายจากน้ำ : " + carModel.WaterDamage;
+                en += ", WaterDamage : " + carModel.WaterDamage;
+            }
+            if (carModel.GearCondition != null && (carModel.GearCondition == "ใช้งานไม่ได้" || (carModel.GearCondition_text != null && carModel.GearCondition_text != "|")))
+            {
+                th += ", สภาพเครื่องยนต์ : " + carModel.GearCondition;
+                en += ", GearCondition : " + carModel.GearCondition;
+                if (carModel.GearCondition_text != null)
+                {
+                    th += "|" + carModel.GearCondition_text;
+                    en += "|" + carModel.GearCondition_text;
+                }
             }
             if (carModel.GasInstall != null && (carModel.GasInstall == "ติด LPG" || carModel.GasInstall == "ติด CNG" || carModel.GasInstall == "เคยติดตั้ง"))
             {
                 th += ", ติดแก๊สหรือไม่ : " + carModel.GasInstall;
                 en += ", GasInstall : " + carModel.GasInstall;
             }
-            if (carModel.WarningLight != null && carModel.WarningLight == "มี")
-            {
-                th += ", ไฟโชว์เตือน : " + carModel.WarningLight;
-                en += ", WarningLight : " + carModel.WarningLight;
-            }
             if (carModel.Key != null)
             {
                 th += ", กุญแจ : " + carModel.Key;
                 en += ", Key : " + carModel.Key;
-            }
-            if (carModel.WaterDamage != null && (carModel.WaterDamage == "ระดับพรหม" || carModel.WaterDamage == "ระดับที่นั่งเบาะ" || carModel.WaterDamage == "ระดับที่นั่งเบาะถึงคอนโซล" || carModel.WaterDamage == "สูงกว่าคอนโซล"))
-            {
-                th += ", ความเสียหายจากน้ำ : " + carModel.WaterDamage;
-                en += ", WaterDamage : " + carModel.WaterDamage;
+                if (carModel.Key_text != null)
+                {
+                    foreach (var text in carModel.Key_text)
+                    {
+                        if (text != "|")
+                        {
+                            th += "|" + text;
+                            en += "|" + text;
+                        }
+                    }
+                }
             }
             if (carModel.LicensePlateFBCheck != null && (carModel.LicensePlateFBCheck == "ไม่มีป้ายหน้า" || carModel.LicensePlateFBCheck == "ไม่มีป้ายหลัง" || carModel.LicensePlateFBCheck == "ไม่มีป้าย"))
             {
@@ -2194,8 +2268,13 @@ namespace INS_API.Controllers
             {
                 th += ", ป้ายตรงกับตัวรถหรือไม่ : " + carModel.LicenePlateMatchWithCar;
                 en += ", LicenePlateMatchWithCar : " + carModel.LicenePlateMatchWithCar;
+                if (carModel.LicenePlateMatchWithCar_text != null)
+                {
+                    th += "|" + carModel.LicenePlateMatchWithCar_text;
+                    en += "|" + carModel.LicenePlateMatchWithCar_text;
+                }
             }
-            if (carModel.TypeofLicensePlate != null)
+            if (carModel.TypeofLicensePlate != null && (carModel.LicensePlateFBCheck == "ป้ายแดง" || carModel.LicensePlateFBCheck == "ป้ายประมูล/พิเศษ"))
             {
                 th += ", ประเภทป้ายทะเบียน : " + carModel.TypeofLicensePlate;
                 en += ", TypeofLicensePlate : " + carModel.TypeofLicensePlate;
@@ -2817,7 +2896,8 @@ namespace INS_API.Controllers
                     NoPlateType = jsonData.VehicleType.NoPlateType ?? String.Empty,
                     CatalyticOption = jsonData.VehicleType.CatalyticOption,
                     CabTypeID = jsonData.VehicleType.CabTypeID ?? String.Empty,
-                    LevelCabID = jsonData.VehicleType.LevelCabID ?? String.Empty
+                    LevelCabID = jsonData.VehicleType.LevelCabID ?? String.Empty,
+                    TenantName = jsonData.VehicleType.TenantName ?? String.Empty
                 };
                 error = objDataFeed.AddVehicle(vehicle);
                 if (!string.IsNullOrWhiteSpace(error)) {
@@ -2897,6 +2977,251 @@ namespace INS_API.Controllers
         }
         #endregion
 
+        #region BookInUpdate
+        [HttpPost]
+        public ActionResult BookInUpdate()
+        {
+            string apiKey = Request.Headers["apiKey"];
+            const string validApiKey = "0930939f-512f-4399-8d94-1eab8ec06c37";
+
+            if (string.IsNullOrEmpty(apiKey) || apiKey != validApiKey)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Unauthorized, "Invalid API Key");
+            }
+
+            string formData;
+            using (var reader = new StreamReader(Request.InputStream))
+            {
+                formData = reader.ReadToEnd();
+            }
+
+            try
+            {
+                var jsonData = JsonConvert.DeserializeObject<BookinModel>(formData);
+                //flLog.Info("BookIn-BookIn-Create: model={0}", jsonData);
+
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                //var dn = objDataFeed.CreateBookinNumber();
+                //string bookinNumber = dn.FirstOrDefault();
+                string vehicleId = int.Parse(jsonData.VehicleType.VehicleId == null ? "0" : jsonData.VehicleType.VehicleId).ToString("D18");
+                string bookinNumber = objDataFeed.GetBookInNoByVehicleID(vehicleId);
+
+                _ = new BookinReceiver();
+                BookinReceiver bookinType = jsonData.BookInType;
+                if (bookinType == null)
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", "Book In Null");
+                    Response.StatusCode = 409;
+                    return Json(new { success = false, message = "Book In Null" }, JsonRequestBehavior.AllowGet);
+                }
+
+                byte[] senderSignature = null;
+                byte[] receiverSignatyre = null;
+                byte[] stickVin = null;
+                if (bookinType.SenderSignature != null)
+                {
+                    senderSignature = Convert.FromBase64String(bookinType.SenderSignature);
+                }
+                if (bookinType.ReceiverSignature != null)
+                {
+                    receiverSignatyre = Convert.FromBase64String(bookinType.ReceiverSignature);
+                }
+                if (bookinType.StickVin != null)
+                {
+                    stickVin = Convert.FromBase64String(bookinType.StickVin);
+                }
+                BookIn bookIn = new BookIn()
+                {
+                    BookInNumber = bookinNumber,
+                    BookInDate = bookinType.BookInDate,
+                    SenderName = bookinType.SenderName,
+                    ReceiverName = bookinType.ReceiverName,
+                    ContractNumber = bookinType.ContractNumber ?? String.Empty,
+                    MobileNumber = bookinType.MobileNumber,
+                    Status = bookinType.Status,
+                    SellerCode = bookinType.SellerCode,
+                    Inspector = bookinType.Inspector,
+                    VehicleId = bookinType.VehicleId,
+                    SenderSignature = senderSignature,
+                    ReceiverSignature = receiverSignatyre,
+                    LatestUpdatedDate = bookinType.LatestUpdatedDate,
+                    BookinType = bookinType.BookinType.ToUpper(),
+                    ModifiedBy = bookinType.ReceiverName,
+                    ModifiedDate = DateTime.Now,
+                    ContractTypeCode = bookinType.ContractTypeCode,
+                    StickVin = stickVin,
+                    TenantName = bookinType.TenantName,
+                    TimeStartApp = bookinType.TimeStartApp,
+                };
+                string error = objDataFeed.UpdateBookIn(bookIn);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"UpdateBookIn failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                _ = new Vehicle();
+                Vehicle vehicle = new Vehicle()
+                {
+                    BookinNumber = bookinNumber.TrimEnd(),
+                    Seller = jsonData.VehicleType.Seller.TrimEnd(),
+                    SellingCategory = jsonData.VehicleType.SellingCategory,
+                    LogisticsStatus = "BI",
+                    InspectionDate = jsonData.VehicleType.InspectionDate,
+                    SalesStatus = "NR",
+                    Plant = jsonData.VehicleType.Plant.TrimEnd(),
+                    StorageLocation = jsonData.VehicleType.StorageLocation.TrimEnd(),
+                    ReceiverLocation = jsonData.VehicleType.ReceiverLocation.TrimEnd(),
+                    BookedDate = jsonData.VehicleType.BookedDate,
+                    Make = jsonData.VehicleType.Make.TrimEnd(),
+                    Make_BU = jsonData.VehicleType.Make_BU.TrimEnd(),
+                    Make_LO = jsonData.VehicleType.Make_LO.TrimEnd(),
+                    ModelCode = jsonData.VehicleType.ModelCode.TrimEnd(), // Need to Revise...
+                    ModelCodeId = jsonData.VehicleType.ModelCodeId,
+                    Model_BU = jsonData.VehicleType.Model_BU.TrimEnd(),
+                    Model_LO = jsonData.VehicleType.Model_LO.TrimEnd(),
+                    Body = jsonData.VehicleType.Body.TrimEnd(),
+                    BodyDesc_BU = jsonData.VehicleType.BodyDesc_BU.TrimEnd(),
+                    BodyDesc_LO = jsonData.VehicleType.BodyDesc_LO.TrimEnd(),
+                    Variants = jsonData.VehicleType.Variants.TrimEnd(),
+                    BuildYear = jsonData.VehicleType.BuildYear,
+                    VIN = jsonData.VehicleType.VIN.TrimEnd(),
+                    ChasisNumber = jsonData.VehicleType.ChasisNumber.TrimEnd(),
+                    Colour = jsonData.VehicleType.Colour.TrimEnd(),
+                    ColourDesc = jsonData.VehicleType.ColourDesc.TrimEnd(),
+                    FuelDelivery = jsonData.VehicleType.FuelDelivery.TrimEnd(),
+                    FuelType = jsonData.VehicleType.FuelType.TrimEnd(),
+                    Gearbox = jsonData.VehicleType.Gearbox.TrimEnd(),
+                    Gears = "0",
+                    Drive = jsonData.VehicleType.Drive.TrimEnd(),
+                    EngineNumber = jsonData.VehicleType.EngineNumber.TrimEnd(),
+                    EngineCapacity = jsonData.VehicleType.EngineCapacity,
+                    EngineCapacityUnit = jsonData.VehicleType.EngineCapacityUnit.TrimEnd(),
+                    Regisration = jsonData.VehicleType.Regisration.TrimEnd(),
+                    RegistrationYear = jsonData.VehicleType.RegistrationYear.TrimEnd(),
+                    RegistrationProvince = jsonData.VehicleType.RegistrationProvince.TrimEnd(),
+                    RegistrationPlate = jsonData.VehicleType.RegistrationPlate ?? String.Empty,
+                    RegistrationNote = jsonData.VehicleType.RegistrationNote ?? String.Empty,
+                    IsRegistrationMismatch = jsonData.VehicleType.IsRegistrationMismatch ?? false,
+                    RedBookCondition = jsonData.VehicleType.RedBookCondition.TrimEnd(),
+                    IsGasTank = jsonData.VehicleType.IsGasTank,
+                    GasType = jsonData.VehicleType.GasType,
+                    GasTankNumber = jsonData.VehicleType.GasTankNumber,
+                    // Check null -> Trim ...
+                    GasNote = jsonData.VehicleType.GasNote,
+                    IsInValidEngineNumber = jsonData.VehicleType.IsInValidEngineNumber ?? false,
+                    ReasonInValidEngineNumber = jsonData.VehicleType.ReasonInValidEngineNumber ?? String.Empty,
+                    IsInValidGasNumber = jsonData.VehicleType.IsInValidGasNumber ?? false,
+                    ReasonInValidGasNumber = jsonData.VehicleType.ReasonInValidGasNumber ?? String.Empty,
+                    IsInValidVinNumber = jsonData.VehicleType.IsInValidVinNumber ?? false,
+                    ReasonInValidVinNumber = jsonData.VehicleType.ReasonInValidVinNumber ?? String.Empty,
+                    // arsira 2024-02-02
+                    IsNohaveBuildYear = jsonData.VehicleType.IsNohaveBuildYear ?? false,
+                    IsNohaveRegis = jsonData.VehicleType.IsNohaveRegis ?? false,
+                    // arsira 2024-02-05
+                    briefCarConditionId = jsonData.VehicleType.briefCarConditionId ?? 1,
+                    DetallBriefCarCondition = jsonData.VehicleType.DetallBriefCarCondition ?? String.Empty,
+                    // arsira 2024-06-14 add motorNumber
+                    MotorNumber = jsonData.VehicleType.MotorNumber ?? String.Empty,
+                    IsInValidMotorNumber = jsonData.VehicleType.IsInValidMotorNumber ?? false,
+                    ReasonInValidMotorNumber = jsonData.VehicleType.ReasonInValidMotorNumber ?? String.Empty,
+
+                    IsInVaidEngine1 = jsonData.VehicleType.IsInVaidEngine1 ?? false,
+                    IsInVaidEngine2 = jsonData.VehicleType.IsInVaidEngine2 ?? false,
+                    IsInVaidEngine3 = jsonData.VehicleType.IsInVaidEngine3 ?? false,
+                    IsInVaidVin1 = jsonData.VehicleType.IsInVaidVin1 ?? false,
+                    IsInVaidVin2 = jsonData.VehicleType.IsInVaidVin2 ?? false,
+                    IsInVaidVin3 = jsonData.VehicleType.IsInVaidVin3 ?? false,
+                    NoPlateType = jsonData.VehicleType.NoPlateType ?? String.Empty,
+                    CatalyticOption = jsonData.VehicleType.CatalyticOption,
+                    CabTypeID = jsonData.VehicleType.CabTypeID ?? String.Empty,
+                    LevelCabID = jsonData.VehicleType.LevelCabID ?? String.Empty,
+                    TenantName = jsonData.VehicleType.TenantName ?? String.Empty
+                };
+                error = objDataFeed.UpdateVehicle(vehicle);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"UpdateVehicle failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                _ = new External();
+                External external = jsonData.ExternalType;
+                external.BookinNumber = bookinNumber;
+                error = objDataFeed.UpdateExternal(external);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"UpdateExternal failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                _ = new Spare();
+                Spare spare = jsonData.SpareType;
+                spare.BookinNumber = bookinNumber;
+                error = objDataFeed.UpdateSpare(spare);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"AddSpare failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                _ = new Cabin();
+                Cabin cabin = jsonData.CabinType;
+                cabin.BookInNumber = bookinNumber;
+                error = objDataFeed.UpdateCabin(cabin);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"UpdateCabin failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                _ = new KeyOption();
+                KeyOption keyOption = jsonData.KeyOptionType;
+                keyOption.BookinNumber = bookinNumber;
+                error = objDataFeed.UpdateKeyOption(keyOption);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"UpdateKeyOption failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                _ = new Engine();
+                Engine engine = jsonData.EngineType;
+                engine.BookinNumber = bookinNumber;
+                error = objDataFeed.UpdateEngine(engine);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", error);
+                    return Json(new { success = false, message = $"UpdateEngine failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+
+                #region UpdateVehicle
+                //string vehicleId = objDataFeed.GetNextVehicleNumber();
+
+                //flLog.Info("vehicle-UpdateVehicleOnCreate: bookInNumber={0} | vehicleId={1}", bookinNumber, vehicleId);
+                error = objDataFeed.UpdateVehicleOnUpdate(bookinNumber.TrimEnd(), vehicleId);
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    return Json(new { success = false, message = $"UpdateVehicleOnUpdate failed: {error}" }, JsonRequestBehavior.AllowGet);
+                }
+                #endregion
+
+                return Json(new { success = true, message = "BookIn updated successfully.", vehicleId }, JsonRequestBehavior.AllowGet);
+            }
+            catch (JsonException)
+            {
+                //flLog.Error("BookIn-BookIn-Create: DbUpdateException={0}", "Invalid JSON format.");
+                Response.StatusCode = 400;
+                return Json(new { success = false, message = "Invalid JSON format." }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return new HttpStatusCodeResult(HttpStatusCode.InternalServerError, "An error occurred while processing the request.");
+            }
+        }
+        #endregion
+
         #region InspectionCreate
         [HttpPost]
         public ActionResult InspectionCreate()
@@ -2919,14 +3244,6 @@ namespace INS_API.Controllers
             {
                 var jsonData = JsonConvert.DeserializeObject<CarInspection>(formData);
                 //logger.Info("inspection-create: CarInspection={0}", jsonData);
-
-                INS_DataFeed objDataFeed = new INS_DataFeed();
-                DataTable dt = objDataFeed.GetCarInspectionByBookIn(jsonData.BookInNumber);
-                if (dt.Rows.Count > 0)
-                {
-                    return Json(new { success = true, message = "Inspection saved successfully.", vehicleId = jsonData.VehicleId.TrimEnd() }, JsonRequestBehavior.AllowGet);
-                }
-
                 CarInspection carInspection = new CarInspection()
                 {
                     //InspectionId = jsonData.InspectionId,
@@ -2994,15 +3311,14 @@ namespace INS_API.Controllers
                     ElectronicSummary = jsonData.ElectronicSummary ?? "",
                     LatestUpdatedDate = jsonData.LatestUpdatedDate ?? DateTime.Now,
                     Regisration = jsonData.Regisration ?? String.Empty,
-                    RegistrationProvince = jsonData.RegistrationProvince ?? String.Empty
+                    RegistrationProvince = jsonData.RegistrationProvince ?? String.Empty,
+                    FloodSummary = jsonData.FloodSummary ?? String.Empty,
+                    EngineCondition = jsonData.EngineCondition ?? String.Empty,
+                    VinCondition = jsonData.VinCondition ?? String.Empty,
+                    IsAxle = jsonData.IsAxle ?? false,
+                    IsleafSpring = jsonData.IsleafSpring ?? false,
+                    IsUnderNM = jsonData.IsUnderNM ?? false,
                 };
-                string error = objDataFeed.AddCarInspection(carInspection);
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    //logger.Error("inspection-create :", error);
-                    return Json(new { success = false, message = $"AddInspection failed: {error}" }, JsonRequestBehavior.AllowGet);
-                }
-
                 CarGrade carGrade = new CarGrade()
                 {
                     //InspectionId = jsonData.InspectionId,
@@ -3013,13 +3329,51 @@ namespace INS_API.Controllers
                     GradeEngine = jsonData.GradeEngine ?? "",
                     GradeCabin = jsonData.GradeCabin ?? ""
                 };
-                error = objDataFeed.AddCarGrade(carGrade);
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    //logger.Error("inspection-create :", error);
-                    return Json(new { success = false, message = $"AddGrade failed: {error}" }, JsonRequestBehavior.AllowGet);
-                }
 
+                INS_DataFeed objDataFeed = new INS_DataFeed();
+                DataTable dt = objDataFeed.GetCarInspectionByBookIn(jsonData.BookInNumber);
+                string error = "";
+                if (dt.Rows.Count > 0)
+                {
+                    error = objDataFeed.UpdateInspectionHistory(jsonData.BookInNumber, jsonData.InspectorName ?? "");
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        //logger.Error("inspection-create :", error);
+                        return Json(new { success = false, message = $"UpdateInspectionHistory failed: {error}" }, JsonRequestBehavior.AllowGet);
+                    }
+
+                    error = objDataFeed.UpdateCarInspection(carInspection);
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        //logger.Error("inspection-create :", error);
+                        return Json(new { success = false, message = $"UpdateCarInspection failed: {error}" }, JsonRequestBehavior.AllowGet);
+                    }
+
+                    error = objDataFeed.UpdateCarGrade(carGrade);
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        //logger.Error("inspection-create :", error);
+                        return Json(new { success = false, message = $"UpdateCarGrade failed: {error}" }, JsonRequestBehavior.AllowGet);
+                    }
+
+                }
+                else { 
+
+                    error = objDataFeed.AddCarInspection(carInspection);
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        //logger.Error("inspection-create :", error);
+                        return Json(new { success = false, message = $"AddInspection failed: {error}" }, JsonRequestBehavior.AllowGet);
+                    }
+
+             
+                    error = objDataFeed.AddCarGrade(carGrade);
+                    if (!string.IsNullOrWhiteSpace(error))
+                    {
+                        //logger.Error("inspection-create :", error);
+                        return Json(new { success = false, message = $"AddGrade failed: {error}" }, JsonRequestBehavior.AllowGet);
+                    }
+                }
                 #region updateVehicle
 
                 //flLog.Info("vehicle-UpdateVehicleOnUpdate: bookInNumber={0} | vehicleId={vehicleId}", jsonData.BookInNumber.TrimEnd(), jsonData.VehicleId.TrimEnd());
